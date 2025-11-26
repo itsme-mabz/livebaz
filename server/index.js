@@ -17,8 +17,10 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 
+
+
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/', (req, res) => {
   res.json({
     success: true,
     message: 'Server is running',
