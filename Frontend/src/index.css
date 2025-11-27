@@ -9,7 +9,8 @@ html {
 body * {
     box-sizing: border-box;
     -ms-overflow-style: none;
-    overflow: -moz-scrollbars-none
+    overflow: -moz-scrollbars-none;
+    font-family: 'Fira Sans Condensed', monospace !important;
 }
 
 body ::-webkit-scrollbar {
@@ -19,7 +20,7 @@ body ::-webkit-scrollbar {
 body {
     background: #f3f6f9;
     color: #212121;
-    font-family: Inter, sans-serif;
+    font-family: 'Fira Code', sans-serif;
     font-size: 14px;
     margin: 0;
     overflow-x: hidden

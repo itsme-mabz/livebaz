@@ -21,8 +21,12 @@ const userRoutes = require("./routes/authRoutes");
 
 const matchRoutes = require("./routes/match.routes");
 
+const predictionsRoutes = require("./routes/predictions.routes");
+
 app.use("/api/v1/user", userRoutes);
 
 app.use("/api/v1/match", matchRoutes);
+
+app.use("/api/v1/predictions", predictionsRoutes);
 
 module.exports = app;

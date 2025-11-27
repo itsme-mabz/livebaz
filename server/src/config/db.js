@@ -19,8 +19,8 @@ const connectDB = async () => {
         await sequelize.authenticate();
         console.log(`MySQL Connected: ${process.env.MYSQL_HOST}`);
     } catch (error) {
-        console.log("MySQL Connection Error:", error);
-        process.exit(1);
+        console.log("MySQL Connection Error (continuing without database):", error.message);
+        // Don't exit - predictions API works without MySQL
     }
 };
 
