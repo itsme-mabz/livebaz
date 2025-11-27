@@ -1,137 +1,75 @@
-// controllers/authController.js
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const pool = require('../config/db');
+const AsyncHandler = require("express-async-handler");
+const User = require("../model/user.model");
+const sendToken = require("../utils/SendToken");
+const ErrorHandler = require("../utils/Errorhandler");
 
-// Generate JWT token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
-};
+module.exports.Register = AsyncHandler(async (req, res, next) => {
+  const { Name, Email, Password, confirmpassword } = req.body;
 
-const register = async (req, res) => {
-  const { name, email, password } = req.body;
-
-  try {
-    // Check if user already exists
-    const existingUsers = await pool.query(
-      'SELECT id FROM users WHERE email = $1',
-      [email]
-    );
-
-    if (existingUsers.rows.length > 0) {
-      return res.status(409).json({
-        success: false,
-        message: 'User with this email already exists'
-      });
-    }
-
-    // Hash password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Insert user into database
-    const result = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, created_at',
-      [name, email, hashedPassword]
-    );
-
-    const user = result.rows[0];
-
-    // Generate JWT token
-    const token = generateToken(user.id);
-
-    // Return success response
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      data: {
-        user,
-        token
-      }
-    });
-
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+  // 1️⃣ Check required fields
+  if (!Name || !Email || !Password) {
+    return next(new ErrorHandler("All fields are required", 400));
   }
-};
 
-const login = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    // Find user by email
-    const users = await pool.query(
-      'SELECT * FROM users WHERE email = $1',
-      [email]
-    );
-
-    if (users.rows.length === 0) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    const user = users.rows[0];
-
-    // Compare passwords
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Generate JWT token
-    const token = generateToken(user.id);
-
-    res.json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          created_at: user.created_at
-        },
-        token
-      }
-    });
-
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+  // 2️⃣ Check if user already exists
+  const existingUser = await User.findOne({ where: { Email } });
+  if (existingUser) {
+    return next(new ErrorHandler("User already exists", 400));
   }
-};
+
+  // 4️⃣ Create new user (Sequelize auto-hashes password if set in model hooks)
+  const user = await User.create({
+    Name,
+    Email,
+    Password,
+    confirmpassword,
+  });
+
+  // 5️⃣ Send JWT token response
+  sendToken(user, 201, res);
+});
+
+
+module.exports.Login = AsyncHandler(async (req, res, next) => {
+  // First we get the data from user coming from forntant
+  // then chek all filed are have or not
+  // other check the user are availale in data base or not
+  // firther move in comparing password
+  // atlast the user login succesfully
+  const { Email, Password } = req.body;
+
+  if (!Email || !Password) {
+    return next(new ErrorHandler("All Field are Required ", 400));
+  }
+
+  const user = await User.findOne({ where: { Email } });
+  if (!user) {
+    return next(new ErrorHandler("Invalid email or Password email", 401));
+  }
+
+  const iscomparepassword = await user.comparePassword(Password);
+  if (!iscomparepassword) {
+    return next(new ErrorHandler("Invalid email and Password"));
+  }
+
+  sendToken(user, 200, res);
+});
 
 const getProfile = async (req, res) => {
   try {
     res.json({
       success: true,
-      message: 'Profile retrieved successfully',
+      message: "Profile retrieved successfully",
       data: {
-        user: req.user
-      }
+        user: req.user,
+      },
     });
-
   } catch (error) {
-    console.error('Get profile error:', error);
+    console.error("Get profile error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error retrieving profile',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: "Error retrieving profile",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -143,7 +81,7 @@ const updateProfile = async (req, res) => {
 
     // Update user profile
     const result = await pool.query(
-      'UPDATE users SET name = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, name, email, created_at, updated_at',
+      "UPDATE users SET name = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, name, email, created_at, updated_at",
       [name, userId]
     );
 
@@ -151,25 +89,17 @@ const updateProfile = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Profile updated successfully',
+      message: "Profile updated successfully",
       data: {
-        user: updatedUser
-      }
+        user: updatedUser,
+      },
     });
-
   } catch (error) {
-    console.error('Update profile error:', error);
+    console.error("Update profile error:", error);
     res.status(500).json({
       success: false,
-      message: 'Error updating profile',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: "Error updating profile",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
-};
-
-module.exports = {
-  register,
-  login,
-  getProfile,
-  updateProfile
 };

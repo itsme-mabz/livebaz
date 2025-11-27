@@ -1,9 +1,10 @@
 const express = require("express");
-const { liveMatches, fixtureDetails } = require("../controller/matchcontroller");
 const router = express.Router();
+const ctrl = require("../controllers/matchesController");
+const { getAllPredictions } = require("../controller/Homecontroller.js");
+router.get("/live", ctrl.getLive);
+router.get("/:id", ctrl.getById);
 
-
-router.get("/live", liveMatches);
-router.get("/:id", fixtureDetails);
+router.get("/predictions", getAllPredictions);
 
 module.exports = router;
