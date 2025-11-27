@@ -43,6 +43,12 @@ const getAllPredictions = async (req, res) => {
           match_date: match.match_date,
           match_time: match.match_time,
           prediction,
+
+              home_score: homeScore,
+    away_score: awayScore,
+    live_minute: match.match_status, // or match.match_live if available
+    home_badge: match.team_home_badge || null,
+    away_badge: match.team_away_badge || null,
         };
       });
 

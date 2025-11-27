@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { webSocketService } from '../WebSocketService/WebsocketService';
 import { realTimePredictions, formatMatchData } from '../../Service/FootballService';
+import '../../CSS/DynamicForecast/DynamicForecast.css'
 
 const DynamicForecasts = () => {
   const [predictions, setPredictions] = useState([]);
@@ -10,7 +11,7 @@ const DynamicForecasts = () => {
   useEffect(() => {
     // Start WebSocket connection
     webSocketService.connect();
-    
+
     // Subscribe to WebSocket events for live updates
     const unsubscribeWebSocket = webSocketService.subscribe('forecasts-component', (type, data) => {
       if (type === 'liveData') {
@@ -36,7 +37,7 @@ const DynamicForecasts = () => {
 
     // Subscribe to prediction updates
     const unsubscribePredictions = realTimePredictions.subscribe(
-      'forecasts-component', 
+      'forecasts-component',
       (type, data) => {
         if (type === 'predictionsUpdate') {
           const formattedPredictions = data.predictions.map(formatMatchData).slice(0, 5);
@@ -76,7 +77,7 @@ const DynamicForecasts = () => {
   if (loading) {
     return (
       <div class="forecasts__wrapper">
-        {[...Array(5)].map((_, index) => (
+        {[...Array(6)].map((_, index) => (
           <span key={index} class="forecast-item">
             <span class="forecast-item__top fl">
               <div style={{
@@ -118,19 +119,33 @@ const DynamicForecasts = () => {
       {predictions.map((prediction) => (
         <span key={prediction.id} class="forecast-item">
           <span class="forecast-item__top fl">
-            <img
-              srcset={`https://cdn.ratingbet.com/ratingbet/20251124/placeholder-${prediction.homeTeamSlug}-vs-${prediction.awayTeamSlug}-550-345.webp 550w`}
-              sizes="550px"
-              decoding="async"
-              width="360"
-              height="140"
-              alt={prediction.predictionTitle}
-              src={`https://cdn.ratingbet.com/ratingbet/20251124/placeholder-${prediction.homeTeamSlug}-vs-${prediction.awayTeamSlug}-550-345.webp`}
-              onError={(e) => {
-                // Fallback image if dynamic image fails
-                e.target.src = "https://cdn.ratingbet.com/ratingbet/20251124/1d0417df57f8e4ff0d4fb5b46f413c2dce16dcb30f42ab22bf9f360e9e8383a7-550-345.webp";
-              }}
-            />
+
+            <div className='team-poster-wraper'>
+              <div className='team-img'>
+                <img src='./assets/home-page-img/bg-img-common.jpeg' />
+              </div>
+              <div className='home-team'>
+                {prediction.homeTeamLogo && (
+                  <img
+                    src={prediction.homeTeamLogo}
+                    alt={prediction.homeTeam}
+                    className="team-logo"
+                  />
+                )}
+                <span className="team-name">{prediction.homeTeam}</span>
+              </div>
+              <div className='away-team'>
+                {prediction.awayTeamLogo && (
+                  <img
+                    src={prediction.awayTeamLogo}
+                    alt={prediction.awayTeam}
+                    className="team-logo"
+                  />
+                )}
+                <span className="team-name">{prediction.awayTeam}</span>
+              </div>
+            </div>
+
           </span>
 
           <span class="forecast-item__bottom fl">
