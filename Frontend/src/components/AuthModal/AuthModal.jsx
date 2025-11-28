@@ -368,7 +368,7 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   placeholder="username"
                   className="auth-input"
                   onChange={handleChange}
-                  name="Username"
+                  name="Name"
                   value={formData.Name}
                   disabled={loading}
                 />
