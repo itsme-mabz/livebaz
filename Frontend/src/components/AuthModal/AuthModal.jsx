@@ -3,7 +3,7 @@ import "./AuthModal.css";
 import axios from "axios";
 import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://livebaz.com/api/v1';
 
 function AuthModal({ isOpen, onClose, initialMode = "login" }) {
   const [mode, setMode] = useState(initialMode);
@@ -365,10 +365,10 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Name"
+                  placeholder="username"
                   className="auth-input"
                   onChange={handleChange}
-                  name="Name"
+                  name="Username"
                   value={formData.Name}
                   disabled={loading}
                 />
