@@ -18,19 +18,12 @@ connectDB().catch((err) => {
 });
 
 // SYNC MODELS
-
 sequelize
-<<<<<<< HEAD
   .sync({ force: false }) // force: false keeps existing tables
   .then(() => console.log("Database synced successfully"))
   .catch((err) => {
     console.error("DB Sync Error (continuing without MySQL):", err.message);
   });
-=======
-  .sync({ force: false, alter: false }) // Data will NOT be deleted
-  .then(() => console.log("MYSQL CONNECTED SUCCESSFULLY"))
-  .catch((err) => console.log("DB ERROR:", err));
->>>>>>> 0f874b23d2a19cad4a5c8cb2b26b1ecb5d928e2d
 
 // Start server
 const PORT = process.env.PORT || 3000;
