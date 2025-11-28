@@ -1,35 +1,32 @@
-// server.js
-const express = require('express');
+const express = require("express");
+
+const cors = require("cors");
 const app = express();
-const cors = require('cors');
-require('dotenv').config();
 
+const dotenv = require("dotenv");
+dotenv.config();
 
-// All Routes call 
-const matchRoutes = require('./routes/match.routes');
-const authRoutes = require('./routes/authRoutes');
+app.use(
+  cors({
+    origin: "http://localhost:5173", // allow requests from frontend
+    credentials: true, // allow cookies to be sent
+  })
+);
+app.use(express.json({ limit: "50mb" })); // parse JSON with size limit
+app.use(express.urlencoded({ extended: true, limit: "50mb" })); // parse URL-encoded data
 
+// Import Routes
 
-// Middleware
-app.use(cors({
-    origin: "http://localhost:3000",
-    credentials: true
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const userRoutes = require("./routes/authRoutes");
 
+const matchRoutes = require("./routes/match.routes");
 
+const predictionsRoutes = require("./routes/predictions.routes");
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/match', matchRoutes);
+app.use("/api/v1/user", userRoutes);
 
+app.use("/api/v1/match", matchRoutes);
 
-
-
-
-
+app.use("/api/v1/predictions", predictionsRoutes);
 
 module.exports = app;
-
-

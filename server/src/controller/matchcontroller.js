@@ -1,32 +1,19 @@
-const { getLiveFixtures, getFixtureEvents, getFixtureOdds } = require("./apiSportsService");
-const { setCache, getCache } = require("../utils/cache");
+const { getCache } = require("../utils/cache");
+const api = require("../services/apiSportsService");
 
-// Get homepage live matches
-async function liveMatches(req, res) {
-  const cacheKey = "live_matches";
-  const cached = await getCache(cacheKey);
-  if (cached) return res.json(cached);
-
-  const fixtures = await getLiveFixtures();
-  await setCache(cacheKey, fixtures, 5); // 5 sec cache
-  res.json(fixtures);
+async function getLive(req, res) {
+  const cached = await getCache("live_fixtures");
+  return res.json({ success: true, data: cached || [] });
 }
-
-// Get fixture details with events + odds
-async function fixtureDetails(req, res) {
-  const fixtureId = req.params.id;
-  const cacheKey = `fixture_${fixtureId}`;
-  const cached = await getCache(cacheKey);
-  if (cached) return res.json(cached);
-
-  const [events, odds] = await Promise.all([
-    getFixtureEvents(fixtureId),
-    getFixtureOdds(fixtureId)
-  ]);
-
-  const data = { events, odds };
-  await setCache(cacheKey, data, 5);
-  res.json(data);
+async function getById(req, res) {
+  const id = req.params.id;
+  const cached = await getCache(`fixture_detail_${id}`);
+  if (cached) return res.json({ success: true, data: cached });
+  // fallback to API direct
+  const events = await api.getFixtureEvents(id);
+  const stats = await api.getFixtureStatistics(id);
+  const lineups = await api.getFixtureLineups(id);
+  const data = { events, stats, lineups };
+  return res.json({ success: true, data });
 }
-
-module.exports = { liveMatches, fixtureDetails };
+module.exports = { getLive, getById };

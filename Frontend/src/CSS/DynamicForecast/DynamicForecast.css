@@ -1,0 +1,38 @@
+.team-poster-wraper {
+    position: relative;
+    width: 360px;      /* same as your skeleton width */
+    height: 140px;     /* same as your skeleton height */
+    overflow: hidden;
+}
+
+/* Your BG image container */
+.team-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* REMOVE team-img class from home/away — it's overriding */
+.home-team,
+.away-team {
+    position: absolute;
+    z-index: 10;
+}
+
+/* test colors you wanted */
+.home-team {
+    width: 50px;
+    height: 50px;
+    
+    top: 55px;
+    left: 40px;
+}
+
+.away-team {
+    width: 50px;
+    height: 50px;
+    
+     top: 55px;
+    right: 40px;
+}

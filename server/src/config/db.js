@@ -1,27 +1,27 @@
+const { Sequelize } = require("sequelize");
 
-const { Pool } = require('pg');
-require('dotenv').config();
+const sequelize = new Sequelize(
+    process.env.MYSQL_DATABASE,
+    process.env.MYSQL_USER,
+    process.env.MYSQL_PASSWORD,
+    {
+        
+        host: process.env.MYSQL_HOST,
+        dialect: "mysql",
+        logging: false,
+        port: process.env.MYSQL_PORT || 3306
+    }
+);
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'hamdan1514',
-  database: process.env.DB_NAME || 'spcl',
-  port: process.env.DB_PORT || 5432,
-});
-
-// Test connection
-const testConnection = async () => {
-  try {
-    const client = await pool.connect();
-    console.log(`✅ Connected to ${process.env.DB_NAME || 'spcl'} PostgreSQL database`);
-    client.release();
-  } catch (error) {
-    console.error('❌ PostgreSQL connection error:', error.message);
-    process.exit(1);
-  }
+// MySQL Connection Function
+const connectDB = async () => {
+    try {
+        await sequelize.authenticate();
+        console.log(`MySQL Connected: ${process.env.MYSQL_HOST}`);
+    } catch (error) {
+        console.log("MySQL Connection Error (continuing without database):", error.message);
+        // Don't exit - predictions API works without MySQL
+    }
 };
 
-testConnection();
-
-module.exports = pool;
+module.exports = { sequelize, connectDB };
