@@ -12,6 +12,7 @@ function Navigation() {
     const [authMode, setAuthMode] = useState('login');
     const [allLeagues, setAllLeagues] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const openLoginModal = () => {
         setAuthMode('login');
@@ -26,6 +27,24 @@ function Navigation() {
     const closeAuthModal = () => {
         setIsAuthModalOpen(false);
     };
+
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    // Prevent body scroll when mobile menu is open
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            document.body.classList.add('mobile-menu-open');
+        } else {
+            document.body.classList.remove('mobile-menu-open');
+        }
+
+        // Cleanup on unmount
+        return () => {
+            document.body.classList.remove('mobile-menu-open');
+        };
+    }, [isMobileMenuOpen]);
 
     // Fetch leagues from API
     useEffect(() => {
@@ -77,7 +96,7 @@ function Navigation() {
             <div className="header fl_c w-full mb-8 mb-m-0">
                 <div className="wrap fl_c_sb">
                     <div className="header-menu rounded_6">
-                        <button type="button" className="header-menu__button" aria-label="Open main menu"></button>
+                        <button type="button" className="header-menu__button" aria-label="Open main menu" onClick={toggleMobileMenu}></button>
                     </div>
                     <div className="header-center fl_c_sb w-full">
                         <span className='header-logo'>
@@ -229,6 +248,58 @@ function Navigation() {
 
 
 
+                </div>
+            </div>
+
+            {/* Mobile Menu Sidebar */}
+            <div className={`mobile-menu ${isMobileMenuOpen ? 'mobile-menu--open' : ''}`}>
+                <div className="mobile-menu__overlay" onClick={toggleMobileMenu}></div>
+                <div className="mobile-menu__content">
+                    <div className="mobile-menu__header">
+                        <span style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold' }}>Livebaz</span>
+                        <button className="mobile-menu__close" onClick={toggleMobileMenu} aria-label="Close menu">
+                            ✕
+                        </button>
+                    </div>
+                    <nav className="mobile-menu__nav">
+                        <a href='/predictions/' className='mobile-menu__link' onClick={toggleMobileMenu}>
+                            Predictions
+                        </a>
+
+                        <a href='/competitions/' className='mobile-menu__link' onClick={toggleMobileMenu}>
+                            Leagues
+                        </a>
+
+                        <a href='/math-predictions/' className='mobile-menu__link' onClick={toggleMobileMenu}>
+                            Math Predictions
+                        </a>
+
+                        <div className='mobile-menu__section'>
+                            <div className='mobile-menu__section-title'>Football Tips</div>
+                            <a href='#' className='mobile-menu__sublink disabled' onClick={(e) => e.preventDefault()}>
+                                Betting Tips 1x2 <span className='coming-soon'>Coming Soon</span>
+                            </a>
+                            <a href='#' className='mobile-menu__sublink disabled' onClick={(e) => e.preventDefault()}>
+                                Over/Under 2.5 <span className='coming-soon'>Coming Soon</span>
+                            </a>
+                            <a href='#' className='mobile-menu__sublink disabled' onClick={(e) => e.preventDefault()}>
+                                BTTS Predictions <span className='coming-soon'>Coming Soon</span>
+                            </a>
+                            <a href='#' className='mobile-menu__sublink disabled' onClick={(e) => e.preventDefault()}>
+                                HT/FT Prediction <span className='coming-soon'>Coming Soon</span>
+                            </a>
+                        </div>
+
+                        <a href='/livescore/' className='mobile-menu__link' onClick={toggleMobileMenu}>
+                            Scores
+                        </a>
+
+                        <div className='mobile-menu__divider'></div>
+
+                        <button className='mobile-menu__login-btn' onClick={() => { toggleMobileMenu(); openLoginModal(); }}>
+                            Log in
+                        </button>
+                    </nav>
                 </div>
             </div>
 

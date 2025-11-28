@@ -16,11 +16,11 @@ function Footer() {
                                 </a>
                             </span>
                             <div className="copyright copyright-text">
-                                Livebaz.com - match predictions, football stats &amp; live results. All rights reserved. When citing materials, a reference to "ratingbet.com" is required.
+                                Livebaz.com - match predictions, football stats &amp; live results. All rights reserved. When citing materials, a reference to "livebaz.com" is required.
                             </div>
                         </div>
                         <div className="copyright copyright-date">
-                            © Copyright 2014 - 2025
+                            © Copyright 2025
                         </div>
                         <ul className="about-project-footer fl_c_st">
                             <li className="footer__list-link">
