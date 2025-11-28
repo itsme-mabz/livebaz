@@ -159,6 +159,27 @@ export const formatMatchData = (prediction) => {
     minute: '2-digit'
   });
 
+  // Determine best prediction based on highest probability
+  const probabilities = {
+    homeWin: parseFloat(prediction.prob_HW) || 0,
+    draw: parseFloat(prediction.prob_D) || 0,
+    awayWin: parseFloat(prediction.prob_AW) || 0,
+    over25: parseFloat(prediction.prob_O) || 0,
+    under25: parseFloat(prediction.prob_U) || 0,
+    btts: parseFloat(prediction.prob_bts) || 0
+  };
+
+  const tips = [
+    { type: 'Home Win', prob: probabilities.homeWin },
+    { type: 'Draw', prob: probabilities.draw },
+    { type: 'Away Win', prob: probabilities.awayWin },
+    { type: 'Over 2.5', prob: probabilities.over25 },
+    { type: 'Under 2.5', prob: probabilities.under25 },
+    { type: 'BTTS Yes', prob: probabilities.btts }
+  ];
+
+  const bestTip = tips.sort((a, b) => b.prob - a.prob)[0];
+
   return {
     id: prediction.match_id,
     homeTeam: prediction.match_hometeam_name,
@@ -174,15 +195,16 @@ export const formatMatchData = (prediction) => {
     predictionTitle: `${prediction.match_hometeam_name} vs ${prediction.match_awayteam_name} prediction: Match preview, betting odds and tips`,
     homeTeamSlug,
     awayTeamSlug,
-    homeTeamLogo: null,
-    awayTeamLogo: null,
+    homeTeamLogo: prediction.team_home_badge || null,
+    awayTeamLogo: prediction.team_away_badge || null,
+    bestPrediction: `${bestTip.type} (${bestTip.prob}%)`,
     probabilities: {
-      homeWin: prediction.prob_HW,
-      draw: prediction.prob_D,
-      awayWin: prediction.prob_AW,
-      over25: prediction.prob_O,
-      under25: prediction.prob_U,
-      btts: prediction.prob_bts
+      home: probabilities.homeWin,
+      draw: probabilities.draw,
+      away: probabilities.awayWin,
+      over25: probabilities.over25,
+      under25: probabilities.under25,
+      btts: probabilities.btts
     }
   };
 };

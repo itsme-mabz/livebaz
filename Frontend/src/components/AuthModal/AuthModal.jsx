@@ -1,16 +1,22 @@
 import React, { useState } from "react";
 import "./AuthModal.css";
 import axios from "axios";
+import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 
 function AuthModal({ isOpen, onClose, initialMode = "login" }) {
   const [mode, setMode] = useState(initialMode);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [formData, setFormData] = useState({
     Name: "",
     Email: "",
     Password: "",
-    confirmpassword: "",
+    confirmPassword: "",
   });
 
   const handleChange = (e) => {
@@ -19,48 +25,141 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
       ...prevData,
       [name]: value,
     }));
+    // Clear errors when user types
+    setError("");
+    setSuccess("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    setError("");
+    setSuccess("");
 
-    axios
-      .post("http://localhost:5000/api/v1/user/register", formData, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
+    // Validation
+    if (!formData.Name || !formData.Email || !formData.Password || !formData.confirmPassword) {
+      setError("All fields are required");
+      return;
+    }
+
+    if (formData.Password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (formData.Password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/user/register`,
+        {
+          Name: formData.Name,
+          Email: formData.Email,
+          Password: formData.Password,
+          confirmPassword: formData.confirmPassword,
+        },
+        { withCredentials: true }
+      );
+
+      console.log("Registration successful:", response.data);
+
+      // Store token if provided
+      if (response.data.token) {
+        localStorage.setItem("authToken", response.data.token);
+      }
+
+      // Store user info
+      if (response.data.user) {
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+      }
+
+      setSuccess("Registration successful! Redirecting...");
+      setFormData({
+        Name: "",
+        Email: "",
+        Password: "",
+        confirmPassword: "",
       });
-    setFormData({
-      Name: "",
-      Email: "",
-      Password: "",
-      confirmpassword: "",
-    });
+
+      // Close modal and reload after 1.5 seconds
+      setTimeout(() => {
+        onClose();
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError(
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Registration failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    setError("");
+    setSuccess("");
 
-    axios
-      .post("http://localhost:5000/api/v1/user/login", formData, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
+    // Validation
+    if (!formData.Email || !formData.Password) {
+      setError("Email and password are required");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/user/login`,
+        {
+          Email: formData.Email,
+          Password: formData.Password,
+        },
+        { withCredentials: true }
+      );
+
+      console.log("Login successful:", response.data);
+
+      // Store token if provided
+      if (response.data.token) {
+        localStorage.setItem("authToken", response.data.token);
+      }
+
+      // Store user info
+      if (response.data.user) {
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+      }
+
+      setSuccess("Login successful! Redirecting...");
+      setFormData({
+        Name: "",
+        Email: "",
+        Password: "",
+        confirmPassword: "",
       });
-    setFormData({
-      Email: "",
-      Password: "",
-    });
+
+      // Close modal and reload after 1.5 seconds
+      setTimeout(() => {
+        onClose();
+        window.location.reload();
+      }, 1500);
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Invalid email or password"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -73,14 +172,26 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
 
   const switchToSignup = () => {
     setMode("signup");
+    setError("");
+    setSuccess("");
+    setFormData({
+      Name: "",
+      Email: "",
+      Password: "",
+      confirmPassword: "",
+    });
   };
 
   const switchToLogin = () => {
     setMode("login");
-  };
-
-  const switchToReset = () => {
-    setMode("reset");
+    setError("");
+    setSuccess("");
+    setFormData({
+      Name: "",
+      Email: "",
+      Password: "",
+      confirmPassword: "",
+    });
   };
 
   return (
@@ -97,53 +208,12 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
           </svg>
         </button>
 
-        {mode === "reset" ? (
-          <div className="auth-form">
-            <h2 className="auth-title">Reset Password</h2>
-
-            <p className="auth-description">
-              Enter your email address and we'll send you a link to reset your
-              password.
-            </p>
-
-            <div className="auth-input-group">
-              <div className="auth-input-wrapper">
-                <svg
-                  className="auth-input-icon"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                >
-                  <path
-                    d="M3.33 5.833A2.5 2.5 0 015.833 3.33h8.334a2.5 2.5 0 012.5 2.5v8.333a2.5 2.5 0 01-2.5 2.5H5.833a2.5 2.5 0 01-2.5-2.5V5.833z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M3.33 7.5l5.856 3.658a2 2 0 002.028 0L16.67 7.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <input
-                  type="email"
-                  placeholder="E-mail"
-                  className="auth-input"
-                />
-              </div>
-            </div>
-
-            <button className="auth-submit-btn">Send Reset Link</button>
-
-            <div className="auth-switch">
-              <button onClick={switchToLogin}>Back to Login</button>
-            </div>
-          </div>
-        ) : mode === "login" ? (
+        {mode === "login" ? (
           <div className="auth-form">
             <h2 className="auth-title">Login</h2>
+
+            {error && <div className="auth-error-message">{error}</div>}
+            {success && <div className="auth-success-message">{success}</div>}
 
             <div className="auth-input-group">
               <div className="auth-input-wrapper">
@@ -171,7 +241,9 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   placeholder="E-mail"
                   className="auth-input"
                   onChange={handleChange}
-                  name="  Email"
+                  name="Email"
+                  value={formData.Email}
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -201,11 +273,13 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   />
                 </svg>
                 <input
-                  type={showPassword ? "text" : "Password"}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   className="auth-input"
                   onChange={handleChange}
                   name="Password"
+                  value={formData.Password}
+                  disabled={loading}
                 />
                 <button
                   type="button"
@@ -247,20 +321,12 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
               </div>
             </div>
 
-            <div className="auth-forgot">
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  switchToReset();
-                }}
-              >
-                Forgot your password?
-              </a>
-            </div>
-
-            <button className="auth-submit-btn" onClick={handleLoginSubmit}>
-              Sign in
+            <button
+              className="auth-submit-btn"
+              onClick={handleLoginSubmit}
+              disabled={loading}
+            >
+              {loading ? <LoadingSpinner size="small" /> : "Sign in"}
             </button>
 
             <div className="auth-switch">
@@ -270,6 +336,9 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
         ) : (
           <div className="auth-form">
             <h2 className="auth-title">Registration</h2>
+
+            {error && <div className="auth-error-message">{error}</div>}
+            {success && <div className="auth-success-message">{success}</div>}
 
             <div className="auth-input-group">
               <div className="auth-input-wrapper">
@@ -300,6 +369,8 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   className="auth-input"
                   onChange={handleChange}
                   name="Name"
+                  value={formData.Name}
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -331,6 +402,8 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   onChange={handleChange}
                   name="Email"
                   className="auth-input"
+                  value={formData.Email}
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -360,11 +433,13 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   />
                 </svg>
                 <input
-                  type={showPassword ? "text" : "Password"}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   onChange={handleChange}
                   name="Password"
                   className="auth-input"
+                  value={formData.Password}
+                  disabled={loading}
                 />
                 <button
                   type="button"
@@ -420,11 +495,13 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   />
                 </svg>
                 <input
-                  type={showConfirmPassword ? "text" : "Password"}
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm password"
                   className="auth-input"
                   onChange={handleChange}
                   name="confirmPassword"
+                  value={formData.confirmPassword}
+                  disabled={loading}
                 />
                 <button
                   type="button"
@@ -455,8 +532,12 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
               </div>
             </div>
 
-            <button className="auth-submit-btn" onClick={handleSubmit}>
-              Sing up
+            <button
+              className="auth-submit-btn"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? <LoadingSpinner size="small" /> : "Sign up"}
             </button>
 
             <div className="auth-switch">

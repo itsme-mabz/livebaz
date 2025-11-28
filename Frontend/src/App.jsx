@@ -3,8 +3,11 @@ import Navigation from './components/Navigation/Navigation';
 import Footer from './components/Footer/footer';
 import Homepage from './components/Home/home';
 import Predictions from './pages/Predictions';
+import PredictionDetail from './pages/PredictionDetail';
 import Bookmakers from './pages/Bookmakers';
 import Leagues from './pages/Leagues';
+import LeagueDetail from './pages/LeagueDetail';
+import MatchDetail from './pages/MatchDetail';
 import MathPredictions from './pages/MathPredictions';
 import LiveScore from './pages/LiveScore';
 import Football from './pages/Football';
@@ -23,7 +26,7 @@ function App() {
         <Route path="/" element={<Homepage />} />
         <Route path="/predictions" element={<Predictions />} />
         <Route path="/bookmakers" element={<Bookmakers />} />
-        <Route path="/football/competitions/" element={<Leagues />} />
+        <Route path="/competitions/" element={<Leagues />} />
         <Route path="/math-predictions" element={<MathPredictions />} />
         <Route path="/livescore" element={<LiveScore />} />
         <Route path="/predictions/football" element={<Football />} />
@@ -31,9 +34,16 @@ function App() {
         <Route path="/predictions/tennis" element={<Tennis />} />
         <Route path="/ar/bookmakers" element={<BestBettingapp />} />
 
+        {/* Prediction Detail Page */}
+        <Route path="/prediction/:matchId" element={<PredictionDetail />} />
 
+        {/* League Detail Page */}
+        <Route path="/league/:leagueId" element={<LeagueDetail />} />
 
-          <Route path="/league/:leagueId" element={<PopularLeagues />} />
+        {/* Match Detail Page */}
+        <Route path="/match/:matchId" element={<MatchDetail />} />
+
+        <Route path="/league/:leagueId/old" element={<PopularLeagues />} />
 
 
       </Routes>

@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import DynamicForecasts from "../DynamicForecast/DynamicForecast";
 import LiveUpdate from "../LiveUpdates/LiveUpdates";
 
 function home() {
+  const [selectedDateFilter, setSelectedDateFilter] = useState('today');
+
   return (
     <>
       <main class="main-page">
@@ -14,24 +16,24 @@ function home() {
                 <div class="date-setting">
                   <button>
                     <span
-                      data-href="/predictions/by-ajax/"
-                      class="date-setting__link by-ajax current"
+                      onClick={() => setSelectedDateFilter('all')}
+                      class={`date-setting__link by-ajax ${selectedDateFilter === 'all' ? 'current' : ''}`}
                     >
                       All Predictions
                     </span>
                   </button>
                   <button>
                     <span
-                      data-href="/predictions/by-ajax/?categorySlug=today"
-                      class="date-setting__link by-ajax"
+                      onClick={() => setSelectedDateFilter('today')}
+                      class={`date-setting__link by-ajax ${selectedDateFilter === 'today' ? 'current' : ''}`}
                     >
                       Today
                     </span>
                   </button>
                   <button>
                     <span
-                      data-href="/predictions/by-ajax/?categorySlug=tomorrow"
-                      class="date-setting__link by-ajax"
+                      onClick={() => setSelectedDateFilter('tomorrow')}
+                      class={`date-setting__link by-ajax ${selectedDateFilter === 'tomorrow' ? 'current' : ''}`}
                     >
                       Tomorrow
                     </span>
@@ -39,452 +41,11 @@ function home() {
                 </div>
               </div>
 
-              <DynamicForecasts/>
-              
-              <a href="/predictions/" class="button">
-                <span class="button__text button-arrow">All Predictions</span>
-              </a>
+              <DynamicForecasts dateFilter={selectedDateFilter} />
+
             </section>
 
-            <section class="match-center">
-              <div class="top-leagues">
-                <div class="section-title">
-                  Top Leagues
-                  <span class="close-btn"></span>
-                </div>
-                <div class="top-leagues__container">
-                  <a
-                    href="/football/african-nations-championship/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/2bbad9bb64a8a528a98448d45129fd3767536804d45535fe4bff213e69f21e92-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="African Nations Championship"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/2bbad9bb64a8a528a98448d45129fd3767536804d45535fe4bff213e69f21e92-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">
-                      African Nations Championship
-                    </span>
-                  </a>
-                  <a
-                    href="/football/champions-league/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/7475ec0522c21747d5d7921662eea1aaa0ced88ec427cc5a1ab07f9224db9005-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="Champions League"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/7475ec0522c21747d5d7921662eea1aaa0ced88ec427cc5a1ab07f9224db9005-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">Champions League</span>
-                  </a>
-                  <a
-                    href="/football/uefa-super-cup/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/831abb59d4a8552d3e8b8d49a36543f7616a57926f1bfcf67b2fc6e84ad9b1c5-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="UEFA Super Cup"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/831abb59d4a8552d3e8b8d49a36543f7616a57926f1bfcf67b2fc6e84ad9b1c5-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">UEFA Super Cup</span>
-                  </a>
-                  <a
-                    href="/football/europa-league/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/50f4bc248bad3ba31bd43dc7f3f5f93414c1e4e12f28250f849dc57760128989-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="Europa League"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/50f4bc248bad3ba31bd43dc7f3f5f93414c1e4e12f28250f849dc57760128989-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">Europa League</span>
-                  </a>
-                  <a
-                    href="/football/europa-conference-league/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/dd05aa3cd97f343c80626f1f3525d1bdd3982880f0c0d3f1cd5c60a8e8f2e834-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="Europa Conference League"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/dd05aa3cd97f343c80626f1f3525d1bdd3982880f0c0d3f1cd5c60a8e8f2e834-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">
-                      Europa Conference League
-                    </span>
-                  </a>
-                  <a
-                    href="/football/england-premier-league/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/2fac95e438c6ad7daa746a87fef553d4fd8b2a581ab4d890fea603bee6bc26db-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="English Premier League"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/2fac95e438c6ad7daa746a87fef553d4fd8b2a581ab4d890fea603bee6bc26db-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">
-                      English Premier League
-                    </span>
-                  </a>
-                  <a
-                    href="/football/spain-laliga/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/e318c571b3b1ddfd22ade03a16922d202f5c67b5228b961ae65d1e6781d20fed-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="LaLiga Spain"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/e318c571b3b1ddfd22ade03a16922d202f5c67b5228b961ae65d1e6781d20fed-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">LaLiga Spain</span>
-                  </a>
-                  <a
-                    href="/football/italy-serie-a/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/23526f4857e8fe4ed673e22a116045d1e109beee8001709806d0e2b2cab909d4-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="Serie A Italy"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/23526f4857e8fe4ed673e22a116045d1e109beee8001709806d0e2b2cab909d4-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">Serie A Italy</span>
-                  </a>
-                  <a
-                    href="/football/germany-1-bundesliga/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/3d5fc302a8ce7e60781f75eeb66b19ccd333737db5138635f4855275497ad8ca-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="Bundesliga Germany"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/3d5fc302a8ce7e60781f75eeb66b19ccd333737db5138635f4855275497ad8ca-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">Bundesliga Germany</span>
-                  </a>
-                  <a
-                    href="/football/france-ligue-1/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/a41a5cb68dabbb9bf6a8e6d34184f6bdbf5e70646b84e0a460c25ea2ba3b8342-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="Ligue 1 France"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/a41a5cb68dabbb9bf6a8e6d34184f6bdbf5e70646b84e0a460c25ea2ba3b8342-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">Ligue 1 France</span>
-                  </a>
-                  <a
-                    href="/football/portugal-liga-portugal/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/6ad5c6e991dcfe8977804e2c944d71d9d08c7f7d6288915dc9826e91c2e28dbb-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="Primeira Liga Portugal"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/6ad5c6e991dcfe8977804e2c944d71d9d08c7f7d6288915dc9826e91c2e28dbb-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">
-                      Primeira Liga Portugal
-                    </span>
-                  </a>
-                  <a
-                    href="/football/brazil-serie-a/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/6845080b8e3e897282565a52d9ff41a4c975fb841dd4cb9d54f5caa7038313eb-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="Serie A Brazil"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/6845080b8e3e897282565a52d9ff41a4c975fb841dd4cb9d54f5caa7038313eb-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">Serie A Brazil</span>
-                  </a>
-                  <a
-                    href="/football/greece-super-league/"
-                    class="top-leagues__item fl_c"
-                  >
-                    <span class="top-leagues__logo">
-                      <img
-                        srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/396a38104c7c5f6545e5488fd09f6c80f8b54effc35bee5f6728b7ec96d18b02-30-30.png 30w"
-                        sizes="30px"
-                        decoding="async"
-                        width="20"
-                        height="20"
-                        alt="Super League Greece"
-                        src="https://statistic-cdn.ratingbet.com/statistic/tournament/396a38104c7c5f6545e5488fd09f6c80f8b54effc35bee5f6728b7ec96d18b02-30-30.png"
-                      />
-                    </span>
-                    <span class="top-leagues__name">Super League Greece</span>
-                  </a>
-                  <a
-                    href="/football/competitions/"
-                    class="show-more-button fl_c "
-                  >
-                    <span class="button__text">All leagues</span>
-                  </a>
-                </div>
-              </div>
 
-              <LiveUpdate/>
-              
-              <a href="/livescore/" class="button show-more-button">
-                <span class="button__text button-arrow">All games</span>
-              </a>
-            </section>
-            <div class="grid-ordered">
-              <section class="forecasters">
-                <div class="section-title">Best Authors</div>
-                <div class="forecasters__wrapper">
-                  <div class="forecasters-item active">
-                    <div class="img__wrapper">
-                      <img
-                        srcset="/ratingbet_build/img/placeholder.svg 100w"
-                        decoding="async"
-                        data-srcset="https://cdn.ratingbet.com/sport-news/ratingbet/authors/20231009/fb7ffb0588efb9ace4164bb45bb1943de2d8129d4582fd4dbbfb2ed15b0924e7-100-100.jpg 100w"
-                        data-sizes="auto"
-                        width="72"
-                        height="72"
-                        alt="Benjamin Mcneil"
-                        src="https://cdn.ratingbet.com/sport-news/ratingbet/authors/20231009/fb7ffb0588efb9ace4164bb45bb1943de2d8129d4582fd4dbbfb2ed15b0924e7-100-100.jpg"
-                        class="lazyload"
-                      />
-                    </div>
-                    <div class="info-container">
-                      <a href="/authors/benjamin-mcneil/" class="name">
-                        Benjamin Mcneil
-                      </a>
-
-                      <div class="info fl_c">
-                        <div class="info-item fl_c info-item--empty">
-                          <span class="info-item__icon info-item__icon--news"></span>
-                          <span class="info-item__num">0</span>
-                        </div>
-                        <div class="info-item fl_c">
-                          <span class="info-item__icon info-item__icon--articles"></span>
-                          <span class="info-item__num">1</span>
-                        </div>
-                        <div class="info-item fl_c">
-                          <span class="info-item__icon info-item__icon--forecasts"></span>
-                          <span class="info-item__num">99+</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="forecasters-item">
-                    <div class="img__wrapper">
-                      <img
-                        srcset="/ratingbet_build/img/placeholder.svg 100w"
-                        decoding="async"
-                        data-srcset="https://cdn.ratingbet.com/ratingbet/20250316/32eab023a0a33cc67a4987e797a0dd65397380d8d2d12fb4c5d371331ee1c540-100-100.jpg 100w"
-                        data-sizes="auto"
-                        width="72"
-                        height="72"
-                        alt="Nafongo TRAORE"
-                        src="https://cdn.ratingbet.com/ratingbet/20250316/32eab023a0a33cc67a4987e797a0dd65397380d8d2d12fb4c5d371331ee1c540-100-100.jpg"
-                        class="lazyload"
-                      />
-                    </div>
-                    <div class="info-container">
-                      <a href="/authors/nafongo-traore/" class="name">
-                        Nafongo TRAORE
-                      </a>
-
-                      <div class="info fl_c">
-                        <div class="info-item fl_c info-item--empty">
-                          <span class="info-item__icon info-item__icon--news"></span>
-                          <span class="info-item__num">0</span>
-                        </div>
-                        <div class="info-item fl_c info-item--empty">
-                          <span class="info-item__icon info-item__icon--articles"></span>
-                          <span class="info-item__num">0</span>
-                        </div>
-                        <div class="info-item fl_c">
-                          <span class="info-item__icon info-item__icon--forecasts"></span>
-                          <span class="info-item__num">99+</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="forecasters-item">
-                    <div class="img__wrapper">
-                      <img
-                        srcset="/ratingbet_build/img/placeholder.svg 100w"
-                        decoding="async"
-                        data-srcset="https://cdn.ratingbet.com/ratingbet/20250211/6d96285a01f3807eca4fae9be5e5f7b5c2318da4cbefe6ad238467c6ee162481-100-100.jpg 100w"
-                        data-sizes="auto"
-                        width="72"
-                        height="72"
-                        alt="Aimé Atti"
-                        src="https://cdn.ratingbet.com/ratingbet/20250211/6d96285a01f3807eca4fae9be5e5f7b5c2318da4cbefe6ad238467c6ee162481-100-100.jpg"
-                        class="lazyload"
-                      />
-                    </div>
-                    <div class="info-container">
-                      <a href="/authors/aime-atti/" class="name">
-                        Aimé Atti
-                      </a>
-
-                      <div class="info fl_c">
-                        <div class="info-item fl_c info-item--empty">
-                          <span class="info-item__icon info-item__icon--news"></span>
-                          <span class="info-item__num">0</span>
-                        </div>
-                        <div class="info-item fl_c info-item--empty">
-                          <span class="info-item__icon info-item__icon--articles"></span>
-                          <span class="info-item__num">0</span>
-                        </div>
-                        <div class="info-item fl_c">
-                          <span class="info-item__icon info-item__icon--forecasts"></span>
-                          <span class="info-item__num">99+</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="forecasters-item">
-                    <div class="img__wrapper">
-                      <img
-                        srcset="/ratingbet_build/img/placeholder.svg 100w"
-                        decoding="async"
-                        data-srcset="https://cdn.ratingbet.com/sport-news/ratingbet/authors/20231009/a13e7affe9d59133b154e675d29fdd001d7488274a56edec1c6c1545fd087047-100-100.jpg 100w"
-                        data-sizes="auto"
-                        width="72"
-                        height="72"
-                        alt="Thomas Jenkins"
-                        src="https://cdn.ratingbet.com/sport-news/ratingbet/authors/20231009/a13e7affe9d59133b154e675d29fdd001d7488274a56edec1c6c1545fd087047-100-100.jpg"
-                        class="lazyload"
-                      />
-                    </div>
-                    <div class="info-container">
-                      <a href="/authors/thomas-jenkins/" class="name">
-                        Thomas Jenkins
-                      </a>
-
-                      <div class="info fl_c">
-                        <div class="info-item fl_c info-item--empty">
-                          <span class="info-item__icon info-item__icon--news"></span>
-                          <span class="info-item__num">0</span>
-                        </div>
-                        <div class="info-item fl_c info-item--empty">
-                          <span class="info-item__icon info-item__icon--articles"></span>
-                          <span class="info-item__num">0</span>
-                        </div>
-                        <div class="info-item fl_c">
-                          <span class="info-item__icon info-item__icon--forecasts"></span>
-                          <span class="info-item__num">99+</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="forecasters-item">
-                    <div class="img__wrapper">
-                      <img
-                        srcset="/ratingbet_build/img/placeholder.svg 100w"
-                        decoding="async"
-                        data-srcset="https://cdn.ratingbet.com/sport-news/ratingbet/authors/20231009/1c1d6e1d4e5060a4633ab68c8a1ee6d9860d94b6ff01e9ea94bd71d808fa83ba-100-100.png 100w"
-                        data-sizes="auto"
-                        width="72"
-                        height="72"
-                        alt="George Mccarthy"
-                        src="https://cdn.ratingbet.com/sport-news/ratingbet/authors/20231009/1c1d6e1d4e5060a4633ab68c8a1ee6d9860d94b6ff01e9ea94bd71d808fa83ba-100-100.png"
-                        class="lazyload"
-                      />
-                    </div>
-                    <div class="info-container">
-                      <a href="/authors/george-mccarthy/" class="name">
-                        George Mccarthy
-                      </a>
-
-                      <div class="info fl_c">
-                        <div class="info-item fl_c info-item--empty">
-                          <span class="info-item__icon info-item__icon--news"></span>
-                          <span class="info-item__num">0</span>
-                        </div>
-                        <div class="info-item fl_c info-item--empty">
-                          <span class="info-item__icon info-item__icon--articles"></span>
-                          <span class="info-item__num">0</span>
-                        </div>
-                        <div class="info-item fl_c">
-                          <span class="info-item__icon info-item__icon--forecasts"></span>
-                          <span class="info-item__num">31</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="button">
-                  <a href="/authors/" class="button__text button-arrow">
-                    All Authors
-                  </a>
-                </div>
-              </section>
-            </div>
             <section class="overall-content">
               <h1>Betting Tips and Sure Predictions for Sports</h1>
               <p>
@@ -495,14 +56,14 @@ function home() {
                 many bettors rely on betting tips — expert insights and match
                 analyses that guide smarter wagering decisions.
               </p>
-              <h2>What We Offer on Ratingbet – Sure Betting Tips Site</h2>
+              <h2>What We Offer on Livebaz – Sure Betting Tips Site</h2>
               <p>
                 Websites with sports betting tips and predictions provide
                 valuable insights and recommendations to help bettors make more
                 educated and potentially profitable wagers. These tips are based
                 on various factors such as statistical analysis, team/player
                 performance, historical data, and other relevant information.
-                Ratingbet is recognized as one of the best prediction sites for
+                Livebaz is recognized as one of the best prediction sites for
                 football, offering reliable forecasts.
               </p>
               <h3>The Right Place to Look for Football Betting Tips</h3>
@@ -518,13 +79,13 @@ function home() {
                 tips to increase their chances of success. We understand the
                 need for a one-stop tool to compare the most compatible odds
                 across betting sites to multiply your winnings. That’s where
-                Ratingbet comes in, our goal is to equip you with the most
+                Livebaz comes in, our goal is to equip you with the most
                 valuable information, ensuring you make thought-out decisions.
               </p>
               <p>We give you odds line movement on:</p>
               <ul>
                 <li>
-                  <a href="https://ratingbet.com/football/goals-over-under/">
+                  <a href="#/football/goals-over-under/">
                     Under/Over 2.5 Betting Tips
                   </a>
                 </li>
@@ -537,7 +98,7 @@ function home() {
               </p>
               <ul>
                 <li>
-                  <a href="https://ratingbet.com/football/btts/">
+                  <a href="#/football/btts/">
                     Both Teams to Score Tips
                   </a>
                 </li>
@@ -551,7 +112,7 @@ function home() {
               </p>
               <ul>
                 <li>
-                  <a href="https://ratingbet.com/football/half-full-time/">
+                  <a href="#/football/half-full-time/">
                     HT/FT Tips
                   </a>
                 </li>
@@ -564,7 +125,7 @@ function home() {
               </p>
               <ul>
                 <li>
-                  <a href="https://ratingbet.com/football/asian-handicap/">
+                  <a href="#/football/asian-handicap/">
                     Asian Handicap Betting Tips
                   </a>
                 </li>
@@ -577,7 +138,7 @@ function home() {
               </p>
               <ul>
                 <li>
-                  <a href="https://ratingbet.com/football/corners-over-under/">
+                  <a href="#/football/corners-over-under/">
                     Corners Betting Tips Today
                   </a>
                 </li>
@@ -591,7 +152,7 @@ function home() {
               </p>
               <ul>
                 <li>
-                  <a href="https://ratingbet.com/football/double-chance/">
+                  <a href="#/football/double-chance/">
                     Double Chance Betting Tips
                   </a>
                 </li>
@@ -613,7 +174,7 @@ function home() {
                 successful sports betting.
               </p>
               <p>
-                We at Ratingbet made betting even easier, going beyond basic
+                We at Livebaz made betting even easier, going beyond basic
                 mathematical football predictions, by comparing implied
                 probabilities with historical team performance under similar
                 odds.
@@ -628,7 +189,7 @@ function home() {
                 How Can Sure Win Prediction Today Boost Your Betting Game?
               </h2>
               <p>
-                Our detailed match predictions at Ratingbet provide bettors with
+                Our detailed match predictions at Livebaz provide bettors with
                 in-depth analysis, expert insights, and valuable tips to support
                 smarter wagering decisions. As a trusted betting tips site, we
                 combine statistical data with professional opinions to deliver
@@ -638,7 +199,7 @@ function home() {
               <p>Here's how our betting tips site can help:</p>
               <ul>
                 <li>
-                  <strong>Access to Expertise: </strong>Ratingbet as a
+                  <strong>Access to Expertise: </strong>Livebaz as a
                   prediction site employs sports betting professionals who
                   leverage their expertise to analyse various factors like team
                   performance, player form, head-to-head records, and other
@@ -647,7 +208,7 @@ function home() {
                 <li>
                   <strong>Time-Saving and Convenience:</strong> For bettors who
                   may not have the time or resources to conduct in-depth
-                  research themselves, Ratingbet can be a convenient solution,
+                  research themselves, Livebaz can be a convenient solution,
                   saving time and effort in gathering and analysing data from
                   multiple sources.
                 </li>
@@ -658,7 +219,7 @@ function home() {
                   be relevant to upcoming matches.
                 </li>
                 <li>
-                  <strong>Information and Insights: </strong>Ratingbet provides
+                  <strong>Information and Insights: </strong>Livebaz provides
                   access to information about standings, players, injuries, past
                   data on head-to-head matches, and other factors that may
                   impact the outcome of a match. By accessing this information,
@@ -679,7 +240,7 @@ function home() {
               <p>
                 When it comes to sports betting, trust is essential. Selecting a
                 winning prediction site, it’s vital to evaluate its credibility,
-                and Ratingbet has built a reputation as a reliable source with
+                and Livebaz has built a reputation as a reliable source with
                 expert football predictions, including sure tips that many
                 bettors rely on. But no one is ideal, and on our website you can
                 see a solid track record of accuracy, demonstrating transparency
@@ -697,7 +258,7 @@ function home() {
                 match evaluations.
               </p>
               <p>
-                Our team at Ratingbet works daily to deliver expert sports
+                Our team at Livebaz works daily to deliver expert sports
                 predictions that help both beginner and seasoned bettors make
                 smarter, more profitable betting decisions. We specialize in
                 football betting tips, sure win predictions, and value bets
@@ -705,7 +266,7 @@ function home() {
               </p>
               <ul>
                 <li>
-                  <a href="https://ratingbet.com/predictions/">
+                  <a href="#/predictions/">
                     Today's top sports predictions
                   </a>
                 </li>
@@ -717,7 +278,7 @@ function home() {
               </p>
               <ul>
                 <li>
-                  <a href="https://ratingbet.com/predictions/football/">
+                  <a href="#/predictions/football/">
                     Today's accurate football predictions
                   </a>
                 </li>
@@ -729,7 +290,7 @@ function home() {
               </p>
               <ul>
                 <li>
-                  <a href="https://ratingbet.com/predictions/basketball/">
+                  <a href="#/predictions/basketball/">
                     Basketball Predictions Today
                   </a>
                 </li>
@@ -742,7 +303,7 @@ function home() {
               </p>
               <ul>
                 <li>
-                  <a href="https://ratingbet.com/predictions/tennis/">
+                  <a href="#/predictions/tennis/">
                     Tennis Predictions
                   </a>
                 </li>

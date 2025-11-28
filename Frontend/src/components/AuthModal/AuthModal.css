@@ -127,6 +127,12 @@
     color: #a0a0a0;
 }
 
+.auth-input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 /* Password Toggle */
 .auth-password-toggle {
     position: absolute;
@@ -177,14 +183,24 @@
     cursor: pointer;
     transition: background-color 0.2s;
     margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
 }
 
-.auth-submit-btn:hover {
+.auth-submit-btn:hover:not(:disabled) {
     background-color: #1a1a1a;
 }
 
-.auth-submit-btn:active {
+.auth-submit-btn:active:not(:disabled) {
     transform: scale(0.98);
+}
+
+.auth-submit-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 /* Switch Mode */
@@ -206,6 +222,40 @@
 
 .auth-switch button:hover {
     color: #4a90e2;
+}
+
+/* Error and Success Messages */
+.auth-error-message,
+.auth-success-message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    animation: slideDown 0.3s ease-out;
+}
+
+.auth-error-message {
+    background-color: #fee;
+    color: #c33;
+    border: 1px solid #fcc;
+}
+
+.auth-success-message {
+    background-color: #efe;
+    color: #3c3;
+    border: 1px solid #cfc;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive */

@@ -1,0 +1,180 @@
+.leagues-pop {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.page-titleleagues {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #212121;
+}
+
+.leagues-pop-item {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.leagues-pop-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.leagues-pop-item .image {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.leagues-pop-item .image img {
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: contain;
+}
+
+.leagues-pop-item .title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #212121;
+    line-height: 1.4;
+}
+
+.leagues-pop-item .date {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .leagues-pop {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .leagues-pop {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .leagues-pop-item {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .leagues-pop {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Accordion styles */
+.leagues-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.simple-box {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.simple-box-title {
+    padding: 16px 20px;
+    font-size: 18px;
+    font-weight: 600;
+    background: #f7f9fd;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+    position: relative;
+    padding-right: 50px;
+}
+
+.simple-box-title::after {
+    content: '▼';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    transition: transform 0.3s;
+    font-size: 12px;
+    color: #666;
+}
+
+.simple-box__active .simple-box-title::after {
+    transform: translateY(-50%) rotate(0deg);
+}
+
+.simple-box-title:hover {
+    background: #eef2f7;
+}
+
+.simple-box__active .simple-box-description {
+    display: grid;
+}
+
+.simple-box-description {
+    display: none;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+}
+
+.simple-box-description .link {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.simple-box-description .link:hover {
+    background: #f7f9fd;
+}
+
+.simple-box-description .link .image {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.simple-box-description .link .image img {
+    max-width: 30px;
+    max-height: 30px;
+    object-fit: contain;
+}
+
+.simple-box-description .link .title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #212121;
+}
+
+.simple-box-description .link .date {
+    font-size: 12px;
+    color: #666;
+}

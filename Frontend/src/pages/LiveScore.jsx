@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './LiveScore.css';
+import { LiveScoreTableSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
@@ -233,7 +234,7 @@ function LiveScore() {
             <div className="container-wrapper wrap">
                 {/* Breadcrumbs */}
                 <div className="breadcrumbs">
-                    <a href="/" className="breadcrumb-link">Ratingbet</a>
+                    <a href="/" className="breadcrumb-link">Livebaz</a>
                     <span className="breadcrumb-separator">›</span>
                     <span className="breadcrumb-current">Live Scores</span>
                 </div>
@@ -381,16 +382,17 @@ function LiveScore() {
                         </div>
 
                         {/* Table Body */}
-                        <div className="predictions-table-body">
-                            {connectionStatus === 'Connecting' ? (
-                                <div className="loading-state">Connecting to live scores...</div>
-                            ) : matches.length === 0 ? (
-                                <div className="loading-state">
-                                    {connectionStatus === 'Connected'
-                                        ? 'No live matches at the moment'
-                                        : 'Waiting for connection...'}
-                                </div>
-                            ) : (
+                        {connectionStatus === 'Connecting' ? (
+                            <LiveScoreTableSkeleton rows={15} />
+                        ) : (
+                            <div className="predictions-table-body">
+                                {matches.length === 0 ? (
+                                    <div className="loading-state">
+                                        {connectionStatus === 'Connected'
+                                            ? 'No live matches at the moment'
+                                            : 'Waiting for connection...'}
+                                    </div>
+                                ) : (
                                 <>
                                     {matches.slice(0, visibleCount).map(match => (
                                         <div
@@ -456,8 +458,9 @@ function LiveScore() {
                                         </div>
                                     )}
                                 </>
-                            )}
-                        </div>
+                                )}
+                            </div>
+                        )}
                     </main>
                 </div>
             </div>

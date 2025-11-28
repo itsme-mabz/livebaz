@@ -2,9 +2,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { webSocketService } from '../WebSocketService/WebsocketService';
 import { realTimePredictions, formatMatchData } from '../../Service/FootballService';
+import { PredictionsPageSkeleton } from '../SkeletonLoader/SkeletonLoader';
 import '../../CSS/DynamicForecast/DynamicForecast.css'
 
-const DynamicForecasts = () => {
+const DynamicForecasts = ({ dateFilter = 'today' }) => {
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,12 +29,28 @@ const DynamicForecasts = () => {
 
   useEffect(() => {
     startRealTimePredictions();
-  }, []);
+  }, [dateFilter]);
 
   const startRealTimePredictions = useCallback(() => {
+    setLoading(true);
     const today = new Date();
-    const fromDate = formatDate(today);
-    const toDate = formatDate(today);
+    let fromDate, toDate;
+
+    if (dateFilter === 'today') {
+      fromDate = formatDate(today);
+      toDate = formatDate(today);
+    } else if (dateFilter === 'tomorrow') {
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      fromDate = formatDate(tomorrow);
+      toDate = formatDate(tomorrow);
+    } else {
+      // For 'all', fetch predictions for the next 7 days
+      fromDate = formatDate(today);
+      const nextWeek = new Date(today);
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      toDate = formatDate(nextWeek);
+    }
 
     // Subscribe to prediction updates
     const unsubscribePredictions = realTimePredictions.subscribe(
@@ -51,7 +68,7 @@ const DynamicForecasts = () => {
     realTimePredictions.startPolling(fromDate, toDate);
 
     return unsubscribePredictions;
-  }, []);
+  }, [dateFilter]);
 
   const handleLiveData = (liveData) => {
     setPredictions(prev => prev.map(pred => {
@@ -75,115 +92,117 @@ const DynamicForecasts = () => {
 
   // Show loading state with skeleton
   if (loading) {
-    return (
-      <div class="forecasts__wrapper">
-        {[...Array(6)].map((_, index) => (
-          <span key={index} class="forecast-item">
-            <span class="forecast-item__top fl">
-              <div style={{
-                width: '360px',
-                height: '140px',
-                background: '#f0f0f0',
-                borderRadius: '4px'
-              }}></div>
-            </span>
-            <span class="forecast-item__bottom fl">
-              <span class="news-item__text-m">
-                <span class="info">
-                  <span class="tag">Football</span>
-                  <span class="time">Loading...</span>
-                </span>
-              </span>
-              <div style={{
-                height: '20px',
-                background: '#f0f0f0',
-                borderRadius: '3px',
-                marginBottom: '8px'
-              }}></div>
-              <div style={{
-                height: '16px',
-                background: '#f0f0f0',
-                borderRadius: '3px',
-                width: '120px'
-              }}></div>
-            </span>
-          </span>
-        ))}
-      </div>
-    );
+    return <PredictionsPageSkeleton />;
   }
 
   // Display real data using your exact HTML structure
   return (
-    <div class="forecasts__wrapper">
-      {predictions.map((prediction) => (
-        <span key={prediction.id} class="forecast-item">
-          <span class="forecast-item__top fl">
-
-            <div className='team-poster-wraper'>
-              <div className='team-img'>
-                <img src='./assets/home-page-img/bg-img-common.jpeg' />
+    <>
+      <div class="forecasts__wrapper">
+        {predictions.map((prediction) => (
+          <span key={prediction.id} class="forecast-item" style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
+            {prediction.liveScore && (
+              <span className="popular-icon">LIVE</span>
+            )}
+            <span class="forecast-item__top fl">
+              <div style={{
+                width: '100%',
+                height: '140px',
+                background: 'linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 50%, #fbbf24 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                color: 'white',
+                padding: '20px',
+                borderRadius: '8px 8px 0 0'
+              }}>
+                <div style={{ textAlign: 'center', flex: 1 }}>
+                  {prediction.homeTeamLogo && (
+                    <img
+                      src={prediction.homeTeamLogo}
+                      alt={prediction.homeTeam}
+                      style={{
+                        width: '60px',
+                        height: '60px',
+                        objectFit: 'contain',
+                        marginBottom: '8px',
+                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                      }}
+                    />
+                  )}
+                  <div style={{ fontSize: '14px', fontWeight: '600' }}>
+                    {prediction.homeTeam}
+                  </div>
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: 'bold', padding: '0 10px' }}>
+                  VS
+                </div>
+                <div style={{ textAlign: 'center', flex: 1 }}>
+                  {prediction.awayTeamLogo && (
+                    <img
+                      src={prediction.awayTeamLogo}
+                      alt={prediction.awayTeam}
+                      style={{
+                        width: '60px',
+                        height: '60px',
+                        objectFit: 'contain',
+                        marginBottom: '8px',
+                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                      }}
+                    />
+                  )}
+                  <div style={{ fontSize: '14px', fontWeight: '600' }}>
+                    {prediction.awayTeam}
+                  </div>
+                </div>
               </div>
-              <div className='home-team'>
-                {prediction.homeTeamLogo && (
-                  <img
-                    src={prediction.homeTeamLogo}
-                    alt={prediction.homeTeam}
-                    className="team-logo"
-                  />
-                )}
-                <span className="team-name">{prediction.homeTeam}</span>
-              </div>
-              <div className='away-team'>
-                {prediction.awayTeamLogo && (
-                  <img
-                    src={prediction.awayTeamLogo}
-                    alt={prediction.awayTeam}
-                    className="team-logo"
-                  />
-                )}
-                <span className="team-name">{prediction.awayTeam}</span>
-              </div>
-            </div>
-
-          </span>
-
-          <span class="forecast-item__bottom fl">
-            <span class="news-item__text-m">
-              <span class="info">
-                <span class="tag">Football</span>
-                <span class="time">{prediction.date}</span>
-                {prediction.liveScore && (
-                  <span style={{
-                    marginLeft: '8px',
-                    background: '#ff4444',
-                    color: 'white',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
-                  }}>
-                    LIVE {prediction.liveScore.home}-{prediction.liveScore.away}
-                  </span>
-                )}
-              </span>
             </span>
-            <a
-              href={`/predictions/${prediction.homeTeamSlug}-vs-${prediction.awayTeamSlug}-prediction-match-preview-betting-odds-and-tips`}
-              class="forecast-item__info"
-            >
-              {prediction.predictionTitle}
-            </a>
-            <a
-              href={`/football/${prediction.league.toLowerCase().replace(/\s+/g, '-')}/`}
-              class="tournament mb-12"
-            >
-              {prediction.league}
-            </a>
+
+            <span class="forecast-item__bottom fl" style={{ marginTop: '16px' }}>
+              <span class="news-item__text-m">
+                <span class="info">
+                  <span class="tag">Football</span>
+                  <span class="time">{prediction.date}</span>
+                </span>
+              </span>
+              <a
+                href={`/prediction/${prediction.id}`}
+                class="forecast-item__info"
+                style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
+              >
+                <div style={{ marginBottom: '8px', fontWeight: '600' }}>
+                  {prediction.homeTeam} vs {prediction.awayTeam}
+                </div>
+                {prediction.bestPrediction && (
+                  <div style={{ fontSize: '13px', color: '#666' }}>
+                    <strong>Best Tip:</strong> {prediction.bestPrediction}
+                  </div>
+                )}
+                {prediction.probabilities && (
+                  <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                    1X2: {prediction.probabilities.home}% / {prediction.probabilities.draw}% / {prediction.probabilities.away}%
+                  </div>
+                )}
+              </a>
+              <a
+                href={`/football/${prediction.league?.toLowerCase().replace(/\s+/g, '-')}/`}
+                class="tournament mb-12"
+              >
+                {prediction.league}
+              </a>
+            </span>
           </span>
-        </span>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      <a href="/predictions/" className="button show-more-button" style={{
+        display: 'inline-block',
+        marginTop: '24px',
+        textAlign: 'center'
+      }}>
+        <span className="button__text button-arrow">Show More Predictions</span>
+      </a>
+    </>
   );
 };
 

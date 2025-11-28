@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './MathPredictions.css';
+import { TableSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
 
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+const API_BASE_URL = '/api/v1';
 
 function MathPredictions() {
     const [predictions, setPredictions] = useState([]);
@@ -27,8 +28,6 @@ function MathPredictions() {
 
     // Prediction type tabs
     const predictionTabs = [
-        'Math', '1x2', 'Goals', 'BTTS', 'HT/FT',
-        'Asian Handicap', 'Double chance', 'Corners', 'Cards'
     ];
 
     // Fetch predictions from API
@@ -156,7 +155,7 @@ function MathPredictions() {
             <div className="container-wrapper wrap">
                 {/* Breadcrumbs */}
                 <div className="breadcrumbs">
-                    <a href="/" className="breadcrumb-link">Ratingbet</a>
+                    <a href="/" className="breadcrumb-link">Livebaz</a>
                     <span className="breadcrumb-separator">›</span>
                     <span className="breadcrumb-current">Math predictions</span>
                 </div>
@@ -350,12 +349,13 @@ function MathPredictions() {
                         </div>
 
                         {/* Table Body */}
-                        <div className="predictions-table-body">
-                            {loading ? (
-                                <div className="loading-state">Loading predictions...</div>
-                            ) : filteredPredictions.length === 0 ? (
-                                <div className="loading-state">No predictions available for the selected filters</div>
-                            ) : (
+                        {loading ? (
+                            <TableSkeleton rows={10} />
+                        ) : (
+                            <div className="predictions-table-body">
+                                {filteredPredictions.length === 0 ? (
+                                    <div className="loading-state">No predictions available for the selected filters</div>
+                                ) : (
                                 <>
                                     {filteredPredictions.slice(0, visibleCount).map(match => (
                                         <div
@@ -484,7 +484,6 @@ function MathPredictions() {
                                                                         <span>{match.predictions.bestTip.probability}%</span>
                                                                     </div></div>
                                                                 <div className="best-tip-odds">{match.predictions.bestTip.odds}</div>
-                                                                <button className="bet-now-btn">BET NOW</button>
                                                             </div>
                                                         </div>
                                                     )}
@@ -505,8 +504,9 @@ function MathPredictions() {
                                         </div>
                                     )}
                                 </>
-                            )}
-                        </div>
+                                )}
+                            </div>
+                        )}
                     </main>
                 </div>
             </div>

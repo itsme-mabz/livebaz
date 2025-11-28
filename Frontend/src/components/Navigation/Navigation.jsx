@@ -1,13 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios';
 import './Navigation.css';
 import AuthModal from '../AuthModal/AuthModal';
 import { Link } from 'react-router-dom';
-import { leaguesData } from '../../StaticData/LeagueData';
+import { Skeleton } from '../SkeletonLoader/SkeletonLoader';
 
+const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
 function Navigation() {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authMode, setAuthMode] = useState('login');
+    const [allLeagues, setAllLeagues] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const openLoginModal = () => {
         setAuthMode('login');
@@ -23,236 +27,50 @@ function Navigation() {
         setIsAuthModalOpen(false);
     };
 
+    // Fetch leagues from API
+    useEffect(() => {
+        const fetchLeagues = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get(`https://apiv3.apifootball.com/?action=get_leagues&APIkey=${API_KEY}`);
+                if (Array.isArray(response.data)) {
+                    setAllLeagues(response.data);
+                }
+            } catch (error) {
+                console.error('Error fetching leagues:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-// const leaguesData = {
-//     popularLeagues: [
-//         {
-//             id: 'england-premier-league',
-//             name: 'English Premier League',
-//             path: '/league/england-premier-league',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/2fac95e438c6ad7daa746a87fef553d4fd8b2a581ab4d890fea603bee6bc26db-30-30.png',
-//             alt: 'English Premier League'
-//         },
-//         {
-//             id: 'spain-laliga',
-//             name: 'LaLiga Spain',
-//             path: '/league/spain-laliga',
-//             icon: 'https://statistic-cdn.ratingbet.com/ratingbet/statistic/tournament/e318c571b3b1ddfd22ade03a16922d202f5c67b5228b961ae65d1e6781d20fed-30-30.png',
-//             alt: 'LaLiga Spain'
-//         },
-//         {
-//             id: 'italy-serie-a',
-//             name: 'Serie A Italy',
-//             path: '/league/italy-serie-a',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/23526f4857e8fe4ed673e22a116045d1e109beee8001709806d0e2b2cab909d4-30-30.png',
-//             alt: 'Serie A Italy'
-//         },
-//         {
-//             id: 'germany-bundesliga',
-//             name: 'Bundesliga Germany',
-//             path: '/football/germany-1-bundesliga/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/3d5fc302a8ce7e60781f75eeb66b19ccd333737db5138635f4855275497ad8ca-30-30.png',
-//             alt: 'Bundesliga Germany'
-//         },
-//         {
-//             id: 'france-ligue-1',
-//             name: 'Ligue 1 France',
-//             path: '/football/france-ligue-1/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/a41a5cb68dabbb9bf6a8e6d34184f6bdbf5e70646b84e0a460c25ea2ba3b8342-30-30.png',
-//             alt: 'Ligue 1 France'
-//         },
-//         {
-//             id: 'portugal-primeira-liga',
-//             name: 'Primeira Liga Portugal',
-//             path: '/football/portugal-liga-portugal/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/6ad5c6e991dcfe8977804e2c944d71d9d08c7f7d6288915dc9826e91c2e28dbb-30-30.png',
-//             alt: 'Primeira Liga Portugal'
-//         },
-//         {
-//             id: 'brazil-serie-a',
-//             name: 'Serie A Brazil',
-//             path: '/football/brazil-serie-a/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/6845080b8e3e897282565a52d9ff41a4c975fb841dd4cb9d54f5caa7038313eb-30-30.png',
-//             alt: 'Serie A Brazil'
-//         },
-//         {
-//             id: 'greece-super-league',
-//             name: 'Super League Greece',
-//             path: '/football/greece-super-league/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/396a38104c7c5f6545e5488fd09f6c80f8b54effc35bee5f6728b7ec96d18b02-30-30.png',
-//             alt: 'Super League Greece'
-//         },
-//         {
-//             id: 'netherlands-eredivisie',
-//             name: 'Eredivisie Netherlands',
-//             path: '/football/netherlands-eredivisie/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/65af137ac053174373e2ab3b9aa6853c5439da897217b33e2750cb6a0e3d8064-30-30.png',
-//             alt: 'Eredivisie Netherlands'
-//         },
-//         {
-//             id: 'england-efl-championship',
-//             name: 'EFL Championship',
-//             path: '/football/england-championship/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/7f7f6e11a67acf8cfa5c5170ae348b02c650f9d3aa53dcb522b90f5065dbf917-30-30.png',
-//             alt: 'EFL Championship'
-//         },
-//         {
-//             id: 'england-national-league',
-//             name: 'National League England',
-//             path: '/football/england-national-league/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/9ab707110d31f53210a75a25fe58f7baf4111bba5e6349621713c39ce6c91570-30-30.png',
-//             alt: 'National League England'
-//         },
-//         {
-//             id: 'belgium-pro-league',
-//             name: 'Pro League Belgium',
-//             path: '/football/belgium-first-division-a/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/5978ea5429a6bfa34688d9075b1e2b429f833b5cfaad5a937901e806530af282-30-30.png',
-//             alt: 'Pro League Belgium'
-//         },
-//         {
-//             id: 'south-africa-premiership',
-//             name: 'South African Betway Premiership',
-//             path: '/football/south-africa-premier-soccer-league/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/131b8b0b8222411df533660c3f1ec26cae7275f52de8c687ef4532f4328cfde5-30-30.png',
-//             alt: 'South African Betway Premiership'
-//         }
-//     ],
-//     internationals: [
-//         {
-//             id: 'african-nations-championship',
-//             name: 'African Nations Championship',
-//             path: '/football/african-nations-championship/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/2bbad9bb64a8a528a98448d45129fd3767536804d45535fe4bff213e69f21e92-30-30.png',
-//             alt: 'African Nations Championship'
-//         },
-//         {
-//             id: 'champions-league',
-//             name: 'Champions League',
-//             path: '/football/champions-league/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/7475ec0522c21747d5d7921662eea1aaa0ced88ec427cc5a1ab07f9224db9005-30-30.png',
-//             alt: 'Champions League'
-//         },
-//         {
-//             id: 'uefa-super-cup',
-//             name: 'UEFA Super Cup',
-//             path: '/football/uefa-super-cup/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/831abb59d4a8552d3e8b8d49a36543f7616a57926f1bfcf67b2fc6e84ad9b1c5-30-30.png',
-//             alt: 'UEFA Super Cup'
-//         },
-//         {
-//             id: 'europa-league',
-//             name: 'Europa League',
-//             path: '/football/europa-league/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/50f4bc248bad3ba31bd43dc7f3f5f93414c1e4e12f28250f849dc57760128989-30-30.png',
-//             alt: 'Europa League'
-//         },
-//         {
-//             id: 'europa-conference-league',
-//             name: 'Europa Conference League',
-//             path: '/football/europa-conference-league/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/dd05aa3cd97f343c80626f1f3525d1bdd3982880f0c0d3f1cd5c60a8e8f2e834-30-30.png',
-//             alt: 'Europa Conference League'
-//         },
-//         {
-//             id: 'world-cup-qualification-caf',
-//             name: 'World Cup Qualification CAF',
-//             path: '/football/world-cup-qualification-caf/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/dcb69393b74f65ea6658712eed52ee89813a20eeca6addcaf54eb6ed5c654811-30-30.png',
-//             alt: 'World Cup Qualification CAF'
-//         },
-//         {
-//             id: 'world-cup-qualification-uefa',
-//             name: 'World Cup Qualification UEFA',
-//             path: '/football/world-cup-qualification-uefa/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/dcb69393b74f65ea6658712eed52ee89813a20eeca6addcaf54eb6ed5c654811-30-30.png',
-//             alt: 'World Cup Qualification UEFA'
-//         },
-//         {
-//             id: 'world-cup-qualification-concacaf',
-//             name: 'World Cup Qualification CONCACAF',
-//             path: '/football/world-cup-qualification-concacaf/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/dcb69393b74f65ea6658712eed52ee89813a20eeca6addcaf54eb6ed5c654811-30-30.png',
-//             alt: 'World Cup Qualification CONCACAF'
-//         },
-//         {
-//             id: 'world-cup-qualification-conmebol',
-//             name: 'World Cup Qualification CONMEBOL',
-//             path: '/football/world-cup-qualification-conmebol/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/3651ad1c63029239c8845e9b3a4e2dd8c4e1e16da65fb6ff9df05c61ea0d9956-30-30.png',
-//             alt: 'World Cup Qualification CONMEBOL'
-//         },
-//         {
-//             id: 'copa-libertadores',
-//             name: 'Copa Libertadores',
-//             path: '/football/copa-libertadores/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/b1e9d3e3d8384b9eccf37226e94b73a4d89357e68999c3187400aab2619269e3-30-30.png',
-//             alt: 'Copa Libertadores'
-//         },
-//         {
-//             id: 'world-cup-u-20',
-//             name: 'World Cup U-20',
-//             path: '/football/world-cup-u-20/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/b5c9b74cbc5b58555f3dba13f07a539360962e7843f9c8ea576d7956d5410a0a-30-30.png',
-//             alt: 'World Cup U-20'
-//         }
-//     ],
-//     cups: [
-//         {
-//             id: 'coppa-italia',
-//             name: 'Coppa Italia',
-//             path: '/football/italy-coppa-italia/',
-//             icon: 'https://brandfetch.com/premierleague.com?view=library&library=default&collection=logos&asset=id4u-3dVa7&utm_source=https%253A%252F%252Fbrandfetch.com%252Fpremierleague.com&utm_medium=copyAction&utm_campaign=brandPageReferral',
-//             alt: 'Coppa Italia'
-//         },
-//         {
-//             id: 'germany-dfb-pokal',
-//             name: 'DFB-Pokal Germany',
-//             path: '/football/germany-dfb-pokal/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/e9bed24ee1a476de8446b7a4e6e01aefaf5cb19cf0aa2ab9088888a9393ba362-30-30.png',
-//             alt: 'DFB-Pokal Germany'
-//         },
-//         {
-//             id: 'england-efl-cup',
-//             name: 'EFL Cup (Carabao Cup)',
-//             path: '/football/england-efl-cup/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/f69329462a015cdf31837db80f7252bb6ad4f5ea1e9750dc064971161911f6b2-30-30.png',
-//             alt: 'EFL Cup (Carabao Cup)'
-//         },
-//         {
-//             id: 'england-fa-cup',
-//             name: 'FA Cup England',
-//             path: '/football/england-fa-cup/',
-//             icon: 'https://statistic-cdn.ratingbet.com/statistic/tournament/13ad50aba0186607b33f3fcede71a4055bd200128333677521294b46f06e2a9c-30-30.png',
-//             alt: 'FA Cup England'
-//         }
-//     ]
-// };
+        fetchLeagues();
+    }, []);
 
 
-        // Helper component for rendering league items
-  
-            const LeagueItem = ({ league }) => (
+    const LeagueItem = ({ league }) => (
         <span className="dropdown-submenu__item fl_c">
             <span className="icon-wrapper fl_c_c">
-                <img 
-                    srcSet="/ratingbet_build/img/placeholder.svg 100w" 
+                <img
+                    srcSet={`${league.league_logo} 100w`}
                     decoding="async"
-                    data-srcset={`${league.icon} 30w`}
-                    data-sizes="auto" 
-                    width="24" 
+                    data-srcset={`${league.league_logo} 30w`}
+                    data-sizes="auto"
+                    width="24"
                     height="24"
-                    alt={league.alt}
-                    src={league.icon}
-                    className="lazyload" 
+                    alt={league.league_name}
+                    src={league.league_logo}
+                    className="lazyload"
                 />
             </span>
             <span className="ml-8 overflow-elipsis">
-                <Link to={league.path}>{league.name}</Link>
+                <Link to={`/league/${league.league_id}`}>{league.league_name}</Link>
             </span>
         </span>
     );
 
+    // Get first 20 leagues for display (10 per column)
+    const popularLeagues = allLeagues.slice(0, 10);
+    const moreLeagues = allLeagues.slice(10, 20);
 
     return (
         <>
@@ -265,738 +83,67 @@ function Navigation() {
                         <span className='header-logo'>
 
 
-                            <a href="/">
+                            <a href="/" style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>
 
-                                <img src="https://ratingbet.com/ratingbet_build/img/header_logo.0cd68f92.svg"
-                                    alt="Ratingbet Betting Tips &amp; Predictions" width="166" height="28"
-                                    title="Betting Tips &amp; Predictions for Today ➡ Sure Tips for Winning Bets - Ratingbet" />
+                                Livebaz
 
                             </a>                        </span>
                         <ul className="header-nav fl_c_sb">
                             <li className="dropdown-menu__wrapper">
-                                <a href='/predictions/' className='header-nav__link fl_c nav__link-arrow-down'>Predictions</a>
-                                <div className="dropdown-menu">
-                                    <div className="section-title mb-12">
-                                        <a href='/predictions/'>Predictions</a>
-                                    </div>
+                                <a href='/predictions/' className='header-nav__link fl_c '>Predictions</a>
 
-                                    <ul className="dropdown-submenu fl_s_s">
-                                        <li className="dropdown-submenu__block">
-                                            <div className="dropdown-submenu__subtitle">Expert insights</div>
-                                            <div className="dropdown-submenu__list forecast">
-                                                <span className="dropdown-submenu__item fl_c dropdown-submenu__item-football">
-                                                    <a href='/predictions/football/'
-                                                        aria-label='Football predictions'>Football</a>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c dropdown-submenu__item-basketball">
-                                                    <a href='/predictions/basketball/'
-                                                        aria-label='Basketball predictions'>Basketball</a>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c dropdown-submenu__item-tennis">
-                                                    <a href='/predictions/tennis/' aria-label='Tennis predictions'>Tennis</a>
-                                                </span>
-                                            </div>
-                                        </li>
-
-
-                                    </ul>
-                                </div>
 
                             </li>
+
                             <li className="dropdown-menu__wrapper">
-                                <a href='/bookmakers/' className='header-nav__link fl_c nav__link-arrow-down'>Bookmakers</a>
-
-                                <div className="dropdown-menu">
-                                    <div className="section-title section-title_en-bk mb-12">
-                                        All Bookmakers
-                                    </div>
-
-                                    <ul className="dropdown-submenu fl_s_s">
-                                        <li className="dropdown-submenu__block">
-                                            <div className="dropdown-submenu__subtitle">Sportsbooks by Country</div>
-                                            <div className="dropdown-submenu__list bookmaker-rating-en-list-header">
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="regional-flag fl_c_c mr-8 rounded_2">
-
-
-
-
-
-
-
-                                                        <img srcSet="/ratingbet_build/img/placeholder.svg 100w" decoding="async"
-                                                            data-srcset="/ratingbet_build/img/flags/en-ke.05aef928.svg 100w"
-                                                            data-sizes="auto"
-                                                            src="/ratingbet_build/img/flags/en-ke.05aef928.svg" width="20"
-                                                            height="13" alt="Best betting sites in Kenya" className="lazyload" />
-
-                                                    </span>
-                                                    <span>
-                                                        <a href='/bookmakers/'>Best betting sites in Kenya</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="regional-flag fl_c_c mr-8 rounded_2">
-
-
-
-
-
-
-
-                                                        <img srcSet="/ratingbet_build/img/placeholder.svg 100w" decoding="async"
-                                                            data-srcset="/ratingbet_build/img/flags/ar.c6ff8d6c.svg 100w"
-                                                            data-sizes="auto" src="/ratingbet_build/img/flags/ar.c6ff8d6c.svg"
-                                                            width="20" height="13" alt="Best betting sites in Egypt"
-                                                            className="lazyload" />
-
-                                                    </span>
-                                                    <span>
-                                                        <a href='/ar/bookmakers/'>Best betting sites in Egypt</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="regional-flag fl_c_c mr-8 rounded_2">
-
-
-
-
-
-
-
-                                                        <img srcSet="/ratingbet_build/img/placeholder.svg 100w" decoding="async"
-                                                            data-srcset="/ratingbet_build/img/flags/en-bd.4438a0c9.svg 100w"
-                                                            data-sizes="auto"
-                                                            src="/ratingbet_build/img/flags/en-bd.4438a0c9.svg" width="20"
-                                                            height="13" alt="Best betting sites in Bangladesh" className="lazyload" />
-
-                                                    </span>
-                                                    <span>
-                                                        <a href='/en-bd/bookmakers/'>Best betting sites in Bangladesh</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="regional-flag fl_c_c mr-8 rounded_2">
-
-
-
-
-
-
-
-                                                        <img srcSet="/ratingbet_build/img/placeholder.svg 100w" decoding="async"
-                                                            data-srcset="/ratingbet_build/img/flags/en-gh.0d713733.svg 100w"
-                                                            data-sizes="auto"
-                                                            src="/ratingbet_build/img/flags/en-gh.0d713733.svg" width="20"
-                                                            height="13" alt="Best betting sites in Ghana" className="lazyload" />
-
-                                                    </span>
-                                                    <span>
-                                                        <a href='/en-gh/bookmakers/'>Best betting sites in Ghana</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="regional-flag fl_c_c mr-8 rounded_2">
-
-
-
-
-
-
-
-                                                        <img srcSet="/ratingbet_build/img/placeholder.svg 100w" decoding="async"
-                                                            data-srcset="/ratingbet_build/img/flags/en-in.783807a9.svg 100w"
-                                                            data-sizes="auto"
-                                                            src="/ratingbet_build/img/flags/en-in.783807a9.svg" width="20"
-                                                            height="13" alt="Best betting sites in India" className="lazyload" />
-
-                                                    </span>
-                                                    <span>
-                                                        <a href='/en-in/bookmakers/'>Best betting sites in India</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="regional-flag fl_c_c mr-8 rounded_2">
-
-
-
-
-
-
-
-                                                        <img srcSet="/ratingbet_build/img/placeholder.svg 100w" decoding="async"
-                                                            data-srcset="/ratingbet_build/img/flags/en-ng.7dc12445.svg 100w"
-                                                            data-sizes="auto"
-                                                            src="/ratingbet_build/img/flags/en-ng.7dc12445.svg" width="20"
-                                                            height="13" alt="Best betting sites in Nigeria" className="lazyload" />
-
-                                                    </span>
-                                                    <span>
-                                                        <a href='/en-ng/bookmakers/'>Best betting sites in Nigeria</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="regional-flag fl_c_c mr-8 rounded_2">
-
-
-
-
-
-
-
-                                                        <img srcSet="/ratingbet_build/img/placeholder.svg 100w" decoding="async"
-                                                            data-srcset="/ratingbet_build/img/flags/en-ug.ee5bebd8.svg 100w"
-                                                            data-sizes="auto"
-                                                            src="/ratingbet_build/img/flags/en-ug.ee5bebd8.svg" width="20"
-                                                            height="13" alt="Best betting sites in Uganda" className="lazyload" />
-
-                                                    </span>
-                                                    <span>
-                                                        <a href='/en-ug/bookmakers/'>Best betting sites in Uganda</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="regional-flag fl_c_c mr-8 rounded_2">
-
-
-
-
-
-
-
-                                                        <img srcSet="/ratingbet_build/img/placeholder.svg 100w" decoding="async"
-                                                            data-srcset="/ratingbet_build/img/flags/en-za.0611a475.svg 100w"
-                                                            data-sizes="auto"
-                                                            src="/ratingbet_build/img/flags/en-za.0611a475.svg" width="20"
-                                                            height="13" alt="Best betting sites in South Africa"
-                                                            className="lazyload" />
-
-                                                    </span>
-                                                    <span>
-                                                        <a href='/en-za/bookmakers/'>Best betting sites in South Africa</a>
-                                                    </span>
-                                                </span>
-                                            </div>
-                                        </li>
-                                        <li className="dropdown-submenu__block">
-                                            <div className="dropdown-submenu__subtitle">More Ratings</div>
-                                            <div className="dropdown-submenu__list">
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <a href='/bookmakers/betting-app/'>Betting Apps in Kenya</a>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <a href='/en-ng/bookmakers/betting-app/'>Betting Apps in Nigeria</a>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <a href='/en-za/bookmakers/betting-app/'>Betting Apps in South Africa</a>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <a href='/bookmakers/welcome-bonus/'>Betting Sites with Welcome Bonus in
-                                                        Kenya</a>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <a href='/en-za/bookmakers/welcome-bonus/'>Betting Sites with Welcome Bonus
-                                                        in South Africa</a>
-                                                </span>
-                                            </div>
-                                        </li>
-                                        <li className="dropdown-submenu__block">
-                                            <div className="dropdown-submenu__subtitle">Top Brands</div>
-                                            <div className="dropdown-submenu__list top-brand-list-header">
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="fl_c brand-icon brand-icon-24 brand-icon-relative">
-
-
-
-
-
-
-
-                                                        <img decoding="async" style={{ maxWidth: "46px", maxHeight: "24px" }}
-                                                            alt="Melbet app"
-                                                            src="https://cdn.ratingbet.com/ratingbet/20250730/f2f56e08aed8fc2d0c7c62b4a7adbc859573ea1dfd61d9332bdd09935b5cf5ad.webp" />
-
-                                                    </span>
-                                                    <span className="top-brand ml-8">
-                                                        <a href='/bookmakers/melbet/'>Melbet</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="fl_c brand-icon brand-icon-24 brand-icon-relative">
-
-
-
-
-
-
-
-                                                        <img decoding="async" style={{ maxWidth: "46px", maxHeight: "24px" }}
-                                                            alt="Mostbet app"
-                                                            src="https://cdn.ratingbet.com/ratingbet/20250730/3a97885f736962b6f6fcbeac8cc692f9128c8dd84bcd44ea1f4c3f24f4a02c42.webp" />
-
-                                                    </span>
-                                                    <span className="top-brand ml-8">
-                                                        <a href='/bookmakers/mostbet/'>Mostbet</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="fl_c brand-icon brand-icon-24 brand-icon-relative">
-
-
-
-
-
-
-
-                                                        <img decoding="async" style={{ maxWidth: "46px", maxHeight: "24px" }}
-                                                            alt="1xbet app"
-                                                            src="https://cdn.ratingbet.com/ratingbet/20250730/a0db9c6cbe87e21c49a4e2f34bd3d3e3e78bbb2da5f95654d42bd8326130c408.webp" />
-
-                                                    </span>
-                                                    <span className="top-brand ml-8">
-                                                        <a href='/bookmakers/1xbet/'>1xbet</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="fl_c brand-icon brand-icon-24 brand-icon-relative">
-
-
-
-
-
-
-
-                                                        <img decoding="async" style={{ maxWidth: "46px", maxHeight: "24px" }}
-                                                            alt="Betwinner app"
-                                                            src="https://cdn.ratingbet.com/ratingbet/20250730/c08a6830c5f2de737d1fc7bb7ae0de681af2ee89bb9efe3eb621c89d290b7ee5.webp" />
-
-                                                    </span>
-                                                    <span className="top-brand ml-8">
-                                                        <a href='/bookmakers/betwinner/'>Betwinner</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="fl_c brand-icon brand-icon-24 brand-icon-relative">
-
-
-
-
-
-
-
-                                                        <img decoding="async" style={{ maxWidth: "46px", maxHeight: "24px" }}
-                                                            alt="22Bet app"
-                                                            src="https://cdn.ratingbet.com/ratingbet/20250730/6be99251ff304468479b9289e65f725d5e3715101a6221f2eec632f724c04597.webp" />
-
-                                                    </span>
-                                                    <span className="top-brand ml-8">
-                                                        <a href='/bookmakers/22bet/'>22Bet</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="fl_c brand-icon brand-icon-24 brand-icon-relative">
-
-
-
-
-
-
-
-                                                        <img decoding="async" style={{ maxWidth: "46px", maxHeight: "24px" }}
-                                                            alt="Paripesa app"
-                                                            src="https://cdn.ratingbet.com/ratingbet/20250730/1f202a0cb0410f896fbdac482453e322618d0f119f6994c59491796d7cd43dcd.webp" />
-
-                                                    </span>
-                                                    <span className="top-brand ml-8">
-                                                        <a href='/bookmakers/paripesa/'>Paripesa</a>
-                                                    </span>
-                                                </span>
-                                                <span className="dropdown-submenu__item fl_c">
-                                                    <span className="fl_c brand-icon brand-icon-24 brand-icon-relative">
-
-
-
-
-
-
-
-                                                        <img decoding="async" style={{ maxWidth: "46px", maxHeight: "24px" }}
-                                                            alt="WinWin app"
-                                                            src="https://cdn.ratingbet.com/ratingbet/20250730/a89596acf4e83359e0e217b4f284ba6e02dd9323662ebcda2f8bb897bb4aa9f4.webp" />
-
-                                                    </span>
-                                                    <span className="top-brand ml-8">
-                                                        <a href='/bookmakers/winwin/'>WinWin</a>
-                                                    </span>
-                                                </span>
-                                            </div>
-                                        </li>
-
-                                    </ul>
-
-                                </div>
-
-                            </li>
-                            <li className="dropdown-menu__wrapper">
-                                <a href='/football/competitions/' className='header-nav__link fl_c nav__link-arrow-down'>Leagues</a>
+                                <a href='/competitions/' className='header-nav__link fl_c nav__link-arrow-down'>Leagues</a>
                                 <div className="dropdown-menu">
                                     <div className="section-title mb-12">
-                                        <a href='/football/competitions/'>All leagues</a>
+                                        <a href='/competitions/'>All leagues</a>
                                     </div>
 
-                                    <ul className="dropdown-submenu fl_s_s">
-                                         <li className="dropdown-submenu__block">
-                                            <div className="dropdown-submenu__subtitle">Popular Leagues</div>
-                                            <div className="dropdown-submenu__list top-tournaments">
-                                                {leaguesData.popularLeagues.map(league => (
-                                                    <LeagueItem key={league.id} league={league} />
-                                                ))}
+                                    {loading ? (
+                                        <div style={{ padding: '20px' }}>
+                                            <div style={{ display: 'flex', gap: '20px' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
+                                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                                            <Skeleton width="24px" height="24px" borderRadius="50%" />
+                                                            <Skeleton width="150px" height="16px" />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
+                                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                                            <Skeleton width="24px" height="24px" borderRadius="50%" />
+                                                            <Skeleton width="150px" height="16px" />
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </li>
-
-                                        <div className="dropdown-submenu-wrapper fl_col_st_st">
-                                            <li className="dropdown-submenu__block">
-                                                <div className="dropdown-submenu__subtitle">Internationals</div>
-                                                <div className="dropdown-submenu__list top-tournaments">
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/2bbad9bb64a8a528a98448d45129fd3767536804d45535fe4bff213e69f21e92-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24"
-                                                                alt="African Nations Championship"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/2bbad9bb64a8a528a98448d45129fd3767536804d45535fe4bff213e69f21e92-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/african-nations-championship/'>African Nations
-                                                                Championship</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/7475ec0522c21747d5d7921662eea1aaa0ced88ec427cc5a1ab07f9224db9005-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24" alt="Champions League"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/7475ec0522c21747d5d7921662eea1aaa0ced88ec427cc5a1ab07f9224db9005-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/champions-league/'>Champions League</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/831abb59d4a8552d3e8b8d49a36543f7616a57926f1bfcf67b2fc6e84ad9b1c5-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24" alt="UEFA Super Cup"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/831abb59d4a8552d3e8b8d49a36543f7616a57926f1bfcf67b2fc6e84ad9b1c5-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/uefa-super-cup/'>UEFA Super Cup</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/50f4bc248bad3ba31bd43dc7f3f5f93414c1e4e12f28250f849dc57760128989-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24" alt="Europa League"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/50f4bc248bad3ba31bd43dc7f3f5f93414c1e4e12f28250f849dc57760128989-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/europa-league/'>Europa League</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/dd05aa3cd97f343c80626f1f3525d1bdd3982880f0c0d3f1cd5c60a8e8f2e834-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24"
-                                                                alt="Europa Conference League"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/dd05aa3cd97f343c80626f1f3525d1bdd3982880f0c0d3f1cd5c60a8e8f2e834-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/europa-conference-league/'>Europa Conference
-                                                                League</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/dcb69393b74f65ea6658712eed52ee89813a20eeca6addcaf54eb6ed5c654811-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24"
-                                                                alt="World Cup Qualification CAF"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/dcb69393b74f65ea6658712eed52ee89813a20eeca6addcaf54eb6ed5c654811-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/world-cup-qualification-caf/'>World Cup
-                                                                Qualification CAF</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/dcb69393b74f65ea6658712eed52ee89813a20eeca6addcaf54eb6ed5c654811-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24"
-                                                                alt="World Cup Qualification UEFA"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/dcb69393b74f65ea6658712eed52ee89813a20eeca6addcaf54eb6ed5c654811-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/world-cup-qualification-uefa/'>World Cup
-                                                                Qualification UEFA</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/dcb69393b74f65ea6658712eed52ee89813a20eeca6addcaf54eb6ed5c654811-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24"
-                                                                alt="World Cup Qualification CONCACAF"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/dcb69393b74f65ea6658712eed52ee89813a20eeca6addcaf54eb6ed5c654811-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/world-cup-qualification-concacaf/'>World Cup
-                                                                Qualification CONCACAF</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/3651ad1c63029239c8845e9b3a4e2dd8c4e1e16da65fb6ff9df05c61ea0d9956-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24"
-                                                                alt="World Cup Qualification CONMEBOL"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/3651ad1c63029239c8845e9b3a4e2dd8c4e1e16da65fb6ff9df05c61ea0d9956-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/world-cup-qualification-conmebol/'>World Cup
-                                                                Qualification CONMEBOL</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/b1e9d3e3d8384b9eccf37226e94b73a4d89357e68999c3187400aab2619269e3-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24" alt="Copa Libertadores"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/b1e9d3e3d8384b9eccf37226e94b73a4d89357e68999c3187400aab2619269e3-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/copa-libertadores/'>Copa Libertadores</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/b5c9b74cbc5b58555f3dba13f07a539360962e7843f9c8ea576d7956d5410a0a-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24" alt="World Cup U-20"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/b5c9b74cbc5b58555f3dba13f07a539360962e7843f9c8ea576d7956d5410a0a-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/world-cup-u-20/'>World Cup U-20</a>
-                                                        </span>
-                                                    </span>
-                                                </div>
-                                            </li>
-
-                                            <li className="dropdown-submenu__block">
-                                                <div className="dropdown-submenu__subtitle">Cups</div>
-                                                <div className="dropdown-submenu__list top-tournaments">
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/f31dfaca977adb659203808319d8ec8a9326386a71c4999207ae1b1e1ae45bdf-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24" alt="Coppa Italia"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/f31dfaca977adb659203808319d8ec8a9326386a71c4999207ae1b1e1ae45bdf-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/italy-coppa-italia/'>Coppa Italia</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/e9bed24ee1a476de8446b7a4e6e01aefaf5cb19cf0aa2ab9088888a9393ba362-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24" alt="DFB-Pokal Germany"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/e9bed24ee1a476de8446b7a4e6e01aefaf5cb19cf0aa2ab9088888a9393ba362-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/germany-dfb-pokal/'>DFB-Pokal Germany</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/f69329462a015cdf31837db80f7252bb6ad4f5ea1e9750dc064971161911f6b2-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24"
-                                                                alt="EFL Cup (Carabao Cup)"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/f69329462a015cdf31837db80f7252bb6ad4f5ea1e9750dc064971161911f6b2-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/england-efl-cup/'>EFL Cup (Carabao Cup)</a>
-                                                        </span>
-                                                    </span>
-                                                    <span className="dropdown-submenu__item fl_c">
-                                                        <span className="icon-wrapper fl_c_c">
-
-
-
-
-
-
-
-                                                            <img srcSet="/ratingbet_build/img/placeholder.svg 100w"
-                                                                decoding="async"
-                                                                data-srcset="https://statistic-cdn.ratingbet.com/statistic/tournament/13ad50aba0186607b33f3fcede71a4055bd200128333677521294b46f06e2a9c-30-30.png 30w"
-                                                                data-sizes="auto" width="24" height="24" alt="FA Cup England"
-                                                                src="https://statistic-cdn.ratingbet.com/statistic/tournament/13ad50aba0186607b33f3fcede71a4055bd200128333677521294b46f06e2a9c-30-30.png"
-                                                                className="lazyload" />
-
-                                                        </span>
-                                                        <span className="ml-8 overflow-elipsis">
-                                                            <a href='/football/england-fa-cup/'>FA Cup England</a>
-                                                        </span>
-                                                    </span>
-                                                </div>
-                                            </li>
-
                                         </div>
-                                    </ul>
+                                    ) : (
+                                        <ul className="dropdown-submenu fl_s_s">
+                                            <li className="dropdown-submenu__block">
+                                                <div className="dropdown-submenu__subtitle">Popular Leagues</div>
+                                                <div className="dropdown-submenu__list top-tournaments">
+                                                    {popularLeagues.map((league) => (
+                                                        <LeagueItem key={league.league_id} league={league} />
+                                                    ))}
+                                                </div>
+                                            </li>
+
+                                            <li className="dropdown-submenu__block">
+                                                <div className="dropdown-submenu__subtitle">More Leagues</div>
+                                                <div className="dropdown-submenu__list top-tournaments">
+                                                    {moreLeagues.map((league) => (
+                                                        <LeagueItem key={league.league_id} league={league} />
+                                                    ))}
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    )}
                                 </div>
 
                             </li>
@@ -1014,35 +161,53 @@ function Navigation() {
                                         <div className="dropdown-submenu__block">
                                             <div className="dropdown-submenu__subtitle">By bet type</div>
                                             <ul className="dropdown-submenu__list football-tips">
-                                                <li className="dropdown-submenu__item fl_c">
-                                                    <a href='/football/' className='overflow-elipsis'>Betting Tips 1x2</a>
+                                                <li className="dropdown-submenu__item fl_c" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                                    <span className='overflow-elipsis' style={{ color: '#999', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                        <span>Betting Tips 1x2</span>
+                                                        <span style={{ fontSize: '11px', fontStyle: 'italic' }}>Coming Soon</span>
+                                                    </span>
                                                 </li>
-                                                <li className="dropdown-submenu__item fl_c">
-                                                    <a href='/football/goals-over-under/' className='overflow-elipsis'>Over/Under
-                                                        2.5 Goals</a>
+                                                <li className="dropdown-submenu__item fl_c" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                                    <span className='overflow-elipsis' style={{ color: '#999', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                        <span>Over/Under 2.5 Goals</span>
+                                                        <span style={{ fontSize: '11px', fontStyle: 'italic' }}>Coming Soon</span>
+                                                    </span>
                                                 </li>
-                                                <li className="dropdown-submenu__item fl_c">
-                                                    <a href='/football/btts/' className='overflow-elipsis'>BTTS Predictions</a>
+                                                <li className="dropdown-submenu__item fl_c" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                                    <span className='overflow-elipsis' style={{ color: '#999', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                        <span>BTTS Predictions</span>
+                                                        <span style={{ fontSize: '11px', fontStyle: 'italic' }}>Coming Soon</span>
+                                                    </span>
                                                 </li>
-                                                <li className="dropdown-submenu__item fl_c">
-                                                    <a href='/football/half-full-time/' className='overflow-elipsis'>HT/FT
-                                                        Prediction</a>
+                                                <li className="dropdown-submenu__item fl_c" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                                    <span className='overflow-elipsis' style={{ color: '#999', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                        <span>HT/FT Prediction</span>
+                                                        <span style={{ fontSize: '11px', fontStyle: 'italic' }}>Coming Soon</span>
+                                                    </span>
                                                 </li>
-                                                <li className="dropdown-submenu__item fl_c">
-                                                    <a href='/football/asian-handicap/' className='overflow-elipsis'>Asian
-                                                        Handicap</a>
+                                                <li className="dropdown-submenu__item fl_c" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                                    <span className='overflow-elipsis' style={{ color: '#999', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                        <span>Asian Handicap</span>
+                                                        <span style={{ fontSize: '11px', fontStyle: 'italic' }}>Coming Soon</span>
+                                                    </span>
                                                 </li>
-                                                <li className="dropdown-submenu__item fl_c">
-                                                    <a href='/football/double-chance/' className='overflow-elipsis'>Double
-                                                        Chance</a>
+                                                <li className="dropdown-submenu__item fl_c" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                                    <span className='overflow-elipsis' style={{ color: '#999', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                        <span>Double Chance</span>
+                                                        <span style={{ fontSize: '11px', fontStyle: 'italic' }}>Coming Soon</span>
+                                                    </span>
                                                 </li>
-                                                <li className="dropdown-submenu__item fl_c">
-                                                    <a href='/football/corners-over-under/' className='overflow-elipsis'>Corners
-                                                        Prediction</a>
+                                                <li className="dropdown-submenu__item fl_c" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                                    <span className='overflow-elipsis' style={{ color: '#999', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                        <span>Corners Prediction</span>
+                                                        <span style={{ fontSize: '11px', fontStyle: 'italic' }}>Coming Soon</span>
+                                                    </span>
                                                 </li>
-                                                <li className="dropdown-submenu__item fl_c">
-                                                    <a href='/football/cards-over-under/' className='overflow-elipsis'>Cards
-                                                        Prediction</a>
+                                                <li className="dropdown-submenu__item fl_c" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                                    <span className='overflow-elipsis' style={{ color: '#999', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                                        <span>Cards Prediction</span>
+                                                        <span style={{ fontSize: '11px', fontStyle: 'italic' }}>Coming Soon</span>
+                                                    </span>
                                                 </li>
                                             </ul>
                                         </div>
