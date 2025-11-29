@@ -15,8 +15,8 @@ function MathPredictions() {
         probability: 0,
         league: null
     });
-    const [showAllLeagues, setShowAllLeagues] = useState(false);
-    const [availableLeagues, setAvailableLeagues] = useState([]);
+    const [leaguesByCountry, setLeaguesByCountry] = useState({});
+    const [expandedCountries, setExpandedCountries] = useState(new Set());
     const [visibleCount, setVisibleCount] = useState(30);
 
     // Date tabs configuration
@@ -63,13 +63,28 @@ function MathPredictions() {
             if (response.data.success) {
                 setPredictions(response.data.data);
 
-                // Extract unique leagues
-                const leagues = [...new Set(response.data.data.map(p => ({
-                    id: p.league_id,
-                    name: p.league,
-                    country: p.country
-                }))).values()];
-                setAvailableLeagues(leagues);
+                // Group leagues by country
+                const leaguesMap = {};
+                response.data.data.forEach(pred => {
+                    if (!leaguesMap[pred.country]) {
+                        leaguesMap[pred.country] = [];
+                    }
+                    const exists = leaguesMap[pred.country].find(l => l.id === pred.league_id);
+                    if (!exists) {
+                        leaguesMap[pred.country].push({
+                            id: pred.league_id,
+                            name: pred.league,
+                            logo: pred.leagueLogo
+                        });
+                    }
+                });
+
+                // Sort leagues within each country
+                Object.keys(leaguesMap).forEach(country => {
+                    leaguesMap[country].sort((a, b) => a.name.localeCompare(b.name));
+                });
+
+                setLeaguesByCountry(leaguesMap);
             }
         } catch (error) {
             console.error('Error fetching predictions:', error);
@@ -77,6 +92,19 @@ function MathPredictions() {
         } finally {
             setLoading(false);
         }
+    };
+
+    // Toggle country expansion
+    const toggleCountry = (country) => {
+        setExpandedCountries(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(country)) {
+                newSet.delete(country);
+            } else {
+                newSet.add(country);
+            }
+            return newSet;
+        });
     };
 
     // Fetch predictions when date or filters change
@@ -261,31 +289,41 @@ function MathPredictions() {
                             </div>
                         </div>
 
-                        {/* Leagues Filter */}
-                        {availableLeagues.length > 0 && (
+                        {/* Countries & Leagues Filter */}
+                        {Object.keys(leaguesByCountry).length > 0 && (
                             <div className="filter-group">
-                                <h4 className="filter-group-title">LEAGUES</h4>
-                                <div className="filter-options">
-                                    {availableLeagues.slice(0, showAllLeagues ? undefined : 5).map(league => (
-                                        <label key={league.id} className="filter-option">
-                                            <input
-                                                type="radio"
-                                                name="league"
-                                                checked={filters.league === league.id}
-                                                onChange={() => setFilters({ ...filters, league: league.id })}
-                                            />
-                                            <span className="filter-label">{league.name}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                                {availableLeagues.length > 5 && (
-                                    <button
-                                        className="show-more-leagues"
-                                        onClick={() => setShowAllLeagues(!showAllLeagues)}
-                                    >
-                                        {showAllLeagues ? 'Show less' : `Show more (${availableLeagues.length - 5})`}
-                                    </button>
-                                )}
+                                <h4 className="filter-group-title">COUNTRIES & LEAGUES</h4>
+                                {Object.entries(leaguesByCountry).map(([country, leagues]) => (
+                                    <div key={country} className="country-section">
+                                        <div
+                                            className="country-header"
+                                            onClick={() => toggleCountry(country)}
+                                        >
+                                            <span className="country-name">{country}</span>
+                                            <span className="expand-arrow">
+                                                {expandedCountries.has(country) ? '▼' : '▶'}
+                                            </span>
+                                        </div>
+                                        {expandedCountries.has(country) && (
+                                            <div className="country-leagues">
+                                                {leagues.map(league => (
+                                                    <label key={league.id} className="filter-option league-option">
+                                                        <input
+                                                            type="radio"
+                                                            name="league"
+                                                            checked={filters.league === league.id}
+                                                            onChange={() => setFilters({ ...filters, league: league.id })}
+                                                        />
+                                                        {league.logo && (
+                                                            <img src={league.logo} alt="" className="league-filter-icon" />
+                                                        )}
+                                                        <span className="filter-label">{league.name}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </aside>
@@ -310,30 +348,8 @@ function MathPredictions() {
                             ))}
                         </div>
 
-                        {/* Prediction Type Tabs */}
-                        <div className="prediction-tabs">
-                            {predictionTabs.map(tab => (
-                                <button
-                                    key={tab}
-                                    className={`prediction-tab ${selectedPredictionType === tab ? 'active' : ''}`}
-                                    onClick={() => setSelectedPredictionType(tab)}
-                                >
-                                    {tab}
-                                </button>
-                            ))}
-                        </div>
 
-                        {/* Table Controls */}
-                        <div className="table-controls">
-                            <label className="control-checkbox">
-                                <input type="checkbox" />
-                                <span className="checkbox-label">Show match stats</span>
-                            </label>
-                            <label className="control-checkbox">
-                                <input type="checkbox" />
-                                <span className="checkbox-label">Show probability chart</span>
-                            </label>
-                        </div>
+
 
                         {/* Table Header */}
                         <div
@@ -356,154 +372,190 @@ function MathPredictions() {
                                 {filteredPredictions.length === 0 ? (
                                     <div className="loading-state">No predictions available for the selected filters</div>
                                 ) : (
-                                <>
-                                    {filteredPredictions.slice(0, visibleCount).map(match => (
-                                        <div
-                                            key={match.id}
-                                            className="match-row"
-                                            style={{ gridTemplateColumns: columnConfig.template }}
-                                        >
-                                            {/* Live Indicator */}
-                                            {match.isLive && (
-                                                <div className="live-indicator">
-                                                    <span className="live-badge">LIVE</span>
-                                                    <span className="live-time">{match.liveTime}</span>
-                                                </div>
-                                            )}
-
-                                            {/* Time */}
-                                            <div className="td-time">
-                                                <div className="match-time">{formatMatchTime(match.time)}</div>
-                                            </div>
-
-                                            {/* Game */}
-                                            <div className="td-game">
-                                                <div className="league-name">{match.league}</div>
-                                                <div className="teams">
-                                                    <div className="team-row">
-                                                        <span className="team-name">{match.homeTeam}</span>
-                                                        {match.homeScore !== '-' && (
-                                                            <span className="team-score">{match.homeScore}</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="team-row">
-                                                        <span className="team-name">{match.awayTeam}</span>
-                                                        {match.awayScore !== '-' && (
-                                                            <span className="team-score">{match.awayScore}</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* 1x2 Predictions */}
-                                            {columnConfig.show1x2 && (
-                                                <div className="prediction-boxes">
-                                                    {match.predictions?.['1x2'] && (() => {
-                                                        const { w1, draw, w2 } = match.predictions['1x2'];
-                                                        const maxProb = Math.max(w1.prob, draw.prob, w2.prob);
-                                                        return (
-                                                            <>
-                                                                <div className={`pred-box ${w1.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                    <div className="pred-label">W1</div>
-                                                                    <div className="pred-odds">{w1.odds}</div>
-                                                                    <div className="pred-prob">{w1.prob}%</div>
-                                                                </div>
-                                                                <div className={`pred-box ${draw.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                    <div className="pred-label">X</div>
-                                                                    <div className="pred-odds">{draw.odds}</div>
-                                                                    <div className="pred-prob">{draw.prob}%</div>
-                                                                </div>
-                                                                <div className={`pred-box ${w2.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                    <div className="pred-label">W2</div>
-                                                                    <div className="pred-odds">{w2.odds}</div>
-                                                                    <div className="pred-prob">{w2.prob}%</div>
-                                                                </div>
-                                                            </>
-                                                        );
-                                                    })()}
-                                                </div>
-                                            )}
-
-                                            {/* Goals */}
-                                            {columnConfig.showGoals && (
-                                                <div className="prediction-boxes">
-                                                    {match.predictions?.goals && (() => {
-                                                        const { over, under } = match.predictions.goals;
-                                                        const maxProb = Math.max(over.prob, under.prob);
-                                                        return (
-                                                            <>
-                                                                <div className={`pred-box ${under.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                    <div className="pred-label">U 2.5</div>
-                                                                    <div className="pred-odds">{under.odds}</div>
-                                                                    <div className="pred-prob">{under.prob}%</div>
-                                                                </div>
-                                                                <div className={`pred-box ${over.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                    <div className="pred-label">O 2.5</div>
-                                                                    <div className="pred-odds">{over.odds}</div>
-                                                                    <div className="pred-prob">{over.prob}%</div>
-                                                                </div>
-                                                            </>
-                                                        );
-                                                    })()}
-                                                </div>
-                                            )}
-
-                                            {/* BTTS */}
-                                            {columnConfig.showBTTS && (
-                                                <div className="prediction-boxes">
-                                                    {match.predictions?.btts && (() => {
-                                                        const { yes, no } = match.predictions.btts;
-                                                        const maxProb = Math.max(yes.prob, no.prob);
-                                                        return (
-                                                            <>
-                                                                <div className={`pred-box ${yes.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                    <div className="pred-label">Yes</div>
-                                                                    <div className="pred-odds">{yes.odds}</div>
-                                                                    <div className="pred-prob">{yes.prob}%</div>
-                                                                </div>
-                                                                <div className={`pred-box ${no.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                    <div className="pred-label">No</div>
-                                                                    <div className="pred-odds">{no.odds}</div>
-                                                                    <div className="pred-prob">{no.prob}%</div>
-                                                                </div>
-                                                            </>
-                                                        );
-                                                    })()}
-                                                </div>
-                                            )}
-
-                                            {/* Best Tip */}
-                                            {columnConfig.showBest && (
-                                                <div className="td-best">
-                                                    {match.predictions?.bestTip && (
-                                                        <div className="best-tip-card">
-                                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                                <div><div className="best-tip-type">{match.predictions.bestTip.type}</div>
-                                                                    <div className="best-tip-probability">
-                                                                        <span>Win Rate:</span>
-                                                                        <span>{match.predictions.bestTip.probability}%</span>
-                                                                    </div></div>
-                                                                <div className="best-tip-odds">{match.predictions.bestTip.odds}</div>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-
-                                    {/* Show More Button */}
-                                    {filteredPredictions.length > visibleCount && (
-                                        <div className="show-more-container">
-                                            <button
-                                                className="show-more-btn"
-                                                onClick={() => setVisibleCount(prev => prev + 30)}
+                                    <>
+                                        {filteredPredictions.slice(0, visibleCount).map(match => (
+                                            <div
+                                                key={match.id}
+                                                className="match-row"
+                                                style={{ gridTemplateColumns: columnConfig.template }}
                                             >
-                                                Show more predictions
-                                            </button>
-                                        </div>
-                                    )}
-                                </>
+                                                {/* Live Indicator */}
+                                                {match.isLive && (
+                                                    <div className="live-indicator">
+                                                        <span className="live-badge">LIVE</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Time */}
+                                                <div className="td-time">
+                                                    <div className="match-time">
+                                                        {!match.isLive && match.time && (
+                                                            /\s/.test(match.time) ? (
+                                                                <>
+                                                                    <div className="match-date-part">{match.time.split(/\s+/)[0]}</div>
+                                                                    <div className="match-time-part">{match.time.split(/\s+/)[1]}</div>
+                                                                </>
+                                                            ) : (
+                                                                match.time
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Game */}
+                                                <div className="td-game">
+                                                    <div className="league-name">
+                                                        {match.leagueLogo && (
+                                                            <img
+                                                                src={match.leagueLogo}
+                                                                alt=""
+                                                                className="league-logo"
+                                                                onError={(e) => e.target.style.display = 'none'}
+                                                            />
+                                                        )}
+                                                        <span>{match.league}</span>
+                                                    </div>
+                                                    <div className="teams">
+                                                        <div className="team-row">
+                                                            <img
+                                                                src={match.homeLogo || 'https://statistic-cdn.ratingbet.com/statistic/team/1f83550568b7fd4d3b2decba79fdcbac97a686d9da83b477dbfec47a7b1fe548-30-30.png'}
+                                                                alt=""
+                                                                className="team-logo"
+                                                                onError={(e) => {
+                                                                    e.target.src = 'https://statistic-cdn.ratingbet.com/statistic/team/1f83550568b7fd4d3b2decba79fdcbac97a686d9da83b477dbfec47a7b1fe548-30-30.png';
+                                                                }}
+                                                            />
+                                                            <span className="team-name">{match.homeTeam}</span>
+                                                            {match.homeScore !== '-' && (
+                                                                <span className="team-score">{match.homeScore}</span>
+                                                            )}
+                                                        </div>
+                                                        <div className="team-row">
+                                                            <img
+                                                                src={match.awayLogo || 'https://ratingbet.com/ratingbet_build/img/team_logo_empty.9830efe9.png'}
+                                                                alt=""
+                                                                className="team-logo"
+                                                                onError={(e) => {
+                                                                    e.target.src = 'https://ratingbet.com/ratingbet_build/img/team_logo_empty.9830efe9.png';
+                                                                }}
+                                                            />
+                                                            <span className="team-name">{match.awayTeam}</span>
+                                                            {match.awayScore !== '-' && (
+                                                                <span className="team-score">{match.awayScore}</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* 1x2 Predictions */}
+                                                {columnConfig.show1x2 && (
+                                                    <div className="prediction-boxes">
+                                                        {match.predictions?.['1x2'] && (() => {
+                                                            const { w1, draw, w2 } = match.predictions['1x2'];
+                                                            const maxProb = Math.max(w1.prob, draw.prob, w2.prob);
+                                                            return (
+                                                                <>
+                                                                    <div className={`pred-box ${w1.prob === maxProb ? 'highlighted' : ''}`}>
+                                                                        <div className="pred-label">W1</div>
+                                                                        <div className="pred-odds">{w1.odds}</div>
+                                                                        <div className="pred-prob">{w1.prob}%</div>
+                                                                    </div>
+                                                                    <div className={`pred-box ${draw.prob === maxProb ? 'highlighted' : ''}`}>
+                                                                        <div className="pred-label">X</div>
+                                                                        <div className="pred-odds">{draw.odds}</div>
+                                                                        <div className="pred-prob">{draw.prob}%</div>
+                                                                    </div>
+                                                                    <div className={`pred-box ${w2.prob === maxProb ? 'highlighted' : ''}`}>
+                                                                        <div className="pred-label">W2</div>
+                                                                        <div className="pred-odds">{w2.odds}</div>
+                                                                        <div className="pred-prob">{w2.prob}%</div>
+                                                                    </div>
+                                                                </>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                )}
+
+                                                {/* Goals */}
+                                                {columnConfig.showGoals && (
+                                                    <div className="prediction-boxes">
+                                                        {match.predictions?.goals && (() => {
+                                                            const { over, under } = match.predictions.goals;
+                                                            const maxProb = Math.max(over.prob, under.prob);
+                                                            return (
+                                                                <>
+                                                                    <div className={`pred-box ${under.prob === maxProb ? 'highlighted' : ''}`}>
+                                                                        <div className="pred-label">U 2.5</div>
+                                                                        <div className="pred-odds">{under.odds}</div>
+                                                                        <div className="pred-prob">{under.prob}%</div>
+                                                                    </div>
+                                                                    <div className={`pred-box ${over.prob === maxProb ? 'highlighted' : ''}`}>
+                                                                        <div className="pred-label">O 2.5</div>
+                                                                        <div className="pred-odds">{over.odds}</div>
+                                                                        <div className="pred-prob">{over.prob}%</div>
+                                                                    </div>
+                                                                </>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                )}
+
+                                                {/* BTTS */}
+                                                {columnConfig.showBTTS && (
+                                                    <div className="prediction-boxes">
+                                                        {match.predictions?.btts && (() => {
+                                                            const { yes, no } = match.predictions.btts;
+                                                            const maxProb = Math.max(yes.prob, no.prob);
+                                                            return (
+                                                                <>
+                                                                    <div className={`pred-box ${yes.prob === maxProb ? 'highlighted' : ''}`}>
+                                                                        <div className="pred-label">Yes</div>
+                                                                        <div className="pred-odds">{yes.odds}</div>
+                                                                        <div className="pred-prob">{yes.prob}%</div>
+                                                                    </div>
+                                                                    <div className={`pred-box ${no.prob === maxProb ? 'highlighted' : ''}`}>
+                                                                        <div className="pred-label">No</div>
+                                                                        <div className="pred-odds">{no.odds}</div>
+                                                                        <div className="pred-prob">{no.prob}%</div>
+                                                                    </div>
+                                                                </>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                )}
+
+                                                {/* Best Tip */}
+                                                {columnConfig.showBest && (
+                                                    <div className="td-best">
+                                                        {match.predictions?.bestTip && (
+                                                            <div className="best-tip-card">
+                                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                                    <div><div className="best-tip-type">{match.predictions.bestTip.type}</div>
+                                                                        <div className="best-tip-probability">
+                                                                            <span>Win Rate:</span>
+                                                                            <span>{match.predictions.bestTip.probability}%</span>
+                                                                        </div></div>
+                                                                    <div className="best-tip-odds">{match.predictions.bestTip.odds}</div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        {/* Show More Button */}
+                                        {filteredPredictions.length > visibleCount && (
+                                            <div className="show-more-container">
+                                                <button
+                                                    className="show-more-btn"
+                                                    onClick={() => setVisibleCount(prev => prev + 30)}
+                                                >
+                                                    Show more predictions
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         )}

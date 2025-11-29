@@ -1,213 +1,222 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './LiveScore.css';
-import { LiveScoreTableSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
-
-// Comprehensive timezone list
-const TIMEZONES = [
-    { label: 'Iran (UTC+3:30)', value: '+03:30' },
-    { label: 'Pakistan (UTC+5)', value: '+05:00' },
-    { label: 'India (UTC+5:30)', value: '+05:30' },
-    { label: 'UAE (UTC+4)', value: '+04:00' },
-    { label: 'Saudi Arabia (UTC+3)', value: '+03:00' },
-    { label: 'Turkey (UTC+3)', value: '+03:00' },
-    { label: 'Egypt (UTC+2)', value: '+02:00' },
-    { label: 'South Africa (UTC+2)', value: '+02:00' },
-    { label: 'UK (UTC+0)', value: '+00:00' },
-    { label: 'Portugal (UTC+0)', value: '+00:00' },
-    { label: 'Europe/Berlin (UTC+1)', value: '+01:00' },
-    { label: 'France (UTC+1)', value: '+01:00' },
-    { label: 'Spain (UTC+1)', value: '+01:00' },
-    { label: 'Italy (UTC+1)', value: '+01:00' },
-    { label: 'Greece (UTC+2)', value: '+02:00' },
-    { label: 'Russia/Moscow (UTC+3)', value: '+03:00' },
-    { label: 'China (UTC+8)', value: '+08:00' },
-    { label: 'Japan (UTC+9)', value: '+09:00' },
-    { label: 'Australia/Sydney (UTC+11)', value: '+11:00' },
-    { label: 'New Zealand (UTC+13)', value: '+13:00' },
-    { label: 'US East (UTC-5)', value: '-05:00' },
-    { label: 'US Central (UTC-6)', value: '-06:00' },
-    { label: 'US Mountain (UTC-7)', value: '-07:00' },
-    { label: 'US West (UTC-8)', value: '-08:00' },
-    { label: 'Brazil (UTC-3)', value: '-03:00' },
-    { label: 'Argentina (UTC-3)', value: '-03:00' },
-    { label: 'Mexico (UTC-6)', value: '-06:00' }
-];
+const BASE_URL = 'https://apiv3.apifootball.com';
 
 function LiveScore() {
-    const [matches, setMatches] = useState([]);
-    const [visibleCount, setVisibleCount] = useState(30);
-    const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+    const navigate = useNavigate();
+    const [allMatches, setAllMatches] = useState([]);
+    const [matchCounts, setMatchCounts] = useState({});
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [loading, setLoading] = useState(false);
+    const [selectedLeagues, setSelectedLeagues] = useState(new Set());
+    const [leaguesByCountry, setLeaguesByCountry] = useState({});
+    const [topLeagues, setTopLeagues] = useState([]);
+    const [expandedCountries, setExpandedCountries] = useState(new Set());
+    const [showLiveOnly, setShowLiveOnly] = useState(false);
     const socketRef = useRef(null);
 
-    // Filter states
-    const [selectedTimezone, setSelectedTimezone] = useState('+03:30');
-    const [selectedCountries, setSelectedCountries] = useState(new Set());
-    const [selectedLeagues, setSelectedLeagues] = useState(new Set());
-    const [matchIdFilter, setMatchIdFilter] = useState('');
-    const [showAllCountries, setShowAllCountries] = useState(false);
-    const [showAllLeagues, setShowAllLeagues] = useState(false);
+    // Transform match data
+    const transformMatch = (match) => ({
+        id: match.match_id,
+        time: match.match_time,
+        league: match.league_name,
+        leagueId: match.league_id,
+        leagueLogo: match.league_logo,
+        country: match.country_name,
+        homeTeam: match.match_hometeam_name,
+        awayTeam: match.match_awayteam_name,
+        homeScore: match.match_hometeam_score || '-',
+        awayScore: match.match_awayteam_score || '-',
+        homeLogo: match.team_home_badge,
+        awayLogo: match.team_away_badge,
+        isLive: match.match_live === '1',
+        status: match.match_status,
+        date: match.match_date,
+        // Prediction data
+        probHome: match.prob_HW || null,
+        probDraw: match.prob_D || null,
+        probAway: match.prob_AW || null,
+        probOver: match.prob_O || null,
+        probUnder: match.prob_U || null,
+        probBTTS: match.prob_BTTS || null
+    });
 
-    // Available options (populated from API data)
-    const [availableCountries, setAvailableCountries] = useState([]);
-    const [availableLeagues, setAvailableLeagues] = useState([]);
-
-    // Transform WebSocket data to component format
-    const transformMatch = (match) => {
-        return {
-            id: match.match_id,
-            time: match.match_time,
-            league: match.league_name,
-            leagueId: match.league_id,
-            country: match.country_name,
-            countryId: match.country_id,
-            homeTeam: match.match_hometeam_name,
-            awayTeam: match.match_awayteam_name,
-            homeScore: match.match_hometeam_score || '-',
-            awayScore: match.match_awayteam_score || '-',
-            isLive: match.match_live === '1',
-            liveTime: match.match_status,
-            status: match.match_status,
-            date: match.match_date
-        };
+    // Get date pills with match counts
+    const getDatePills = () => {
+        const pills = [];
+        const today = new Date();
+        for (let i = -2; i <= 2; i++) {
+            const date = new Date(today);
+            date.setDate(date.getDate() + i);
+            pills.push(date);
+        }
+        return pills;
     };
 
-    // Fetch countries and leagues from API on mount
-    useEffect(() => {
-        const fetchCountriesAndLeagues = async () => {
-            try {
-                // Fetch countries
-                const countriesResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_countries&APIkey=${API_KEY}`);
-                if (Array.isArray(countriesResponse.data)) {
-                    const countries = countriesResponse.data.map(c => ({
-                        id: c.country_id,
-                        name: c.country_name,
-                        logo: c.country_logo
-                    })).sort((a, b) => a.name.localeCompare(b.name));
-                    setAvailableCountries(countries);
-                }
+    const datePills = getDatePills();
 
-                // Fetch leagues - we'll get them from events API with a broad date range
-                const today = new Date();
-                const from = new Date(today);
-                from.setDate(from.getDate() - 1); // Yesterday
-                const to = new Date(today);
-                to.setDate(to.getDate() + 7); // Next week
+    // Get date label
+    const getDateLabel = (date) => {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
 
-                const leaguesResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_events&from=${from.toISOString().split('T')[0]}&to=${to.toISOString().split('T')[0]}&APIkey=${API_KEY}`);
-                if (Array.isArray(leaguesResponse.data)) {
-                    const leagues = [...new Map(
-                        leaguesResponse.data.map(m => [m.league_id, {
-                            id: m.league_id,
-                            name: m.league_name,
-                            country: m.country_name
-                        }])
-                    ).values()].sort((a, b) => a.name.localeCompare(b.name));
-                    setAvailableLeagues(leagues);
-                }
-            } catch (error) {
-                console.error('Error fetching countries and leagues:', error);
+        const dateStr = date.toISOString().split('T')[0];
+        const count = matchCounts[dateStr] || 0;
+
+        if (date.toDateString() === today.toDateString()) {
+            return `Today ${count}`;
+        } else if (date.toDateString() === tomorrow.toDateString()) {
+            return `Tomorrow ${count}`;
+        } else if (date.toDateString() === yesterday.toDateString()) {
+            return `Yesterday`;
+        } else {
+            const options = { day: 'numeric', month: 'short' };
+            return date.toLocaleDateString('en-US', options);
+        }
+    };
+
+    // Check if same day
+    const isSameDay = (date1, date2) => {
+        return date1.toISOString().split('T')[0] === date2.toISOString().split('T')[0];
+    };
+
+    // Fetch match counts for all dates
+    const fetchMatchCounts = useCallback(async () => {
+        try {
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 2);
+            const endDate = new Date();
+            endDate.setDate(endDate.getDate() + 2);
+
+            const url = `${BASE_URL}/?action=get_events&from=${startDate.toISOString().split('T')[0]}&to=${endDate.toISOString().split('T')[0]}&APIkey=${API_KEY}`;
+            const response = await axios.get(url);
+
+            if (response.data && Array.isArray(response.data)) {
+                const counts = {};
+                response.data.forEach(match => {
+                    const date = match.match_date;
+                    counts[date] = (counts[date] || 0) + 1;
+                });
+                setMatchCounts(counts);
             }
-        };
-
-        fetchCountriesAndLeagues();
+        } catch (error) {
+            console.error('Error fetching match counts:', error);
+        }
     }, []);
 
-    // WebSocket connection with filters
-    useEffect(() => {
-        const connectWebSocket = () => {
-            if (socketRef.current?.readyState === WebSocket.OPEN) {
-                socketRef.current.close();
-            }
+    // Fetch matches for selected date
+    const fetchMatches = useCallback(async () => {
+        setLoading(true);
+        try {
+            const dateStr = selectedDate.toISOString().split('T')[0];
+            let matchUrl = `${BASE_URL}/?action=get_events&from=${dateStr}&to=${dateStr}&APIkey=${API_KEY}`;
 
-            setConnectionStatus('Connecting');
-            console.log('Connecting to WebSocket...');
-
-            // Build WebSocket URL with filters
-            let wsUrl = `wss://wss.apifootball.com/livescore?APIkey=${API_KEY}&timezone=${selectedTimezone}`;
-
-            // Add country filter if selected
-            if (selectedCountries.size > 0) {
-                const countryIds = Array.from(selectedCountries).join(',');
-                wsUrl += `&country_id=${countryIds}`;
-            }
-
-            // Add league filter if selected
             if (selectedLeagues.size > 0) {
-                const leagueIds = Array.from(selectedLeagues).join(',');
-                wsUrl += `&league_id=${leagueIds}`;
+                matchUrl += `&league_id=${Array.from(selectedLeagues).join(',')}`;
             }
 
-            // Add match ID filter if provided
-            if (matchIdFilter.trim()) {
-                wsUrl += `&match_id=${matchIdFilter.trim()}`;
-            }
+            // Fetch both matches and predictions in parallel
+            const [matchResponse, predictionResponse] = await Promise.all([
+                axios.get(matchUrl),
+                axios.get(`${BASE_URL}/?action=get_predictions&from=${dateStr}&to=${dateStr}&APIkey=${API_KEY}`)
+            ]);
 
-            console.log('WebSocket URL:', wsUrl);
-
-            const socket = new WebSocket(wsUrl);
-            socketRef.current = socket;
-
-            socket.onopen = () => {
-                setConnectionStatus('Connected');
-                console.log('WebSocket Connected');
-            };
-
-            socket.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    console.log('Received data:', data);
-
-                    if (Array.isArray(data) && data.length > 0) {
-                        const transformedMatches = data.map(transformMatch);
-                        setMatches(transformedMatches);
-                    } else {
-                        setMatches([]);
-                    }
-                } catch (error) {
-                    console.error('Error parsing WebSocket data:', error);
+            if (matchResponse.data && Array.isArray(matchResponse.data)) {
+                // Create a map of predictions by match_id for quick lookup
+                const predictionsMap = {};
+                if (predictionResponse.data && Array.isArray(predictionResponse.data)) {
+                    predictionResponse.data.forEach(pred => {
+                        predictionsMap[pred.match_id] = pred;
+                    });
                 }
-            };
 
-            socket.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                setConnectionStatus('Error');
-            };
+                // Merge match data with predictions
+                const matchesWithPredictions = matchResponse.data.map(match => {
+                    const prediction = predictionsMap[match.match_id] || {};
+                    return {
+                        ...match,
+                        prob_HW: prediction.prob_HW,
+                        prob_D: prediction.prob_D,
+                        prob_AW: prediction.prob_AW,
+                        prob_O: prediction.prob_O,
+                        prob_U: prediction.prob_U,
+                        // BTTS is returned as prob_bts (lowercase) in the API
+                        prob_BTTS: prediction.prob_bts
+                    };
+                });
 
-            socket.onclose = () => {
-                console.log('WebSocket disconnected. Reconnecting in 5 seconds...');
-                setConnectionStatus('Disconnected');
-                socketRef.current = null;
-                setTimeout(connectWebSocket, 5000);
-            };
-        };
+                const transformed = matchesWithPredictions.map(transformMatch);
+                setAllMatches(transformed);
 
-        connectWebSocket();
+                // Group leagues by country
+                const leaguesMap = {};
+                matchResponse.data.forEach(match => {
+                    if (!leaguesMap[match.country_name]) {
+                        leaguesMap[match.country_name] = [];
+                    }
+                    const exists = leaguesMap[match.country_name].find(l => l.id === match.league_id);
+                    if (!exists) {
+                        leaguesMap[match.country_name].push({
+                            id: match.league_id,
+                            name: match.league_name,
+                            logo: match.league_logo
+                        });
+                    }
+                });
 
-        return () => {
-            if (socketRef.current) {
-                socketRef.current.close();
-                socketRef.current = null;
+                Object.keys(leaguesMap).forEach(country => {
+                    leaguesMap[country].sort((a, b) => a.name.localeCompare(b.name));
+                });
+
+                setLeaguesByCountry(leaguesMap);
             }
-        };
-    }, [selectedTimezone, selectedCountries, selectedLeagues, matchIdFilter]);
+        } catch (error) {
+            console.error('Error fetching matches:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [selectedDate, selectedLeagues]);
 
-    // Handle country filter toggle
-    const toggleCountry = (countryId) => {
-        setSelectedCountries(prev => {
+    // Filter matches based on live toggle
+    const filteredMatches = showLiveOnly
+        ? allMatches.filter(match => match.isLive)
+        : allMatches;
+
+    // Group matches by league
+    const groupedMatches = filteredMatches.reduce((acc, match) => {
+        const key = `${match.country}-${match.leagueId}`;
+        if (!acc[key]) {
+            acc[key] = {
+                country: match.country,
+                league: match.league,
+                leagueId: match.leagueId,
+                leagueLogo: match.leagueLogo,
+                matches: []
+            };
+        }
+        acc[key].matches.push(match);
+        return acc;
+    }, {});
+
+    const toggleCountry = (country) => {
+        setExpandedCountries(prev => {
             const newSet = new Set(prev);
-            if (newSet.has(countryId)) {
-                newSet.delete(countryId);
+            if (newSet.has(country)) {
+                newSet.delete(country);
             } else {
-                newSet.add(countryId);
+                newSet.add(country);
             }
             return newSet;
         });
     };
 
-    // Handle league filter toggle
     const toggleLeague = (leagueId) => {
         setSelectedLeagues(prev => {
             const newSet = new Set(prev);
@@ -220,249 +229,278 @@ function LiveScore() {
         });
     };
 
-    // Clear all filters
-    const clearAllFilters = () => {
-        setSelectedCountries(new Set());
+    const clearFilters = () => {
         setSelectedLeagues(new Set());
-        setMatchIdFilter('');
     };
 
-    const hasActiveFilters = selectedCountries.size > 0 || selectedLeagues.size > 0 || matchIdFilter.trim();
+    // Fetch top leagues dynamically
+    const fetchTopLeagues = useCallback(async () => {
+        try {
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            const url = `${BASE_URL}/?action=get_events&from=${dateStr}&to=${dateStr}&APIkey=${API_KEY}`;
+            const response = await axios.get(url);
+
+            if (response.data && Array.isArray(response.data)) {
+                // Count matches per league
+                const leagueCounts = {};
+                response.data.forEach(match => {
+                    if (!leagueCounts[match.league_id]) {
+                        leagueCounts[match.league_id] = {
+                            id: match.league_id,
+                            name: match.league_name,
+                            logo: match.league_logo,
+                            count: 0
+                        };
+                    }
+                    leagueCounts[match.league_id].count++;
+                });
+
+                // Get top 5 leagues by match count
+                const topLeaguesList = Object.values(leagueCounts)
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 5);
+
+                setTopLeagues(topLeaguesList);
+            }
+        } catch (error) {
+            console.error('Error fetching top leagues:', error);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchMatchCounts();
+        fetchTopLeagues();
+    }, [fetchMatchCounts, fetchTopLeagues]);
+
+    useEffect(() => {
+        fetchMatches();
+    }, [fetchMatches]);
+
+    // Count live matches for today
+    const todayStr = new Date().toISOString().split('T')[0];
+    const liveCount = allMatches.filter(m => m.isLive && m.date === todayStr).length;
 
     return (
-        <div className="live-score-page">
-            <div className="container-wrapper wrap">
-                {/* Breadcrumbs */}
-                <div className="breadcrumbs">
-                    <a href="/" className="breadcrumb-link">Livebaz</a>
-                    <span className="breadcrumb-separator">›</span>
-                    <span className="breadcrumb-current">Live Scores</span>
-                </div>
+        <div className="livescore-page wrap " style={{ paddingTop: '8px' }}>
+            {/* Breadcrumbs */}
+            <div className="breadcrumbs">
+                <a href="/">Livebaz</a>
+                <span>/</span>
+                <span>Live Score</span>
+            </div>
 
-                {/* Main Grid Layout */}
-                <div className="content-grid">
-                    {/* Filters Sidebar */}
-                    <aside className="filters-sidebar">
-                        <div className="filters-header">
-                            <h3 className="filters-title">FILTERS</h3>
-                            {hasActiveFilters && (
-                                <button
-                                    className="clear-filters"
-                                    onClick={clearAllFilters}
+            <div className="livescore-container wrap">
+                {/* Sidebar */}
+                <aside className="livescore-sidebar">
+                    <div className="sidebar-header">
+                        <h3 className="sidebar-title">TOP LEAGUES</h3>
+                        <button
+                            className="clear-filters-btn"
+                            onClick={clearFilters}
+                            style={{ opacity: selectedLeagues.size > 0 ? 1 : 0.5, cursor: selectedLeagues.size > 0 ? 'pointer' : 'not-allowed' }}
+                            disabled={selectedLeagues.size === 0}
+                        >
+                            Clear All
+                        </button>
+                    </div>
+
+                    {topLeagues.length > 0 && (
+                        <div className="sidebar-section">
+                            <h4 className="sidebar-section-title">Popular Today</h4>
+                            {topLeagues.map(league => (
+                                <div
+                                    key={league.id}
+                                    className="sidebar-league-item"
+                                    onClick={() => toggleLeague(league.id)}
                                 >
-                                    <span>✕</span>
-                                    <span>Clear</span>
+                                    {league.logo ? (
+                                        <img src={league.logo} alt="" className="league-icon-img" />
+                                    ) : (
+                                        <span className="league-icon">⚽</span>
+                                    )}
+                                    <span className="league-name">{league.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {Object.entries(leaguesByCountry).map(([country, leagues]) => (
+                        <div key={country} className="sidebar-section">
+                            <h4
+                                className="sidebar-section-title clickable"
+                                onClick={() => toggleCountry(country)}
+                            >
+                                {country}
+                                <span className="expand-arrow">
+                                    {expandedCountries.has(country) ? '▼' : '▶'}
+                                </span>
+                            </h4>
+                            {expandedCountries.has(country) && (
+                                <div className="sidebar-leagues">
+                                    {leagues.map(league => (
+                                        <div
+                                            key={league.id}
+                                            className="sidebar-league-item"
+                                            onClick={() => toggleLeague(league.id)}
+                                        >
+                                            {league.logo ? (
+                                                <img src={league.logo} alt="" className="league-icon-img" />
+                                            ) : (
+                                                <span className="league-icon">⚽</span>
+                                            )}
+                                            <span className="league-name">{league.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </aside>
+
+                {/* Main Content */}
+                <main className="livescore-main">
+                    {/* Header */}
+                    <div className="livescore-header">
+                        <h1 className="livescore-title">Football Games Today</h1>
+                        <div className="livescore-date-pills">
+                            {datePills.map((date, index) => (
+                                <button
+                                    key={index}
+                                    className={`livescore-date-pill ${isSameDay(date, selectedDate) ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setSelectedDate(date);
+                                        setShowLiveOnly(false);
+                                    }}
+                                >
+                                    {getDateLabel(date)}
+                                </button>
+                            ))}
+                            {liveCount > 0 && isSameDay(selectedDate, new Date()) && (
+                                <button
+                                    className={`livescore-date-pill live-filter-pill ${showLiveOnly ? 'active' : ''}`}
+                                    onClick={() => setShowLiveOnly(!showLiveOnly)}
+                                >
+                                    <span className="live-dot"></span>
+                                    Live {liveCount}
                                 </button>
                             )}
                         </div>
+                    </div>
 
-
-
-                        {/* Timezone Filter */}
-                        <div className="filter-group">
-                            <h4 className="filter-group-title">TIMEZONE</h4>
-                            <select
-                                value={selectedTimezone}
-                                onChange={(e) => setSelectedTimezone(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #d0d0d0',
-                                    fontSize: '13px',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {TIMEZONES.map(tz => (
-                                    <option key={tz.value} value={tz.value}>
-                                        {tz.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Match ID Filter */}
-                        <div className="filter-group">
-                            <h4 className="filter-group-title">MATCH ID</h4>
-                            <input
-                                type="text"
-                                placeholder="Enter match ID..."
-                                value={matchIdFilter}
-                                onChange={(e) => setMatchIdFilter(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #d0d0d0',
-                                    fontSize: '13px'
-                                }}
-                            />
-                        </div>
-
-                        {/* Countries Filter */}
-                        {availableCountries.length > 0 && (
-                            <div className="filter-group">
-                                <h4 className="filter-group-title">COUNTRIES</h4>
-                                <div className="filter-options">
-                                    {availableCountries.slice(0, showAllCountries ? undefined : 10).map(country => (
-                                        <label key={country.id} className="filter-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedCountries.has(country.id)}
-                                                onChange={() => toggleCountry(country.id)}
-                                            />
-                                            <span className="filter-label">{country.name}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                                {availableCountries.length > 10 && (
-                                    <button
-                                        className="show-more-leagues"
-                                        onClick={() => setShowAllCountries(!showAllCountries)}
-                                    >
-                                        {showAllCountries ? 'Show less' : `Show more (${availableCountries.length - 10})`}
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Leagues Filter */}
-                        {availableLeagues.length > 0 && (
-                            <div className="filter-group">
-                                <h4 className="filter-group-title">LEAGUES</h4>
-                                <div className="filter-options">
-                                    {availableLeagues.slice(0, showAllLeagues ? undefined : 10).map(league => (
-                                        <label key={league.id} className="filter-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedLeagues.has(league.id)}
-                                                onChange={() => toggleLeague(league.id)}
-                                            />
-                                            <span className="filter-label">{league.name}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                                {availableLeagues.length > 10 && (
-                                    <button
-                                        className="show-more-leagues"
-                                        onClick={() => setShowAllLeagues(!showAllLeagues)}
-                                    >
-                                        {showAllLeagues ? 'Show less' : `Show more (${availableLeagues.length - 10})`}
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </aside>
-
-                    {/* Main Content */}
-                    <main className="main-content">
-                        {/* Page Header */}
-                        <div className="page-header" style={{ padding: '30px 24px' }}>
-                            <h1 className="page-title">Football Live Scores</h1>
-                        </div>
-
-                        {/* Table Controls */}
-                        <div className="table-controls" style={{ justifyContent: 'space-between', padding: '14px 24px' }}>
-                            <div style={{ fontSize: '13px', color: '#666' }}>
-                                {matches.length} {matches.length === 1 ? 'match' : 'matches'}
-                            </div>
-                            <div style={{ fontSize: '12px', color: '#999' }}>
-                                Timezone: {TIMEZONES.find(tz => tz.value === selectedTimezone)?.label}
-                            </div>
-                        </div>
-
-                        {/* Table Header */}
-                        <div
-                            className="predictions-table-header"
-                            style={{ gridTemplateColumns: '55px 1fr 80px' }}
-                        >
-                            <div>Time</div>
-                            <div>Match</div>
-                            <div style={{ textAlign: 'center' }}>Score</div>
-                        </div>
-
-                        {/* Table Body */}
-                        {connectionStatus === 'Connecting' ? (
-                            <LiveScoreTableSkeleton rows={15} />
+                    {/* Matches */}
+                    <div className="livescore-content">
+                        {loading ? (
+                            <div className="loading-state">Loading matches...</div>
+                        ) : Object.keys(groupedMatches).length === 0 ? (
+                            <div className="empty-state">No matches found for this date</div>
                         ) : (
-                            <div className="predictions-table-body">
-                                {matches.length === 0 ? (
-                                    <div className="loading-state">
-                                        {connectionStatus === 'Connected'
-                                            ? 'No live matches at the moment'
-                                            : 'Waiting for connection...'}
-                                    </div>
-                                ) : (
-                                <>
-                                    {matches.slice(0, visibleCount).map(match => (
-                                        <div
-                                            key={match.id}
-                                            className="match-row"
-                                            style={{ gridTemplateColumns: '55px 1fr 80px' }}
-                                        >
-                                            {/* Live Indicator */}
-                                            {match.isLive && (
-                                                <div className="live-indicator">
-                                                    <span className="live-badge">LIVE</span>
-                                                    <span className="live-time">{match.liveTime}</span>
-                                                </div>
+                            Object.values(groupedMatches).map((group, idx) => (
+                                <div key={idx} className="league-card">
+                                    <div className="league-card-header">
+                                        <div className="league-card-title-wrapper">
+                                            {group.leagueLogo && (
+                                                <img src={group.leagueLogo} alt="" className="league-card-logo" />
                                             )}
+                                            <h3 className="league-card-title">
+                                                {group.country.toUpperCase()}: {group.league.toUpperCase()}
+                                            </h3>
+                                        </div>
+                                        <a href="#" className="standings-link">Standings</a>
+                                    </div>
 
-                                            {/* Time */}
-                                            <div className="td-time">
-                                                <div className="match-time">{match.time}</div>
-                                            </div>
+                                    <div className="matches-list">
+                                        <div className="matches-header-stats">
+                                            <div className="col-time-stat">Time</div>
+                                            <div className="col-match-stat">Match</div>
+                                            <div className="col-result-stat" title="Match Result: Home Win (1) / Draw (X) / Away Win (2)">1X2</div>
+                                            <div className="col-goals-stat" title="Over/Under 2.5 Goals">O/U 2.5</div>
+                                            <div className="col-btts-stat" title="Both Teams To Score">BTTS</div>
+                                            <div className="col-score-stat">Score</div>
+                                        </div>
 
-                                            {/* Game */}
-                                            <div className="td-game">
-                                                <div className="league-name">{match.league}</div>
-                                                <div className="teams">
-                                                    <div className="team-row">
-                                                        <span className="team-name">{match.homeTeam}</span>
-                                                        {match.homeScore !== '-' && (
-                                                            <span className="team-score">{match.homeScore}</span>
-                                                        )}
+                                        {group.matches.map((match) => (
+                                            <div
+                                                key={match.id}
+                                                className={`match-row-stats ${match.isLive ? 'live-match-row' : ''}`}
+                                                onClick={() => navigate(`/match/${match.id}`)}
+                                            >
+                                                <div className="col-time-stat">
+                                                    {match.isLive ? (
+                                                        <div className="live-badge-new">
+                                                            <span className="live-text">Live</span>
+                                                            <span className="live-minute">{match.status}'</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="match-time-new">{match.time}</div>
+                                                    )}
+                                                </div>
+
+                                                <div className="col-match-stat">
+                                                    <div className="team-row-new">
+                                                        {match.homeLogo && <img src={match.homeLogo} alt="" className="team-logo" />}
+                                                        <span className="team-name-new">{match.homeTeam}</span>
                                                     </div>
-                                                    <div className="team-row">
-                                                        <span className="team-name">{match.awayTeam}</span>
-                                                        {match.awayScore !== '-' && (
-                                                            <span className="team-score">{match.awayScore}</span>
-                                                        )}
+                                                    <div className="team-row-new">
+                                                        {match.awayLogo && <img src={match.awayLogo} alt="" className="team-logo" />}
+                                                        <span className="team-name-new">{match.awayTeam}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-result-stat">
+                                                    <div className="prob-row">
+                                                        <div className="prob-item">
+                                                            <span className="prob-label">1</span>
+                                                            <span className="prob-value">{match.probHome ? `${match.probHome}%` : '-'}</span>
+                                                        </div>
+                                                        <div className="prob-item">
+                                                            <span className="prob-label">X</span>
+                                                            <span className="prob-value">{match.probDraw ? `${match.probDraw}%` : '-'}</span>
+                                                        </div>
+                                                        <div className="prob-item">
+                                                            <span className="prob-label">2</span>
+                                                            <span className="prob-value">{match.probAway ? `${match.probAway}%` : '-'}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-goals-stat">
+                                                    <div className="prob-row">
+                                                        <div className="prob-item">
+                                                            <span className="prob-label">O</span>
+                                                            <span className="prob-value">{match.probOver ? `${match.probOver}%` : '-'}</span>
+                                                        </div>
+                                                        <div className="prob-item">
+                                                            <span className="prob-label">U</span>
+                                                            <span className="prob-value">{match.probUnder ? `${match.probUnder}%` : '-'}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-btts-stat">
+                                                    <div className="prob-single">
+                                                        <span className="prob-value-large">{match.probBTTS ? `${match.probBTTS}%` : '-'}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-score-stat">
+                                                    <div className="score-display">
+                                                        <span className={`score-number ${match.isLive ? 'live' : ''}`}>
+                                                            {match.homeScore}
+                                                        </span>
+                                                        <span className={`score-number ${match.isLive ? 'live' : ''}`}>
+                                                            {match.awayScore}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            {/* Score */}
-                                            <div style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '18px',
-                                                fontWeight: '700',
-                                                color: match.isLive ? '#f44336' : '#333'
-                                            }}>
-                                                {match.homeScore} - {match.awayScore}
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    {/* Show More Button */}
-                                    {matches.length > visibleCount && (
-                                        <div className="show-more-container">
-                                            <button
-                                                className="show-more-btn"
-                                                onClick={() => setVisibleCount(prev => prev + 30)}
-                                            >
-                                                Show more matches
-                                            </button>
-                                        </div>
-                                    )}
-                                </>
-                                )}
-                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))
                         )}
-                    </main>
-                </div>
+                    </div>
+                </main>
             </div>
         </div>
     );

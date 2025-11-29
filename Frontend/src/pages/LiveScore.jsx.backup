@@ -1,0 +1,908 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import axios from 'axios';
+import './LiveScore.css';
+import { LiveScoreTableSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
+
+const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
+const BASE_URL = 'https://apiv3.apifootball.com';
+
+// Comprehensive timezone list
+const TIMEZONES = [
+    { label: 'Iran (UTC+3:30)', value: '+03:30' },
+    { label: 'Pakistan (UTC+5)', value: '+05:00' },
+    { label: 'India (UTC+5:30)', value: '+05:30' },
+    { label: 'UAE (UTC+4)', value: '+04:00' },
+    { label: 'Saudi Arabia (UTC+3)', value: '+03:00' },
+    { label: 'Turkey (UTC+3)', value: '+03:00' },
+    { label: 'Egypt (UTC+2)', value: '+02:00' },
+    { label: 'South Africa (UTC+2)', value: '+02:00' },
+    { label: 'UK (UTC+0)', value: '+00:00' },
+    { label: 'Portugal (UTC+0)', value: '+00:00' },
+    { label: 'Europe/Berlin (UTC+1)', value: '+01:00' },
+    { label: 'France (UTC+1)', value: '+01:00' },
+    { label: 'Spain (UTC+1)', value: '+01:00' },
+    { label: 'Italy (UTC+1)', value: '+01:00' },
+    { label: 'Greece (UTC+2)', value: '+02:00' },
+    { label: 'Russia/Moscow (UTC+3)', value: '+03:00' },
+    { label: 'China (UTC+8)', value: '+08:00' },
+    { label: 'Japan (UTC+9)', value: '+09:00' },
+    { label: 'Australia/Sydney (UTC+11)', value: '+11:00' },
+    { label: 'New Zealand (UTC+13)', value: '+13:00' },
+    { label: 'US East (UTC-5)', value: '-05:00' },
+    { label: 'US Central (UTC-6)', value: '-06:00' },
+    { label: 'US Mountain (UTC-7)', value: '-07:00' },
+    { label: 'US West (UTC-8)', value: '-08:00' },
+    { label: 'Brazil (UTC-3)', value: '-03:00' },
+    { label: 'Argentina (UTC-3)', value: '-03:00' },
+    { label: 'Mexico (UTC-6)', value: '-06:00' }
+];
+
+function LiveScore() {
+    const [liveMatches, setLiveMatches] = useState([]);
+    const [finishedMatches, setFinishedMatches] = useState([]);
+    const [upcomingMatches, setUpcomingMatches] = useState([]);
+    const [visibleCount, setVisibleCount] = useState(30);
+    const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+    const [loading, setLoading] = useState(false);
+    const [loadingLive, setLoadingLive] = useState(false);
+    const [hasReceivedWebSocketData, setHasReceivedWebSocketData] = useState(false);
+    const socketRef = useRef(null);
+
+    // Match type and date states
+    const [matchType, setMatchType] = useState('live'); // 'live', 'finished', 'upcoming'
+    const [selectedDate, setSelectedDate] = useState(new Date());
+
+    // Match details modal
+    const [selectedMatch, setSelectedMatch] = useState(null);
+    const [matchStats, setMatchStats] = useState(null);
+    const [matchLineups, setMatchLineups] = useState(null);
+    const [loadingDetails, setLoadingDetails] = useState(false);
+
+    // Filter states
+    const [selectedTimezone, setSelectedTimezone] = useState('+03:30');
+    const [selectedLeagues, setSelectedLeagues] = useState(new Set());
+    const [matchIdFilter, setMatchIdFilter] = useState('');
+    const [showAllCountries, setShowAllCountries] = useState(false);
+    const [expandedCountries, setExpandedCountries] = useState(new Set());
+
+    // Available options (populated from API data)
+    const [leaguesByCountry, setLeaguesByCountry] = useState({});
+
+    // Transform WebSocket/API data to component format
+    const transformMatch = (match) => {
+        return {
+            id: match.match_id,
+            time: match.match_time,
+            league: match.league_name,
+            leagueId: match.league_id,
+            country: match.country_name,
+            countryId: match.country_id,
+            homeTeam: match.match_hometeam_name,
+            awayTeam: match.match_awayteam_name,
+            homeScore: match.match_hometeam_score || '-',
+            awayScore: match.match_awayteam_score || '-',
+            isLive: match.match_live === '1',
+            liveTime: match.match_status,
+            status: match.match_status,
+            date: match.match_date
+        };
+    };
+
+    // Fetch finished and upcoming matches from REST API
+    const fetchMatches = useCallback(async (date, type) => {
+        setLoading(true);
+        try {
+            const dateStr = date.toISOString().split('T')[0];
+            let url = `${BASE_URL}/?action=get_events&from=${dateStr}&to=${dateStr}&APIkey=${API_KEY}&timezone=${selectedTimezone}`;
+
+            // Add filters
+            if (selectedLeagues.size > 0) {
+                url += `&league_id=${Array.from(selectedLeagues).join(',')}`;
+            }
+            if (matchIdFilter.trim()) {
+                url += `&match_id=${matchIdFilter.trim()}`;
+            }
+
+            const response = await axios.get(url);
+
+            if (response.data && Array.isArray(response.data)) {
+                const transformed = response.data.map(transformMatch);
+
+                // Categorize matches
+                const now = new Date();
+                const finished = transformed.filter(m => m.status === 'Finished' || m.status === 'FT' || m.status === 'After ET' || m.status === 'After Pen.');
+                const live = transformed.filter(m => m.isLive);
+                const upcoming = transformed.filter(m => !m.isLive && m.status !== 'Finished' && m.status !== 'FT' && m.status !== 'After ET' && m.status !== 'After Pen.');
+
+                setFinishedMatches(finished);
+                setUpcomingMatches(upcoming);
+
+                // For live matches, WebSocket will handle them, but we can set initial data
+                if (type === 'live' && live.length > 0) {
+                    setLiveMatches(live);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching matches:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [selectedTimezone, selectedLeagues, matchIdFilter]);
+
+    // Fetch match details (statistics and lineups)
+    const fetchMatchDetails = async (matchId) => {
+        setLoadingDetails(true);
+        try {
+            const [statsRes, lineupsRes] = await Promise.all([
+                axios.get(`${BASE_URL}/?action=get_statistics&match_id=${matchId}&APIkey=${API_KEY}`),
+                axios.get(`${BASE_URL}/?action=get_lineups&match_id=${matchId}&APIkey=${API_KEY}`)
+            ]);
+
+            setMatchStats(statsRes.data);
+            setMatchLineups(lineupsRes.data);
+        } catch (error) {
+            console.error('Error fetching match details:', error);
+            setMatchStats(null);
+            setMatchLineups(null);
+        } finally {
+            setLoadingDetails(false);
+        }
+    };
+
+    // Handle match click
+    const handleMatchClick = (match) => {
+        setSelectedMatch(match);
+        fetchMatchDetails(match.id);
+    };
+
+    // Close match details modal
+    const closeMatchDetails = () => {
+        setSelectedMatch(null);
+        setMatchStats(null);
+        setMatchLineups(null);
+    };
+
+    // Generate date pills (2 days before, today, tomorrow, 1 day after tomorrow)
+    const getDatePills = () => {
+        const pills = [];
+        const today = new Date();
+
+        // Generate 5 date pills: 2 before today, today, 2 after today
+        for (let i = -2; i <= 2; i++) {
+            const date = new Date(today);
+            date.setDate(date.getDate() + i);
+            pills.push(date);
+        }
+
+        return pills;
+    };
+
+    const datePills = getDatePills();
+
+    // Fetch countries and leagues from API on mount
+    useEffect(() => {
+        const fetchCountriesAndLeagues = async () => {
+            try {
+                // Fetch leagues - we'll get them from events API with a broad date range
+                const today = new Date();
+                const from = new Date(today);
+                from.setDate(from.getDate() - 1); // Yesterday
+                const to = new Date(today);
+                to.setDate(to.getDate() + 7); // Next week
+
+                const leaguesResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_events&from=${from.toISOString().split('T')[0]}&to=${to.toISOString().split('T')[0]}&APIkey=${API_KEY}`);
+                if (Array.isArray(leaguesResponse.data)) {
+                    // Group leagues by country
+                    const leaguesMap = new Map();
+                    const countryLeaguesMap = {};
+
+                    leaguesResponse.data.forEach(match => {
+                        const leagueKey = match.league_id;
+                        if (!leaguesMap.has(leagueKey)) {
+                            leaguesMap.set(leagueKey, {
+                                id: match.league_id,
+                                name: match.league_name,
+                                country: match.country_name,
+                                countryId: match.country_id
+                            });
+
+                            // Group by country
+                            if (!countryLeaguesMap[match.country_name]) {
+                                countryLeaguesMap[match.country_name] = [];
+                            }
+                            countryLeaguesMap[match.country_name].push({
+                                id: match.league_id,
+                                name: match.league_name
+                            });
+                        }
+                    });
+
+                    // Sort leagues within each country
+                    Object.keys(countryLeaguesMap).forEach(country => {
+                        countryLeaguesMap[country].sort((a, b) => a.name.localeCompare(b.name));
+                    });
+
+                    setLeaguesByCountry(countryLeaguesMap);
+                }
+            } catch (error) {
+                console.error('Error fetching countries and leagues:', error);
+            }
+        };
+
+        fetchCountriesAndLeagues();
+    }, []);
+
+    // Fetch initial live matches via REST API
+    const fetchInitialLiveMatches = useCallback(async () => {
+        setLoadingLive(true);
+        setHasReceivedWebSocketData(false);
+        try {
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            let url = `${BASE_URL}/?action=get_events&from=${dateStr}&to=${dateStr}&match_live=1&APIkey=${API_KEY}&timezone=${selectedTimezone}`;
+
+            // Add filters
+            if (selectedLeagues.size > 0) {
+                url += `&league_id=${Array.from(selectedLeagues).join(',')}`;
+            }
+            if (matchIdFilter.trim()) {
+                url += `&match_id=${matchIdFilter.trim()}`;
+            }
+
+            const response = await axios.get(url);
+
+            if (response.data && Array.isArray(response.data)) {
+                const transformed = response.data.map(transformMatch);
+                setLiveMatches(transformed);
+                // If we got data from REST API, we can show it immediately
+                setLoadingLive(false);
+                setHasReceivedWebSocketData(true);
+            } else {
+                setLiveMatches([]);
+                // Don't stop loading yet - wait for WebSocket
+            }
+        } catch (error) {
+            console.error('Error fetching initial live matches:', error);
+            setLiveMatches([]);
+            // Don't stop loading yet - wait for WebSocket
+        }
+    }, [selectedTimezone, selectedLeagues, matchIdFilter]);
+
+    // Fetch matches when date, match type, or filters change
+    useEffect(() => {
+        if (matchType !== 'live') {
+            fetchMatches(selectedDate, matchType);
+        } else {
+            // Fetch initial live matches when switching to live mode
+            fetchInitialLiveMatches();
+        }
+    }, [selectedDate, matchType, fetchMatches, fetchInitialLiveMatches]);
+
+    // WebSocket connection for live matches only
+    useEffect(() => {
+        if (matchType !== 'live') {
+            // Close WebSocket if not viewing live matches
+            if (socketRef.current) {
+                socketRef.current.close();
+                socketRef.current = null;
+            }
+            return;
+        }
+
+        // Safety timeout: stop loading after 10 seconds even if no data received
+        const loadingTimeout = setTimeout(() => {
+            if (loadingLive) {
+                console.log('Loading timeout reached, stopping loading state');
+                setLoadingLive(false);
+                setHasReceivedWebSocketData(true);
+            }
+        }, 10000);
+
+        const connectWebSocket = () => {
+            if (socketRef.current?.readyState === WebSocket.OPEN) {
+                socketRef.current.close();
+            }
+
+            setConnectionStatus('Connecting');
+            console.log('Connecting to WebSocket...');
+
+            // Build WebSocket URL with filters
+            let wsUrl = `wss://wss.apifootball.com/livescore?APIkey=${API_KEY}&timezone=${selectedTimezone}`;
+
+            // Add league filter if selected
+            if (selectedLeagues.size > 0) {
+                const leagueIds = Array.from(selectedLeagues).join(',');
+                wsUrl += `&league_id=${leagueIds}`;
+            }
+
+            // Add match ID filter if provided
+            if (matchIdFilter.trim()) {
+                wsUrl += `&match_id=${matchIdFilter.trim()}`;
+            }
+
+            console.log('WebSocket URL:', wsUrl);
+
+            const socket = new WebSocket(wsUrl);
+            socketRef.current = socket;
+
+            socket.onopen = () => {
+                setConnectionStatus('Connected');
+                console.log('WebSocket Connected');
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('Received data:', data);
+
+                    // Mark that we've received WebSocket data and stop loading
+                    setLoadingLive(false);
+                    setHasReceivedWebSocketData(true);
+
+                    if (Array.isArray(data) && data.length > 0) {
+                        const transformedMatches = data.map(transformMatch);
+
+                        // Merge with existing matches instead of replacing
+                        setLiveMatches(prevMatches => {
+                            const matchMap = new Map();
+                            const today = new Date().toISOString().split('T')[0];
+
+                            // First, add all existing matches to the map (only from today)
+                            prevMatches.forEach(match => {
+                                // Only keep matches from today
+                                if (match.date === today) {
+                                    matchMap.set(match.id, match);
+                                }
+                            });
+
+                            // Then, update or add new matches from the WebSocket
+                            transformedMatches.forEach(match => {
+                                matchMap.set(match.id, match);
+                            });
+
+                            // Filter out only matches that are still live or haven't started yet
+                            // Remove only matches that are actually finished
+                            const mergedMatches = Array.from(matchMap.values()).filter(match => {
+                                const isFinished = match.status === 'Finished' ||
+                                                 match.status === 'FT' ||
+                                                 match.status === 'After ET' ||
+                                                 match.status === 'After Pen.' ||
+                                                 match.status === 'Postponed' ||
+                                                 match.status === 'Cancelled';
+                                return !isFinished;
+                            });
+
+                            return mergedMatches;
+                        });
+                    } else {
+                        // Empty data received - set empty array
+                        setLiveMatches([]);
+                    }
+                } catch (error) {
+                    console.error('Error parsing WebSocket data:', error);
+                    setLoadingLive(false);
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                setConnectionStatus('Error');
+            };
+
+            socket.onclose = () => {
+                console.log('WebSocket disconnected. Reconnecting in 5 seconds...');
+                setConnectionStatus('Disconnected');
+                socketRef.current = null;
+                setTimeout(connectWebSocket, 5000);
+            };
+        };
+
+        connectWebSocket();
+
+        return () => {
+            clearTimeout(loadingTimeout);
+            if (socketRef.current) {
+                socketRef.current.close();
+                socketRef.current = null;
+            }
+        };
+    }, [matchType, selectedTimezone, selectedLeagues, matchIdFilter, loadingLive]);
+
+    // Handle country expansion toggle
+    const toggleCountryExpansion = (countryName) => {
+        setExpandedCountries(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(countryName)) {
+                newSet.delete(countryName);
+            } else {
+                newSet.add(countryName);
+            }
+            return newSet;
+        });
+    };
+
+    // Handle league filter toggle
+    const toggleLeague = (leagueId) => {
+        setSelectedLeagues(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(leagueId)) {
+                newSet.delete(leagueId);
+            } else {
+                newSet.add(leagueId);
+            }
+            return newSet;
+        });
+    };
+
+    // Clear all filters
+    const clearAllFilters = () => {
+        setSelectedLeagues(new Set());
+        setMatchIdFilter('');
+    };
+
+    const hasActiveFilters = selectedLeagues.size > 0 || matchIdFilter.trim();
+
+    // Get current matches based on selected type
+    const getCurrentMatches = () => {
+        switch (matchType) {
+            case 'live':
+                return liveMatches;
+            case 'finished':
+                return finishedMatches;
+            case 'upcoming':
+                return upcomingMatches;
+            default:
+                return [];
+        }
+    };
+
+    const currentMatches = getCurrentMatches();
+
+    // Format date for display
+    const formatDate = (date) => {
+        const options = { weekday: 'short', month: 'short', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+    };
+
+    // Get date label (Yesterday, Today, Tomorrow, or date)
+    const getDateLabel = (date) => {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        if (date.toDateString() === today.toDateString()) {
+            return 'Today';
+        } else if (date.toDateString() === tomorrow.toDateString()) {
+            return 'Tomorrow';
+        } else if (date.toDateString() === yesterday.toDateString()) {
+            return 'Yesterday';
+        } else {
+            // Format as "Mon 25" or "Tue 26"
+            const options = { weekday: 'short', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+    };
+
+    // Check if date is today
+    const isToday = (date) => {
+        const today = new Date();
+        return date.toDateString() === today.toDateString();
+    };
+
+    // Check if two dates are the same day
+    const isSameDay = (date1, date2) => {
+        return date1.toDateString() === date2.toDateString();
+    };
+
+    return (
+        <div className="live-score-page">
+            <div className="container-wrapper wrap">
+                {/* Breadcrumbs */}
+                <div className="breadcrumbs">
+                    <a href="/" className="breadcrumb-link">Livebaz</a>
+                    <span className="breadcrumb-separator">›</span>
+                    <span className="breadcrumb-current">Live Scores</span>
+                </div>
+
+                {/* Main Grid Layout */}
+                <div className="content-grid">
+                    {/* Filters Sidebar */}
+                    <aside className="filters-sidebar">
+                        <div className="filters-header">
+                            <h3 className="filters-title">FILTERS</h3>
+                            {hasActiveFilters && (
+                                <button
+                                    className="clear-filters"
+                                    onClick={clearAllFilters}
+                                >
+                                    <span>✕</span>
+                                    <span>Clear</span>
+                                </button>
+                            )}
+                        </div>
+
+
+
+                        {/* Timezone Filter */}
+                        <div className="filter-group">
+                            <h4 className="filter-group-title">TIMEZONE</h4>
+                            <select
+                                value={selectedTimezone}
+                                onChange={(e) => setSelectedTimezone(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #d0d0d0',
+                                    fontSize: '13px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {TIMEZONES.map(tz => (
+                                    <option key={tz.value} value={tz.value}>
+                                        {tz.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Match ID Filter */}
+                        <div className="filter-group">
+                            <h4 className="filter-group-title">MATCH ID</h4>
+                            <input
+                                type="text"
+                                placeholder="Enter match ID..."
+                                value={matchIdFilter}
+                                onChange={(e) => setMatchIdFilter(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #d0d0d0',
+                                    fontSize: '13px'
+                                }}
+                            />
+                        </div>
+
+                        {/* Leagues by Country Filter */}
+                        {Object.keys(leaguesByCountry).length > 0 && (
+                            <div className="filter-group">
+                                <h4 className="filter-group-title">LEAGUES BY COUNTRY</h4>
+                                <div className="filter-options">
+                                    {Object.entries(leaguesByCountry)
+                                        .sort(([a], [b]) => a.localeCompare(b))
+                                        .slice(0, showAllCountries ? undefined : 10)
+                                        .map(([country, leagues]) => (
+                                            <div key={country} className="country-filter-item">
+                                                <div
+                                                    className="country-header"
+                                                    onClick={() => toggleCountryExpansion(country)}
+                                                >
+                                                    <span className="expand-icon">
+                                                        {expandedCountries.has(country) ? '▼' : '▶'}
+                                                    </span>
+                                                    <span className="country-name">{country}</span>
+                                                    <span className="league-count">({leagues.length})</span>
+                                                </div>
+                                                {expandedCountries.has(country) && (
+                                                    <div className="leagues-list">
+                                                        {leagues.map(league => (
+                                                            <label key={league.id} className="league-option">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedLeagues.has(league.id)}
+                                                                    onChange={() => toggleLeague(league.id)}
+                                                                />
+                                                                <span className="league-label">{league.name}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                </div>
+                                {Object.keys(leaguesByCountry).length > 10 && (
+                                    <button
+                                        className="show-more-leagues"
+                                        onClick={() => setShowAllCountries(!showAllCountries)}
+                                    >
+                                        {showAllCountries ? 'Show less' : `Show more (${Object.keys(leaguesByCountry).length - 10})`}
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </aside>
+
+                    {/* Main Content */}
+                    <main className="main-content">
+                        {/* Page Header */}
+                        <div className="page-header" style={{ padding: '20px 24px 0' }}>
+                            <h1 className="page-title">Football Live Scores</h1>
+                        </div>
+
+                        {/* Date Navigation Pills */}
+                        <div className="date-tabs">
+                            {datePills.map((date, index) => (
+                                <button
+                                    key={index}
+                                    className={`date-tab ${isSameDay(date, selectedDate) ? 'active' : ''}`}
+                                    onClick={() => setSelectedDate(date)}
+                                >
+                                    {getDateLabel(date)}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Match Type Tabs */}
+                        <div className="prediction-tabs">
+                            <button
+                                className={`prediction-tab ${matchType === 'live' ? 'active' : ''}`}
+                                onClick={() => setMatchType('live')}
+                            >
+                                Live {matchType === 'live' && liveMatches.length > 0 && `(${liveMatches.length})`}
+                            </button>
+                            <button
+                                className={`prediction-tab ${matchType === 'finished' ? 'active' : ''}`}
+                                onClick={() => setMatchType('finished')}
+                            >
+                                Finished {matchType === 'finished' && finishedMatches.length > 0 && `(${finishedMatches.length})`}
+                            </button>
+                            <button
+                                className={`prediction-tab ${matchType === 'upcoming' ? 'active' : ''}`}
+                                onClick={() => setMatchType('upcoming')}
+                            >
+                                Upcoming {matchType === 'upcoming' && upcomingMatches.length > 0 && `(${upcomingMatches.length})`}
+                            </button>
+                        </div>
+
+                        {/* Table Controls */}
+                        <div className="table-controls" style={{ justifyContent: 'space-between', padding: '14px 24px' }}>
+                            <div style={{ fontSize: '13px', color: '#666' }}>
+                                {currentMatches.length} {currentMatches.length === 1 ? 'match' : 'matches'}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#999' }}>
+                                Timezone: {TIMEZONES.find(tz => tz.value === selectedTimezone)?.label}
+                            </div>
+                        </div>
+
+                        {/* Table Header */}
+                        <div
+                            className="predictions-table-header"
+                            style={{ gridTemplateColumns: '55px 1fr 80px' }}
+                        >
+                            <div>Time</div>
+                            <div>Match</div>
+                            <div style={{ textAlign: 'center' }}>Score</div>
+                        </div>
+
+                        {/* Table Body */}
+                        {(matchType === 'live' && (loadingLive || connectionStatus === 'Connecting')) || (matchType !== 'live' && loading) ? (
+                            <LiveScoreTableSkeleton rows={15} />
+                        ) : (
+                            <div className="predictions-table-body">
+                                {currentMatches.length === 0 ? (
+                                    <div className="loading-state">
+                                        {matchType === 'live'
+                                            ? 'No live matches at the moment'
+                                            : `No ${matchType} matches for ${formatDate(selectedDate)}`}
+                                    </div>
+                                ) : (
+                                <>
+                                    {currentMatches.slice(0, visibleCount).map(match => (
+                                        <div
+                                            key={match.id}
+                                            className="match-row clickable"
+                                            style={{ gridTemplateColumns: '55px 1fr 80px', cursor: 'pointer' }}
+                                            onClick={() => handleMatchClick(match)}
+                                        >
+                                            {/* Live Indicator */}
+                                            {match.isLive && (
+                                                <div className="live-indicator">
+                                                    <span className="live-badge">LIVE</span>
+                                                    <span className="live-time">{match.liveTime}</span>
+                                                </div>
+                                            )}
+
+                                            {/* Time */}
+                                            <div className="td-time">
+                                                <div className="match-time">{match.time}</div>
+                                                {match.status && !match.isLive && (
+                                                    <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>
+                                                        {match.status}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Game */}
+                                            <div className="td-game">
+                                                <div className="league-name">{match.league}</div>
+                                                <div className="teams">
+                                                    <div className="team-row">
+                                                        <span className="team-name">{match.homeTeam}</span>
+                                                        {match.homeScore !== '-' && (
+                                                            <span className="team-score">{match.homeScore}</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="team-row">
+                                                        <span className="team-name">{match.awayTeam}</span>
+                                                        {match.awayScore !== '-' && (
+                                                            <span className="team-score">{match.awayScore}</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Score */}
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '18px',
+                                                fontWeight: '700',
+                                                color: match.isLive ? '#f44336' : '#333'
+                                            }}>
+                                                {match.homeScore} - {match.awayScore}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Show More Button */}
+                                    {currentMatches.length > visibleCount && (
+                                        <div className="show-more-container">
+                                            <button
+                                                className="show-more-btn"
+                                                onClick={() => setVisibleCount(prev => prev + 30)}
+                                            >
+                                                Show more matches
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                                )}
+                            </div>
+                        )}
+                    </main>
+                </div>
+
+                {/* Match Details Modal */}
+                {selectedMatch && (
+                    <div className="modal-overlay" onClick={closeMatchDetails}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h2>Match Details</h2>
+                                <button className="modal-close" onClick={closeMatchDetails}>×</button>
+                            </div>
+
+                            <div className="modal-body">
+                                {/* Match Info */}
+                                <div className="match-details-header">
+                                    <div className="match-details-league">{selectedMatch.league}</div>
+                                    <div className="match-details-teams">
+                                        <div className="match-details-team">
+                                            <span className="team-name-large">{selectedMatch.homeTeam}</span>
+                                            <span className="team-score-large">{selectedMatch.homeScore}</span>
+                                        </div>
+                                        <div className="match-details-vs">VS</div>
+                                        <div className="match-details-team">
+                                            <span className="team-score-large">{selectedMatch.awayScore}</span>
+                                            <span className="team-name-large">{selectedMatch.awayTeam}</span>
+                                        </div>
+                                    </div>
+                                    <div className="match-details-status">
+                                        {selectedMatch.isLive ? (
+                                            <span className="status-live">LIVE - {selectedMatch.liveTime}</span>
+                                        ) : (
+                                            <span>{selectedMatch.status} - {selectedMatch.time}</span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {loadingDetails ? (
+                                    <div className="loading-state" style={{ padding: '40px' }}>
+                                        Loading match details...
+                                    </div>
+                                ) : (
+                                    <>
+                                        {/* Statistics */}
+                                        {matchStats && matchStats.length > 0 && (
+                                            <div className="match-stats-section">
+                                                <h3 className="section-title">Match Statistics</h3>
+                                                <div className="stats-grid">
+                                                    {matchStats[0] && Object.entries(matchStats[0]).map(([key, value]) => {
+                                                        if (key === 'match_id') return null;
+                                                        const awayValue = matchStats[1] ? matchStats[1][key] : '0';
+                                                        const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                                                        return (
+                                                            <div key={key} className="stat-row">
+                                                                <div className="stat-value home">{value || '0'}</div>
+                                                                <div className="stat-label">{label}</div>
+                                                                <div className="stat-value away">{awayValue || '0'}</div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Lineups */}
+                                        {matchLineups && matchLineups.length > 0 && (
+                                            <div className="match-lineups-section">
+                                                <h3 className="section-title">Lineups</h3>
+                                                <div className="lineups-grid">
+                                                    <div className="lineup-column">
+                                                        <h4>{selectedMatch.homeTeam}</h4>
+                                                        {matchLineups[0]?.lineup?.starting_lineups && (
+                                                            <>
+                                                                <div className="lineup-group">
+                                                                    <p className="lineup-group-title">Starting XI</p>
+                                                                    {matchLineups[0].lineup.starting_lineups.map((player, idx) => (
+                                                                        <div key={idx} className="player-item">
+                                                                            {player.lineup_number}. {player.lineup_player}
+                                                                            {player.lineup_position && <span className="player-position">({player.lineup_position})</span>}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                        {matchLineups[0]?.lineup?.substitutes && matchLineups[0].lineup.substitutes.length > 0 && (
+                                                            <div className="lineup-group">
+                                                                <p className="lineup-group-title">Substitutes</p>
+                                                                {matchLineups[0].lineup.substitutes.map((player, idx) => (
+                                                                    <div key={idx} className="player-item">
+                                                                        {player.lineup_number}. {player.lineup_player}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="lineup-column">
+                                                        <h4>{selectedMatch.awayTeam}</h4>
+                                                        {matchLineups[1]?.lineup?.starting_lineups && (
+                                                            <>
+                                                                <div className="lineup-group">
+                                                                    <p className="lineup-group-title">Starting XI</p>
+                                                                    {matchLineups[1].lineup.starting_lineups.map((player, idx) => (
+                                                                        <div key={idx} className="player-item">
+                                                                            {player.lineup_number}. {player.lineup_player}
+                                                                            {player.lineup_position && <span className="player-position">({player.lineup_position})</span>}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                        {matchLineups[1]?.lineup?.substitutes && matchLineups[1].lineup.substitutes.length > 0 && (
+                                                            <div className="lineup-group">
+                                                                <p className="lineup-group-title">Substitutes</p>
+                                                                {matchLineups[1].lineup.substitutes.map((player, idx) => (
+                                                                    <div key={idx} className="player-item">
+                                                                        {player.lineup_number}. {player.lineup_player}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {!matchStats && !matchLineups && !loadingDetails && (
+                                            <div className="loading-state" style={{ padding: '40px' }}>
+                                                No detailed statistics available for this match
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+export default LiveScore;

@@ -27,8 +27,10 @@ sequelize
 
 // Start server
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port http://localhost:${PORT}`);
+const HOST = '0.0.0.0'; // Listen on all network interfaces
+const server = app.listen(PORT, HOST, () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`Access from other devices: http://192.168.1.40:${PORT}`);
 });
 
 // handle unhandled promise rejection (commented out to allow server to run without MySQL)

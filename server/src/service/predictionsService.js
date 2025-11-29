@@ -64,6 +64,7 @@ function transformPredictions(apiData) {
     const probO = parseFloat(match.prob_O) || 0;
     const probU = parseFloat(match.prob_U) || 0;
     const probBTS = parseFloat(match.prob_bts) || 0;
+    const probOTS = parseFloat(match.prob_ots) || 0; // One Team to Score (BTTS No)
 
     // Calculate odds from probabilities (odds ≈ 1/probability)
     const calculateOdds = (prob) => prob > 0 ? (1 / (prob / 100)).toFixed(2) : 1.00;
@@ -75,7 +76,8 @@ function transformPredictions(apiData) {
       probAW,
       probO,
       probU,
-      probBTS
+      probBTS,
+      probOTS
     });
 
     // Determine live status
@@ -95,9 +97,12 @@ function transformPredictions(apiData) {
       league_id: match.league_id,
       time: formatMatchTime(match.match_date, match.match_time),
       league: match.league_name?.toUpperCase() || "UNKNOWN LEAGUE",
+      leagueLogo: match.league_logo || null,
       country: match.country_name,
       homeTeam: match.match_hometeam_name,
       awayTeam: match.match_awayteam_name,
+      homeLogo: match.team_home_badge || null,
+      awayLogo: match.team_away_badge || null,
       homeScore: match.match_hometeam_score || "-",
       awayScore: match.match_awayteam_score || "-",
       status: matchStatus,
@@ -134,8 +139,8 @@ function transformPredictions(apiData) {
             prob: Math.round(probBTS)
           },
           no: {
-            odds: calculateOdds(100 - probBTS),
-            prob: Math.round(100 - probBTS)
+            odds: calculateOdds(probOTS),
+            prob: Math.round(probOTS)
           }
         },
         bestTip
@@ -148,7 +153,7 @@ function transformPredictions(apiData) {
  * Determine the best betting tip based on probabilities
  */
 function determineBestTip(probs) {
-  const { probHW, probD, probAW, probO, probU, probBTS } = probs;
+  const { probHW, probD, probAW, probO, probU, probBTS, probOTS } = probs;
 
   const tips = [
     { type: "1X2 : W1", prob: probHW, category: "1x2" },
@@ -157,7 +162,7 @@ function determineBestTip(probs) {
     { type: "Goals : O 2.5", prob: probO, category: "goals" },
     { type: "Goals : U 2.5", prob: probU, category: "goals" },
     { type: "BTTS : Yes", prob: probBTS, category: "btts" },
-    { type: "BTTS : No", prob: 100 - probBTS, category: "btts" }
+    { type: "BTTS : No", prob: probOTS, category: "btts" }
   ];
 
   // Find tip with highest probability
