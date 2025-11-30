@@ -13,6 +13,7 @@ function Navigation() {
     const [allLeagues, setAllLeagues] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobileLeaguesExpanded, setIsMobileLeaguesExpanded] = useState(false);
 
     const openLoginModal = () => {
         setAuthMode('login');
@@ -29,8 +30,15 @@ function Navigation() {
     };
 
     const toggleMobileMenu = () => {
-        setIsMobileMenuOpen(!isMobileMenuOpen);
+        const newState = !isMobileMenuOpen;
+        console.log('Mobile menu toggled. Current state:', isMobileMenuOpen, '-> New state:', newState);
+        setIsMobileMenuOpen(newState);
     };
+
+    // Debug: Log when menu state changes
+    useEffect(() => {
+        console.log('Mobile menu state changed:', isMobileMenuOpen);
+    }, [isMobileMenuOpen]);
 
     // Prevent body scroll when mobile menu is open
     useEffect(() => {
@@ -93,20 +101,71 @@ function Navigation() {
 
     return (
         <>
-            <div className="header fl_c w-full mb-8 mb-m-0">
-                <div className="wrap fl_c_sb">
-                    <div className="header-menu rounded_6">
-                        <button type="button" className="header-menu__button" aria-label="Open main menu" onClick={toggleMobileMenu}></button>
-                    </div>
-                    <div className="header-center fl_c_sb w-full">
-                        <span className='header-logo'>
-
-
-                            <a href="/" style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>
-
+            <div className="header fl_c w-full mb-8 mb-m-0" style={{ minHeight: '64px' }}>
+                <div className="wrap fl_c_sb" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '100%' }}>
+                        <div className="header-menu rounded_6" onClick={toggleMobileMenu} style={{
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <button
+                                type="button"
+                                className="header-menu__button"
+                                aria-label="Open main menu"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleMobileMenu();
+                                }}
+                            ></button>
+                        </div>
+                        <span className='header-logo' style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            height: '40px'
+                        }}>
+                            <a href="/" style={{
+                                color: '#fff',
+                                fontSize: '20px',
+                                fontWeight: 'bold',
+                                textDecoration: 'none',
+                                lineHeight: '40px',
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}>
                                 Livebaz
+                            </a>
+                        </span>
+                    </div>
 
-                            </a>                        </span>
+                    {/* Mobile Login Button - visible only on mobile */}
+                    <button
+                        className="mobile-header-login"
+                        onClick={openLoginModal}
+                        style={{
+                            display: 'none',
+                            padding: '10px 20px',
+                            backgroundColor: '#f5f5f5',
+                            color: '#121212',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            height: '40px'
+                        }}
+                    >
+                        Log in
+                    </button>
+
+                    <div className="header-center fl_c_sb w-full">
+                        <span className='header-logo-desktop'>
+                            <a href="/" style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>
+                                Livebaz
+                            </a>
+                        </span>
                         <ul className="header-nav fl_c_sb">
                             <li className="dropdown-menu__wrapper">
                                 <a href='/predictions/' className='header-nav__link fl_c '>Predictions</a>
@@ -252,23 +311,167 @@ function Navigation() {
             </div>
 
             {/* Mobile Menu Sidebar */}
-            <div className={`mobile-menu ${isMobileMenuOpen ? 'mobile-menu--open' : ''}`}>
-                <div className="mobile-menu__overlay" onClick={toggleMobileMenu}></div>
-                <div className="mobile-menu__content">
-                    <div className="mobile-menu__header">
-                        <span style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold' }}>Livebaz</span>
-                        <button className="mobile-menu__close" onClick={toggleMobileMenu} aria-label="Close menu">
+            <div
+                className={`mobile-menu ${isMobileMenuOpen ? 'mobile-menu--open' : ''}`}
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100vh',
+                    zIndex: 9999,
+                    pointerEvents: isMobileMenuOpen ? 'auto' : 'none',
+                    opacity: isMobileMenuOpen ? 1 : 0,
+                    visibility: isMobileMenuOpen ? 'visible' : 'hidden',
+                    transition: 'opacity 0.3s ease, visibility 0.3s ease'
+                }}
+            >
+                <div
+                    className="mobile-menu__overlay"
+                    onClick={toggleMobileMenu}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.6)'
+                    }}
+                ></div>
+                <div
+                    className="mobile-menu__content"
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        maxWidth: '100%',
+                        height: '100%',
+                        backgroundColor: '#121212',
+                        transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
+                        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        overflowY: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}
+                >
+                    <div className="mobile-menu__header" style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '20px 24px',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                        backgroundColor: '#0a0a0a',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 10
+                    }}>
+                        <span style={{ color: '#f5f5f5', fontSize: '22px', fontWeight: 'bold' }}>Livebaz</span>
+                        <button
+                            className="mobile-menu__close"
+                            onClick={toggleMobileMenu}
+                            aria-label="Close menu"
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#f5f5f5',
+                                fontSize: '36px',
+                                cursor: 'pointer',
+                                padding: '0',
+                                width: '44px',
+                                height: '44px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                lineHeight: 1,
+                                transition: 'all 0.2s',
+                                borderRadius: '8px'
+                            }}
+                        >
                             ✕
                         </button>
                     </div>
-                    <nav className="mobile-menu__nav">
+                    <nav className="mobile-menu__nav" style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        padding: '16px 0',
+                        flex: 1,
+                        backgroundColor: '#121212'
+                    }}>
                         <a href='/predictions/' className='mobile-menu__link' onClick={toggleMobileMenu}>
                             Predictions
                         </a>
 
-                        <a href='/competitions/' className='mobile-menu__link' onClick={toggleMobileMenu}>
-                            Leagues
-                        </a>
+                        <div>
+                            <div
+                                className='mobile-menu__link'
+                                onClick={() => setIsMobileLeaguesExpanded(!isMobileLeaguesExpanded)}
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <span>Leagues</span>
+                                <span style={{
+                                    transform: isMobileLeaguesExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                    transition: 'transform 0.3s',
+                                    fontSize: '14px'
+                                }}>▼</span>
+                            </div>
+                            {isMobileLeaguesExpanded && (
+                                <div style={{
+                                    backgroundColor: '#0a0a0a',
+                                    padding: '12px 0',
+                                    maxHeight: '300px',
+                                    overflowY: 'auto'
+                                }}>
+                                    <a
+                                        href='/competitions/'
+                                        className='mobile-menu__sublink'
+                                        onClick={toggleMobileMenu}
+                                        style={{
+                                            color: '#f5f5f5',
+                                            fontWeight: '600',
+                                            marginBottom: '8px'
+                                        }}
+                                    >
+                                        All Leagues
+                                    </a>
+                                    {loading ? (
+                                        <div style={{ padding: '12px 24px', color: '#999' }}>Loading leagues...</div>
+                                    ) : (
+                                        popularLeagues.slice(0, 10).map((league) => (
+                                            <a
+                                                key={league.league_id}
+                                                href={`/league/${league.league_id}`}
+                                                className='mobile-menu__sublink'
+                                                onClick={toggleMobileMenu}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '12px'
+                                                }}
+                                            >
+                                                {league.league_logo && (
+                                                    <img
+                                                        src={league.league_logo}
+                                                        alt=""
+                                                        style={{
+                                                            width: '20px',
+                                                            height: '20px',
+                                                            objectFit: 'contain'
+                                                        }}
+                                                    />
+                                                )}
+                                                <span>{league.league_name}</span>
+                                            </a>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
 
                         <a href='/math-predictions/' className='mobile-menu__link' onClick={toggleMobileMenu}>
                             Math Predictions
@@ -294,9 +497,28 @@ function Navigation() {
                             Scores
                         </a>
 
-                        <div className='mobile-menu__divider'></div>
+                        <div className='mobile-menu__divider' style={{
+                            height: '1px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            margin: '20px 24px'
+                        }}></div>
 
-                        <button className='mobile-menu__login-btn' onClick={() => { toggleMobileMenu(); openLoginModal(); }}>
+                        <button
+                            className='mobile-menu__login-btn'
+                            onClick={() => { toggleMobileMenu(); openLoginModal(); }}
+                            style={{
+                                margin: '12px 24px 32px 24px',
+                                padding: '16px 24px',
+                                backgroundColor: '#f5f5f5',
+                                color: '#121212',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '17px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+                            }}
+                        >
                             Log in
                         </button>
                     </nav>

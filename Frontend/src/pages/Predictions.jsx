@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './MathPredictions.css';
 import { PredictionsPageSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
 
-const API_BASE_URL = '/api/v1';
+
+const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
+const BASE_URL = 'https://apiv3.apifootball.com';
 
 function Predictions() {
+    const navigate = useNavigate();
     const [predictions, setPredictions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState('today');
@@ -23,26 +27,133 @@ function Predictions() {
         setLoading(true);
         try {
             // Calculate date string (YYYY-MM-DD)
-            let dateParam = null;
+            let fromDate, toDate;
             const today = new Date();
 
             if (selectedDate === 'today') {
-                dateParam = today.toISOString().split('T')[0];
+                fromDate = today.toISOString().split('T')[0];
+                toDate = fromDate;
             } else if (selectedDate === 'tomorrow') {
                 const tomorrow = new Date(today);
                 tomorrow.setDate(tomorrow.getDate() + 1);
-                dateParam = tomorrow.toISOString().split('T')[0];
+                fromDate = tomorrow.toISOString().split('T')[0];
+                toDate = fromDate;
+            } else if (selectedDate === 'all') {
+                // For "all", fetch next 7 days of predictions
+                fromDate = today.toISOString().split('T')[0];
+                const nextWeek = new Date(today);
+                nextWeek.setDate(nextWeek.getDate() + 7);
+                toDate = nextWeek.toISOString().split('T')[0];
             }
 
-            const params = dateParam ? { date: dateParam } : {};
+            const params = {
+                action: 'get_predictions',
+                APIkey: API_KEY,
+                from: fromDate,
+                to: toDate
+            };
 
-            const response = await axios.get(`${API_BASE_URL}/predictions`, { params });
+            const response = await axios.get(BASE_URL, { params });
 
-            if (response.data.success) {
-                setPredictions(response.data.data);
+            // The API returns an array directly, not wrapped in a success object
+            const data = Array.isArray(response.data) ? response.data : [];
+
+            // Helper function to parse probability string to number
+            const parseProb = (value) => {
+                const num = parseFloat(value);
+                return isNaN(num) ? 0 : parseFloat(num.toFixed(2));
+            };
+
+            // Helper function to calculate odds from probability
+            const calcOdds = (probability) => {
+                if (!probability || probability <= 0) return '-';
+                const odds = 100 / probability;
+                return odds.toFixed(2);
+            };
+
+            // Transform API response to match component expectations
+            const transformedData = data.map(match => {
+                // Parse all probabilities
+                const probHW = parseProb(match.prob_HW);
+                const probD = parseProb(match.prob_D);
+                const probAW = parseProb(match.prob_AW);
+                const probO = parseProb(match.prob_O);
+                const probU = parseProb(match.prob_U);
+                const probBTS = parseProb(match.prob_bts);
+
+                return {
+                    id: match.match_id,
+                    homeTeam: match.match_hometeam_name,
+                    awayTeam: match.match_awayteam_name,
+                    homeTeamBadge: match.team_home_badge || '',
+                    awayTeamBadge: match.team_away_badge || '',
+                    time: match.match_time,
+                    league: match.league_name,
+                    league_id: match.league_id,
+                    country: match.country_name,
+                    status: match.match_status || 'Not Started',
+                    isLive: match.match_live === '1' || match.match_status === 'Live',
+                    predictions: {
+                        '1x2': {
+                            w1: {
+                                prob: probHW,
+                                odds: calcOdds(probHW)
+                            },
+                            draw: {
+                                prob: probD,
+                                odds: calcOdds(probD)
+                            },
+                            w2: {
+                                prob: probAW,
+                                odds: calcOdds(probAW)
+                            }
+                        },
+                        goals: {
+                            over: {
+                                prob: probO,
+                                odds: calcOdds(probO)
+                            },
+                            under: {
+                                prob: probU,
+                                odds: calcOdds(probU)
+                            }
+                        },
+                        btts: {
+                            yes: {
+                                prob: probBTS,
+                                odds: calcOdds(probBTS)
+                            },
+                            no: {
+                                prob: parseFloat((100 - probBTS).toFixed(2)),
+                                odds: calcOdds(100 - probBTS)
+                            }
+                        },
+                        bestTip: (() => {
+                            // Find the highest probability prediction
+                            const tips = [
+                                { type: 'Home Win', probability: probHW, odds: calcOdds(probHW) },
+                                { type: 'Draw', probability: probD, odds: calcOdds(probD) },
+                                { type: 'Away Win', probability: probAW, odds: calcOdds(probAW) },
+                                { type: 'Over 2.5', probability: probO, odds: calcOdds(probO) },
+                                { type: 'Under 2.5', probability: probU, odds: calcOdds(probU) },
+                                { type: 'BTTS Yes', probability: probBTS, odds: calcOdds(probBTS) }
+                            ];
+                            return tips.reduce((best, tip) => tip.probability > best.probability ? tip : best, tips[0]);
+                        })()
+                    }
+                };
+            });
+
+            setPredictions(transformedData);
+
+            // Log successful data fetch
+            console.log(`Fetched ${transformedData.length} predictions from ${fromDate} to ${toDate}`);
+            if (transformedData.length > 0) {
+                console.log('Sample prediction:', transformedData[0]);
             }
         } catch (error) {
             console.error('Error fetching predictions:', error);
+            console.error('Error details:', error.response?.data);
             setPredictions([]);
         } finally {
             setLoading(false);
@@ -107,7 +218,24 @@ function Predictions() {
                                         predictions.map((prediction) => {
                                             const bestTip = getBestTip(prediction);
                                             return (
-                                                <span key={prediction.id} className="forecast-item" style={{ boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
+                                                <span
+                                                    key={prediction.id}
+                                                    className="forecast-item"
+                                                    style={{
+                                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                    onClick={() => navigate(`/match/${prediction.id}`)}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.transform = 'scale(1.02)';
+                                                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.transform = 'scale(1)';
+                                                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+                                                    }}
+                                                >
                                                     {prediction.isLive && (
                                                         <span className="popular-icon">LIVE</span>
                                                     )}

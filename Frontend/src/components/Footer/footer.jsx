@@ -20,7 +20,7 @@ function Footer() {
                             </div>
                         </div>
                         <div className="copyright copyright-date">
-                            © Copyright 2025
+                            Livebaz © Copyright 2025
                         </div>
                         <ul className="about-project-footer fl_c_st">
                             <li className="footer__list-link">

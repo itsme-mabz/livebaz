@@ -363,10 +363,35 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .match-detail-page {
+        padding: 0;
+    }
+
+    .match-detail-container {
+        padding: 12px 8px;
+    }
+
+    .breadcrumbs {
+        font-size: 11px;
+        padding: 8px 12px;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .match-header {
+        border-radius: 8px;
+        padding: 16px 12px;
+    }
+
+    .match-header-league {
+        font-size: 11px;
+        margin-bottom: 12px;
+    }
+
     .match-header-content {
         flex-direction: column;
-        padding: 0 20px;
-        gap: 20px;
+        padding: 0;
+        gap: 16px;
     }
 
     .team {
@@ -374,23 +399,147 @@
         justify-content: center !important;
         text-align: center !important;
         flex-direction: column !important;
+        gap: 12px;
+    }
+
+    .team-logo {
+        width: 60px;
+        height: 60px;
+    }
+
+    .team-info h2 {
+        font-size: 16px;
     }
 
     .team-form {
         justify-content: center !important;
+        gap: 4px;
+    }
+
+    .form-badge {
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+    }
+
+    .team-standing {
+        font-size: 11px;
     }
 
     .score-board {
         margin: 10px 0;
         width: 100%;
+        padding: 16px;
+    }
+
+    .match-meta-top {
+        font-size: 11px;
+    }
+
+    .score-display {
+        margin: 12px 0;
+    }
+
+    .score {
+        font-size: 32px;
+    }
+
+    .match-status {
+        font-size: 11px;
+    }
+
+    .match-tabs-nav {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 4px;
+        padding: 12px 8px;
+    }
+
+    .nav-tab {
+        padding: 8px 14px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .match-content {
+        padding: 16px 12px;
+    }
+
+    .stats-section,
+    .lineups-section,
+    .h2h-section {
+        padding: 16px 12px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+
+    .section-header h3 {
+        font-size: 14px;
     }
 
     .stat-row-new {
-        gap: 10px;
+        gap: 8px;
+        padding: 10px 0;
     }
 
     .stat-val {
         width: 40px;
         font-size: 12px;
+    }
+
+    .stat-label-center {
+        font-size: 11px;
+    }
+
+    .lineups-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .lineup-column h3 {
+        font-size: 14px;
+    }
+
+    .player-row {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+
+    .h2h-card {
+        padding: 12px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .match-detail-container {
+        padding: 8px 4px;
+    }
+
+    .team-logo {
+        width: 50px;
+        height: 50px;
+    }
+
+    .team-info h2 {
+        font-size: 14px;
+    }
+
+    .score {
+        font-size: 28px;
+    }
+
+    .nav-tab {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    .stat-val {
+        width: 35px;
+        font-size: 11px;
     }
 }

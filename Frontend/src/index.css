@@ -22236,3 +22236,174 @@ screen and (-ms-high-contrast:active) {
         margin-bottom: 16px !important
     }
 }
+/* ========================================
+   RESPONSIVE STYLES FOR HOMEPAGE
+   ======================================== */
+
+@media screen and (max-width: 768px) {
+    /* Main container */
+    .main-page .wrap {
+        padding: 12px 8px;
+    }
+
+    .container {
+        padding: 0;
+    }
+
+    /* Forecasts section */
+    .forecasts__header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 12px;
+    }
+
+    .section-title {
+        font-size: 20px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .date-setting {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+    }
+
+    .date-setting__link {
+        font-size: 12px !important;
+        padding: 8px 14px !important;
+        white-space: nowrap;
+    }
+
+    /* Forecast items */
+    .forecast-item {
+        margin-bottom: 16px !important;
+        padding: 12px !important;
+    }
+
+    .forecast-item__top {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .forecast-item__bottom {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+
+    /* Overall content section */
+    .overall-content {
+        padding: 20px 16px !important;
+    }
+
+    .overall-content h1 {
+        font-size: 22px !important;
+        line-height: 1.3 !important;
+    }
+
+    .overall-content h2 {
+        font-size: 18px !important;
+        line-height: 1.3 !important;
+    }
+
+    .overall-content h3 {
+        font-size: 16px !important;
+        line-height: 1.3 !important;
+    }
+
+    .overall-content p {
+        font-size: 14px !important;
+        line-height: 1.6 !important;
+    }
+
+    .overall-content ul {
+        padding-left: 20px;
+    }
+
+    .overall-content li {
+        font-size: 14px !important;
+        margin-bottom: 8px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .main-page .wrap {
+        padding: 8px 4px;
+    }
+
+    .forecasts__header {
+        gap: 10px;
+    }
+
+    .section-title {
+        font-size: 18px !important;
+    }
+
+    .date-setting__link {
+        font-size: 11px !important;
+        padding: 6px 12px !important;
+    }
+
+    .forecast-item {
+        padding: 10px !important;
+        margin-bottom: 12px !important;
+    }
+
+    .overall-content {
+        padding: 16px 12px !important;
+    }
+
+    .overall-content h1 {
+        font-size: 20px !important;
+    }
+
+    .overall-content h2 {
+        font-size: 16px !important;
+    }
+
+    .overall-content h3 {
+        font-size: 14px !important;
+    }
+
+    .overall-content p,
+    .overall-content li {
+        font-size: 13px !important;
+    }
+}
+
+/* Predictions page responsive */
+@media screen and (max-width: 768px) {
+    .forecasts .forecast-item {
+        width: 100%;
+    }
+
+    .forecasts__wrapper {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
+    }
+
+    .news-item__text-m {
+        font-size: 13px;
+    }
+
+    .tournament {
+        font-size: 12px !important;
+    }
+
+    .info {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .tag {
+        font-size: 11px !important;
+        padding: 4px 8px !important;
+    }
+
+    .time {
+        font-size: 11px !important;
+    }
+}

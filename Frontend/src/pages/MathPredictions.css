@@ -361,11 +361,14 @@
     align-items: left;
     padding: 14px 16px;
     border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    cursor: pointer;
 }
 
 .match-row:hover {
     background-color: #fafafa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transform: scale(1.01);
 }
 
 .match-row:last-child {
@@ -664,7 +667,42 @@
 
 @media (max-width: 768px) {
     .container-wrapper {
-        padding: 12px;
+        padding: 12px 8px;
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .filters-sidebar {
+        order: 2;
+        margin-top: 0;
+    }
+
+    .main-content {
+        order: 1;
+    }
+
+    .page-header {
+        padding: 16px;
+    }
+
+    .page-title {
+        font-size: 20px;
+    }
+
+    .date-tabs {
+        padding: 12px 16px;
+        gap: 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .date-tab {
+        padding: 8px 14px;
+        font-size: 12px;
+        white-space: nowrap;
     }
 
     .predictions-table-header {
@@ -676,14 +714,144 @@
         flex-direction: column;
         gap: 12px;
         padding: 16px;
+        border: 1px solid #f0f0f0;
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+
+    .td-time {
+        border-right: none;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 8px;
+        justify-content: center;
+    }
+
+    .match-time {
+        font-size: 12px;
+    }
+
+    .td-game {
+        gap: 8px;
+    }
+
+    .league-name {
+        font-size: 11px;
+    }
+
+    .team-row {
+        font-size: 14px;
+        gap: 8px;
+    }
+
+    .team-logo {
+        width: 24px;
+        height: 24px;
     }
 
     .prediction-boxes {
         justify-content: space-between;
+        gap: 4px;
+        width: 100%;
+    }
+
+    .pred-box {
+        flex: 1;
+        padding: 8px 4px;
+        min-width: 60px;
+    }
+
+    .pred-label {
+        font-size: 9px;
+    }
+
+    .pred-odds {
+        font-size: 16px;
+    }
+
+    .pred-prob {
+        font-size: 10px;
     }
 
     .best-tip-card {
         width: 100%;
+        padding: 12px;
+    }
+
+    .best-tip-type {
+        font-size: 11px;
+    }
+
+    .best-tip-odds {
+        font-size: 20px;
+    }
+
+    .show-more-container {
+        padding: 16px 0;
+        margin-bottom: 20px;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .container-wrapper {
+        padding: 8px 4px;
+    }
+
+    .page-title {
+        font-size: 18px;
+    }
+
+    .date-tabs {
+        padding: 10px 12px;
+    }
+
+    .date-tab {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    .match-row {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .league-name {
+        font-size: 10px;
+    }
+
+    .team-row {
+        font-size: 13px;
+    }
+
+    .team-logo {
+        width: 20px;
+        height: 20px;
+    }
+
+    .pred-box {
+        padding: 6px 2px;
+        min-width: 50px;
+    }
+
+    .pred-label {
+        font-size: 8px;
+    }
+
+    .pred-odds {
+        font-size: 14px;
+    }
+
+    .pred-prob {
+        font-size: 9px;
+    }
+
+    .filter-group-title,
+    .filters-title {
+        font-size: 10px;
+    }
+
+    .filter-option {
+        font-size: 12px;
     }
 }
 
