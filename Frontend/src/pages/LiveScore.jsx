@@ -17,6 +17,9 @@ function LiveScore() {
     const [topLeagues, setTopLeagues] = useState([]);
     const [expandedCountries, setExpandedCountries] = useState(new Set());
     const [showLiveOnly, setShowLiveOnly] = useState(false);
+    const [standingsData, setStandingsData] = useState(null);
+    const [showStandingsModal, setShowStandingsModal] = useState(false);
+    const [loadingStandings, setLoadingStandings] = useState(false);
     const socketRef = useRef(null);
 
     // Transform match data
@@ -44,6 +47,53 @@ function LiveScore() {
         probUnder: match.prob_U || null,
         probBTTS: match.prob_BTTS || null
     });
+
+    // Format percentage value - handle both decimal (0-1) and percentage (0-100) formats
+    const formatPercentage = (value) => {
+        if (!value || value === '0' || value === 0) return '-';
+        let num = parseFloat(value);
+
+        // If value is between 0 and 1, it's a decimal format - convert to percentage
+        if (num > 0 && num < 1) {
+            num = num * 100;
+        }
+
+        // Remove unnecessary decimals
+        return num % 1 === 0 ? `${Math.round(num)}%` : `${num.toFixed(1)}%`;
+    };
+
+    // Calculate odds from probability
+    const calculateOdds = (value) => {
+        if (!value || value === '0' || value === 0) return '-';
+        let num = parseFloat(value);
+
+        // Check if num is valid
+        if (isNaN(num) || num <= 0) return '-';
+
+        // If value is between 0 and 1, it's already a decimal probability
+        if (num > 0 && num < 1) {
+            num = num * 100;
+        }
+
+        // If probability is too small (less than 0.01%), odds would be too high
+        if (num < 0.01) return '-';
+
+        // Odds = 100 / probability
+        const odds = 100 / num;
+
+        // Check if odds is a valid number and not infinity
+        if (!isFinite(odds)) return '-';
+
+        return odds.toFixed(2);
+    };
+
+    // Format both odds and percentage together
+    const formatOddsAndPercentage = (value) => {
+        if (!value || value === '0' || value === 0) return '-';
+        const odds = calculateOdds(value);
+        const percentage = formatPercentage(value);
+        return { odds, percentage };
+    };
 
     // Get date pills with match counts
     const getDatePills = () => {
@@ -268,6 +318,28 @@ function LiveScore() {
         }
     }, []);
 
+    // Fetch standings for a specific league
+    const fetchStandings = async (leagueId, leagueName) => {
+        setLoadingStandings(true);
+        setShowStandingsModal(true);
+        try {
+            const url = `${BASE_URL}/?action=get_standings&league_id=${leagueId}&APIkey=${API_KEY}`;
+            const response = await axios.get(url);
+
+            if (response.data && Array.isArray(response.data)) {
+                setStandingsData({
+                    leagueName: leagueName,
+                    standings: response.data
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching standings:', error);
+            setStandingsData(null);
+        } finally {
+            setLoadingStandings(false);
+        }
+    };
+
     useEffect(() => {
         fetchMatchCounts();
         fetchTopLeagues();
@@ -325,7 +397,9 @@ function LiveScore() {
                         </div>
                     )}
 
-                    {Object.entries(leaguesByCountry).map(([country, leagues]) => (
+                    {Object.entries(leaguesByCountry)
+                        .sort(([countryA], [countryB]) => countryA.localeCompare(countryB))
+                        .map(([country, leagues]) => (
                         <div key={country} className="sidebar-section">
                             <h4
                                 className="sidebar-section-title clickable"
@@ -395,7 +469,13 @@ function LiveScore() {
                         ) : Object.keys(groupedMatches).length === 0 ? (
                             <div className="empty-state">No matches found for this date</div>
                         ) : (
-                            Object.values(groupedMatches).map((group, idx) => (
+                            Object.values(groupedMatches)
+                                .sort((a, b) => {
+                                    const countryCompare = a.country.localeCompare(b.country);
+                                    if (countryCompare !== 0) return countryCompare;
+                                    return a.league.localeCompare(b.league);
+                                })
+                                .map((group, idx) => (
                                 <div key={idx} className="league-card">
                                     <div className="league-card-header">
                                         <div className="league-card-title-wrapper">
@@ -406,7 +486,15 @@ function LiveScore() {
                                                 {group.country.toUpperCase()}: {group.league.toUpperCase()}
                                             </h3>
                                         </div>
-                                        <a href="#" className="standings-link">Standings</a>
+                                        <button
+                                            className="standings-link"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                fetchStandings(group.leagueId, group.league);
+                                            }}
+                                        >
+                                            Standings
+                                        </button>
                                     </div>
 
                                     <div className="matches-list">
@@ -451,15 +539,36 @@ function LiveScore() {
                                                     <div className="prob-row">
                                                         <div className="prob-item">
                                                             <span className="prob-label">1</span>
-                                                            <span className="prob-value">{match.probHome ? `${match.probHome}%` : '-'}</span>
+                                                            <span className="prob-value">
+                                                                {match.probHome ? (
+                                                                    <>
+                                                                        <span className="prob-odds">{calculateOdds(match.probHome)}</span>
+                                                                        <span className="prob-percent">{formatPercentage(match.probHome)}</span>
+                                                                    </>
+                                                                ) : '-'}
+                                                            </span>
                                                         </div>
                                                         <div className="prob-item">
                                                             <span className="prob-label">X</span>
-                                                            <span className="prob-value">{match.probDraw ? `${match.probDraw}%` : '-'}</span>
+                                                            <span className="prob-value">
+                                                                {match.probDraw ? (
+                                                                    <>
+                                                                        <span className="prob-odds">{calculateOdds(match.probDraw)}</span>
+                                                                        <span className="prob-percent">{formatPercentage(match.probDraw)}</span>
+                                                                    </>
+                                                                ) : '-'}
+                                                            </span>
                                                         </div>
                                                         <div className="prob-item">
                                                             <span className="prob-label">2</span>
-                                                            <span className="prob-value">{match.probAway ? `${match.probAway}%` : '-'}</span>
+                                                            <span className="prob-value">
+                                                                {match.probAway ? (
+                                                                    <>
+                                                                        <span className="prob-odds">{calculateOdds(match.probAway)}</span>
+                                                                        <span className="prob-percent">{formatPercentage(match.probAway)}</span>
+                                                                    </>
+                                                                ) : '-'}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -468,18 +577,39 @@ function LiveScore() {
                                                     <div className="prob-row">
                                                         <div className="prob-item">
                                                             <span className="prob-label">O</span>
-                                                            <span className="prob-value">{match.probOver ? `${match.probOver}%` : '-'}</span>
+                                                            <span className="prob-value">
+                                                                {match.probOver ? (
+                                                                    <>
+                                                                        <span className="prob-odds">{calculateOdds(match.probOver)}</span>
+                                                                        <span className="prob-percent">{formatPercentage(match.probOver)}</span>
+                                                                    </>
+                                                                ) : '-'}
+                                                            </span>
                                                         </div>
                                                         <div className="prob-item">
                                                             <span className="prob-label">U</span>
-                                                            <span className="prob-value">{match.probUnder ? `${match.probUnder}%` : '-'}</span>
+                                                            <span className="prob-value">
+                                                                {match.probUnder ? (
+                                                                    <>
+                                                                        <span className="prob-odds">{calculateOdds(match.probUnder)}</span>
+                                                                        <span className="prob-percent">{formatPercentage(match.probUnder)}</span>
+                                                                    </>
+                                                                ) : '-'}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <div className="col-btts-stat">
                                                     <div className="prob-single">
-                                                        <span className="prob-value-large">{match.probBTTS ? `${match.probBTTS}%` : '-'}</span>
+                                                        {match.probBTTS ? (
+                                                            <span className="prob-value-large">
+                                                                <span className="prob-odds-large">{calculateOdds(match.probBTTS)}</span>
+                                                                <span className="prob-percent-large">{formatPercentage(match.probBTTS)}</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="prob-value-large">-</span>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -502,6 +632,65 @@ function LiveScore() {
                     </div>
                 </main>
             </div>
+
+            {/* Standings Modal */}
+            {showStandingsModal && (
+                <div className="standings-modal-overlay" onClick={() => setShowStandingsModal(false)}>
+                    <div className="standings-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="standings-modal-header">
+                            <h2>{standingsData?.leagueName} - Standings</h2>
+                            <button className="standings-modal-close" onClick={() => setShowStandingsModal(false)}>
+                                ✕
+                            </button>
+                        </div>
+                        <div className="standings-modal-content">
+                            {loadingStandings ? (
+                                <div className="standings-loading">Loading standings...</div>
+                            ) : standingsData?.standings ? (
+                                <table className="standings-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Team</th>
+                                            <th>P</th>
+                                            <th>W</th>
+                                            <th>D</th>
+                                            <th>L</th>
+                                            <th>GF</th>
+                                            <th>GA</th>
+                                            <th>GD</th>
+                                            <th>Pts</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {standingsData.standings.map((team, idx) => (
+                                            <tr key={idx}>
+                                                <td>{team.overall_league_position}</td>
+                                                <td className="standings-team-cell">
+                                                    {team.team_badge && (
+                                                        <img src={team.team_badge} alt="" className="standings-team-logo" />
+                                                    )}
+                                                    <span>{team.team_name}</span>
+                                                </td>
+                                                <td>{team.overall_league_payed}</td>
+                                                <td>{team.overall_league_W}</td>
+                                                <td>{team.overall_league_D}</td>
+                                                <td>{team.overall_league_L}</td>
+                                                <td>{team.overall_league_GF}</td>
+                                                <td>{team.overall_league_GA}</td>
+                                                <td>{parseInt(team.overall_league_GF) - parseInt(team.overall_league_GA)}</td>
+                                                <td><strong>{team.overall_league_PTS}</strong></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div className="standings-error">Failed to load standings</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

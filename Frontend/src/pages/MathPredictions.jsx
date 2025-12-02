@@ -247,6 +247,16 @@ function MathPredictions() {
         return timeString;
     };
 
+    // Format odds to remove unnecessary decimals
+    const formatOdds = (value) => {
+        if (!value) return '-';
+        const num = parseFloat(value);
+        if (isNaN(num)) return '-';
+
+        // If the number is a whole number, don't show decimals
+        return num % 1 === 0 ? Math.round(num).toString() : num.toFixed(2);
+    };
+
     // Get column configuration based on prediction type
     const getColumnConfig = (type) => {
         switch (type) {
@@ -277,7 +287,7 @@ function MathPredictions() {
             case 'Math':
             default:
                 return {
-                    template: '55px 200px 135px 75px 75px 1fr',
+                    template: '55px 200px 180px 120px 110px 1fr',
                     show1x2: true,
                     showGoals: true,
                     showBTTS: true,
@@ -574,17 +584,17 @@ function MathPredictions() {
                                                                 <>
                                                                     <div className={`pred-box ${w1.prob === maxProb ? 'highlighted' : ''}`}>
                                                                         <div className="pred-label">W1</div>
-                                                                        <div className="pred-odds">{w1.odds}</div>
+                                                                        <div className="pred-odds">{formatOdds(w1.odds)}</div>
                                                                         <div className="pred-prob">{w1.prob}%</div>
                                                                     </div>
                                                                     <div className={`pred-box ${draw.prob === maxProb ? 'highlighted' : ''}`}>
                                                                         <div className="pred-label">X</div>
-                                                                        <div className="pred-odds">{draw.odds}</div>
+                                                                        <div className="pred-odds">{formatOdds(draw.odds)}</div>
                                                                         <div className="pred-prob">{draw.prob}%</div>
                                                                     </div>
                                                                     <div className={`pred-box ${w2.prob === maxProb ? 'highlighted' : ''}`}>
                                                                         <div className="pred-label">W2</div>
-                                                                        <div className="pred-odds">{w2.odds}</div>
+                                                                        <div className="pred-odds">{formatOdds(w2.odds)}</div>
                                                                         <div className="pred-prob">{w2.prob}%</div>
                                                                     </div>
                                                                 </>
@@ -603,12 +613,12 @@ function MathPredictions() {
                                                                 <>
                                                                     <div className={`pred-box ${under.prob === maxProb ? 'highlighted' : ''}`}>
                                                                         <div className="pred-label">U 2.5</div>
-                                                                        <div className="pred-odds">{under.odds}</div>
+                                                                        <div className="pred-odds">{formatOdds(under.odds)}</div>
                                                                         <div className="pred-prob">{under.prob}%</div>
                                                                     </div>
                                                                     <div className={`pred-box ${over.prob === maxProb ? 'highlighted' : ''}`}>
                                                                         <div className="pred-label">O 2.5</div>
-                                                                        <div className="pred-odds">{over.odds}</div>
+                                                                        <div className="pred-odds">{formatOdds(over.odds)}</div>
                                                                         <div className="pred-prob">{over.prob}%</div>
                                                                     </div>
                                                                 </>
@@ -627,12 +637,12 @@ function MathPredictions() {
                                                                 <>
                                                                     <div className={`pred-box ${yes.prob === maxProb ? 'highlighted' : ''}`}>
                                                                         <div className="pred-label">Yes</div>
-                                                                        <div className="pred-odds">{yes.odds}</div>
+                                                                        <div className="pred-odds">{formatOdds(yes.odds)}</div>
                                                                         <div className="pred-prob">{yes.prob}%</div>
                                                                     </div>
                                                                     <div className={`pred-box ${no.prob === maxProb ? 'highlighted' : ''}`}>
                                                                         <div className="pred-label">No</div>
-                                                                        <div className="pred-odds">{no.odds}</div>
+                                                                        <div className="pred-odds">{formatOdds(no.odds)}</div>
                                                                         <div className="pred-prob">{no.prob}%</div>
                                                                     </div>
                                                                 </>
@@ -652,7 +662,7 @@ function MathPredictions() {
                                                                             <span>Win Rate:</span>
                                                                             <span>{match.predictions.bestTip.probability}%</span>
                                                                         </div></div>
-                                                                    <div className="best-tip-odds">{match.predictions.bestTip.odds}</div>
+                                                                    <div className="best-tip-odds">{formatOdds(match.predictions.bestTip.odds)}</div>
                                                                 </div>
                                                             </div>
                                                         )}

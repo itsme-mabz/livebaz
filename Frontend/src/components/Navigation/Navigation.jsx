@@ -301,9 +301,6 @@ function Navigation() {
 
 
                     </div>
-                    <button className="header-login fl_c js-login-button ml-2" onClick={openLoginModal}>
-                        <span className="header-login__text fl_c">Log in</span>
-                    </button>
 
 
 
@@ -496,31 +493,6 @@ function Navigation() {
                         <a href='/livescore/' className='mobile-menu__link' onClick={toggleMobileMenu}>
                             Scores
                         </a>
-
-                        <div className='mobile-menu__divider' style={{
-                            height: '1px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                            margin: '20px 24px'
-                        }}></div>
-
-                        <button
-                            className='mobile-menu__login-btn'
-                            onClick={() => { toggleMobileMenu(); openLoginModal(); }}
-                            style={{
-                                margin: '12px 24px 32px 24px',
-                                padding: '16px 24px',
-                                backgroundColor: '#f5f5f5',
-                                color: '#121212',
-                                border: 'none',
-                                borderRadius: '10px',
-                                fontSize: '17px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
-                            }}
-                        >
-                            Log in
-                        </button>
                     </nav>
                 </div>
             </div>

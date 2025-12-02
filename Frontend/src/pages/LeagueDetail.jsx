@@ -37,7 +37,7 @@ function LeagueDetail() {
 
             // Fetch standings
             const standingsResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_standings&league_id=${leagueId}&APIkey=${API_KEY}`);
-            setStandings(standingsResponse.data || []);
+            setStandings(Array.isArray(standingsResponse.data) ? standingsResponse.data : []);
 
             // Fetch fixtures (last 30 days to next 30 days)
             const today = new Date();
@@ -86,6 +86,20 @@ function LeagueDetail() {
         return fixtures.filter(f => f.match_round === currentRound);
     };
 
+    // Format percentage to remove unnecessary decimals
+    const formatPercentage = (value) => {
+        if (!value || value === '0' || value === 0) return '-';
+        let num = parseFloat(value);
+
+        // If value is between 0 and 1, it's a decimal format - convert to percentage
+        if (num > 0 && num < 1) {
+            num = num * 100;
+        }
+
+        // Remove unnecessary decimals
+        return num % 1 === 0 ? `${Math.round(num)}%` : `${num.toFixed(1)}%`;
+    };
+
     const getPredictionData = (match, type) => {
         const prediction = predictions.find(p => p.match_id === match.match_id);
         if (!prediction) return { prob1: '-', probX: '-', prob2: '-' };
@@ -93,21 +107,21 @@ function LeagueDetail() {
         switch (type) {
             case '1x2':
                 return {
-                    prob1: prediction.prob_HW ? `${prediction.prob_HW}%` : '-',
-                    probX: prediction.prob_D ? `${prediction.prob_D}%` : '-',
-                    prob2: prediction.prob_AW ? `${prediction.prob_AW}%` : '-'
+                    prob1: formatPercentage(prediction.prob_HW),
+                    probX: formatPercentage(prediction.prob_D),
+                    prob2: formatPercentage(prediction.prob_AW)
                 };
             case 'goals':
                 return {
-                    prob1: prediction.prob_O ? `${prediction.prob_O}%` : '-',
+                    prob1: formatPercentage(prediction.prob_O),
                     probX: '-',
-                    prob2: prediction.prob_U ? `${prediction.prob_U}%` : '-'
+                    prob2: formatPercentage(prediction.prob_U)
                 };
             case 'btts':
                 return {
-                    prob1: prediction.prob_bts ? `${prediction.prob_bts}%` : '-',
+                    prob1: formatPercentage(prediction.prob_bts),
                     probX: '-',
-                    prob2: prediction.prob_ots ? `${prediction.prob_ots}%` : '-'
+                    prob2: formatPercentage(prediction.prob_ots)
                 };
             default:
                 return { prob1: '-', probX: '-', prob2: '-' };
@@ -224,33 +238,7 @@ function LeagueDetail() {
                         <div className="predictions-section">
                             <h2 className="section-title">PREDICTIONS FOR {leagueInfo.league_name.toUpperCase()}</h2>
 
-                            {/* Prediction Type Filters */}
-                            <div className="prediction-filters">
-                                <button
-                                    className={`filter-btn ${predictionType === '1x2' ? 'active' : ''}`}
-                                    onClick={() => setPredictionType('1x2')}
-                                >
-                                    1X2
-                                </button>
-                                <button
-                                    className={`filter-btn ${predictionType === 'goals' ? 'active' : ''}`}
-                                    onClick={() => setPredictionType('goals')}
-                                >
-                                    Total Goals
-                                </button>
-                                <button
-                                    className={`filter-btn ${predictionType === 'btts' ? 'active' : ''}`}
-                                    onClick={() => setPredictionType('btts')}
-                                >
-                                    Both Teams To Score
-                                </button>
-                                <button
-                                    className="show-odds-btn"
-                                    onClick={() => setShowOdds(!showOdds)}
-                                >
-                                    {showOdds ? 'Hide' : 'Show'} Odds
-                                </button>
-                            </div>
+
 
                             {/* Round Selector */}
                             {availableRounds.length > 0 && (
@@ -372,37 +360,43 @@ function LeagueDetail() {
                     {activeTab === 'standings' && (
                         <div className="standings-section">
                             <h2 className="section-title">LEAGUE STANDINGS</h2>
-                            <div className="standings-table">
-                                <div className="standings-header">
-                                    <span className="pos">#</span>
-                                    <span className="team">Team</span>
-                                    <span className="stat">P</span>
-                                    <span className="stat">W</span>
-                                    <span className="stat">D</span>
-                                    <span className="stat">L</span>
-                                    <span className="stat">GF</span>
-                                    <span className="stat">GA</span>
-                                    <span className="stat">GD</span>
-                                    <span className="stat pts">Pts</span>
-                                </div>
-                                {standings.map((team, index) => (
-                                    <div key={team.team_id} className={`standings-row ${team.overall_promotion ? 'promotion' : ''}`}>
-                                        <span className="pos">{team.overall_league_position}</span>
-                                        <span className="team">
-                                            {team.team_badge && <img src={team.team_badge} alt={team.team_name} />}
-                                            {team.team_name}
-                                        </span>
-                                        <span className="stat">{team.overall_league_payed}</span>
-                                        <span className="stat">{team.overall_league_W}</span>
-                                        <span className="stat">{team.overall_league_D}</span>
-                                        <span className="stat">{team.overall_league_L}</span>
-                                        <span className="stat">{team.overall_league_GF}</span>
-                                        <span className="stat">{team.overall_league_GA}</span>
-                                        <span className="stat">{parseInt(team.overall_league_GF) - parseInt(team.overall_league_GA)}</span>
-                                        <span className="stat pts">{team.overall_league_PTS}</span>
+                            {Array.isArray(standings) && standings.length > 0 ? (
+                                <div className="standings-table">
+                                    <div className="standings-header">
+                                        <span className="pos">#</span>
+                                        <span className="team">Team</span>
+                                        <span className="stat">P</span>
+                                        <span className="stat">W</span>
+                                        <span className="stat">D</span>
+                                        <span className="stat">L</span>
+                                        <span className="stat">GF</span>
+                                        <span className="stat">GA</span>
+                                        <span className="stat">GD</span>
+                                        <span className="stat pts">Pts</span>
                                     </div>
-                                ))}
-                            </div>
+                                    {standings.map((team, index) => (
+                                        <div key={team.team_id || index} className={`standings-row ${team.overall_promotion ? 'promotion' : ''}`}>
+                                            <span className="pos">{team.overall_league_position}</span>
+                                            <span className="team">
+                                                {team.team_badge && <img src={team.team_badge} alt={team.team_name} />}
+                                                {team.team_name}
+                                            </span>
+                                            <span className="stat">{team.overall_league_payed}</span>
+                                            <span className="stat">{team.overall_league_W}</span>
+                                            <span className="stat">{team.overall_league_D}</span>
+                                            <span className="stat">{team.overall_league_L}</span>
+                                            <span className="stat">{team.overall_league_GF}</span>
+                                            <span className="stat">{team.overall_league_GA}</span>
+                                            <span className="stat">{parseInt(team.overall_league_GF) - parseInt(team.overall_league_GA)}</span>
+                                            <span className="stat pts">{team.overall_league_PTS}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="no-data">
+                                    <p>No standings available for this league</p>
+                                </div>
+                            )}
                         </div>
                     )}
 

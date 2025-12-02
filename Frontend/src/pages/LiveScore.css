@@ -414,6 +414,21 @@
     font-size: 13px;
     font-weight: 700;
     color: #333;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.prob-odds {
+    font-size: 14px;
+    font-weight: 700;
+    color: #5b89ff;
+}
+
+.prob-percent {
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
 }
 
 .prob-single {
@@ -429,6 +444,21 @@
     background-color: #f0f5ff;
     padding: 8px 16px;
     border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.prob-odds-large {
+    font-size: 18px;
+    font-weight: 700;
+    color: #5b89ff;
+}
+
+.prob-percent-large {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
 }
 
 /* Old Match Row (keeping for fallback) */
@@ -527,7 +557,6 @@
 
 /* Score Display */
 .score-display {
-    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
@@ -672,5 +701,179 @@
 
     .score-number {
         font-size: 16px;
+    }
+}
+
+/* Standings Modal */
+.standings-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.standings-modal {
+    background: white;
+    border-radius: 12px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.standings-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 2px solid #e0e0e0;
+    background-color: #f8f8f8;
+}
+
+.standings-modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+}
+
+.standings-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.standings-modal-close:hover {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.standings-modal-content {
+    overflow-y: auto;
+    padding: 20px 24px;
+}
+
+.standings-loading,
+.standings-error {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 16px;
+}
+
+.standings-error {
+    color: #ff4444;
+}
+
+.standings-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.standings-table thead {
+    background-color: #f8f8f8;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.standings-table th {
+    padding: 12px 8px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.standings-table th:first-child {
+    padding-left: 16px;
+    text-align: center;
+}
+
+.standings-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.standings-table td:first-child {
+    padding-left: 16px;
+    font-weight: 700;
+    text-align: center;
+    color: #666;
+}
+
+.standings-table td:last-child {
+    font-weight: 700;
+    color: #5b89ff;
+}
+
+.standings-table tbody tr:hover {
+    background-color: #f8f8f8;
+}
+
+.standings-team-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.standings-team-logo {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+@media (max-width: 768px) {
+    .standings-modal {
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        max-height: 100vh;
+    }
+
+    .standings-modal-overlay {
+        padding: 0;
+    }
+
+    .standings-table {
+        font-size: 11px;
+    }
+
+    .standings-table th,
+    .standings-table td {
+        padding: 8px 4px;
+    }
+
+    .standings-team-cell {
+        gap: 6px;
+    }
+
+    .standings-team-logo {
+        width: 16px;
+        height: 16px;
     }
 }
