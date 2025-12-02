@@ -242,9 +242,6 @@ function Navigation() {
 
 
                     </div>
-                    <button className="header-login fl_c js-login-button ml-2" onClick={openLoginModal}>
-                        <span className="header-login__text fl_c">Log in</span>
-                    </button>
 
 
 
@@ -296,9 +293,7 @@ function Navigation() {
 
                         <div className='mobile-menu__divider'></div>
 
-                        <button className='mobile-menu__login-btn' onClick={() => { toggleMobileMenu(); openLoginModal(); }}>
-                            Log in
-                        </button>
+
                     </nav>
                 </div>
             </div>

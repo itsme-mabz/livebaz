@@ -23,7 +23,7 @@ function App() {
       <Navigation />
 
       <Routes>
-        <Route path="/" element={<Homepage />} />
+        <Route path="/" element={<LiveScore />} />
         <Route path="/predictions" element={<Predictions />} />
         <Route path="/bookmakers" element={<Bookmakers />} />
         <Route path="/competitions/" element={<Leagues />} />

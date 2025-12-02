@@ -58,16 +58,57 @@ function PredictionDetail() {
         }
     };
 
+    // Format percentage to remove unnecessary decimals
+    const formatPercentage = (value) => {
+        if (!value || value === '0' || value === 0) return '-';
+        let num = parseFloat(value);
+
+        // If value is between 0 and 1, it's a decimal format - convert to percentage
+        if (num > 0 && num < 1) {
+            num = num * 100;
+        }
+
+        // Remove unnecessary decimals
+        return num % 1 === 0 ? `${Math.round(num)}%` : `${num.toFixed(1)}%`;
+    };
+
+    // Format odds to remove unnecessary decimals
+    const formatOdds = (value) => {
+        if (!value) return '-';
+        const num = parseFloat(value);
+        if (isNaN(num)) return '-';
+
+        // If the number is a whole number, don't show decimals
+        return num % 1 === 0 ? Math.round(num).toString() : num.toFixed(2);
+    };
+
+    // Calculate odds from probability
+    const calculateOddsFromProb = (probability) => {
+        if (!probability || probability === '0' || probability === 0) return '-';
+        let num = parseFloat(probability);
+
+        // If value is between 0 and 1, convert to percentage
+        if (num > 0 && num < 1) {
+            num = num * 100;
+        }
+
+        if (num <= 0 || num > 100) return '-';
+
+        // Odds = 100 / probability
+        const odds = 100 / num;
+        return formatOdds(odds);
+    };
+
     const getBestPrediction = () => {
         if (!predictions) return null;
 
         const tips = [
-            { type: 'Home Win (1)', prob: parseFloat(predictions.prob_HW) || 0, odds: predictions.odds_1 || '-' },
-            { type: 'Draw (X)', prob: parseFloat(predictions.prob_D) || 0, odds: predictions.odds_X || '-' },
-            { type: 'Away Win (2)', prob: parseFloat(predictions.prob_AW) || 0, odds: predictions.odds_2 || '-' },
-            { type: 'Over 2.5 Goals', prob: parseFloat(predictions.prob_O) || 0, odds: predictions.odds_over || '-' },
-            { type: 'Under 2.5 Goals', prob: parseFloat(predictions.prob_U) || 0, odds: predictions.odds_under || '-' },
-            { type: 'BTTS Yes', prob: parseFloat(predictions.prob_bts) || 0, odds: predictions.odds_bts_yes || '-' },
+            { type: 'Home Win (1)', prob: parseFloat(predictions.prob_HW) || 0, odds: calculateOddsFromProb(predictions.prob_HW) },
+            { type: 'Draw (X)', prob: parseFloat(predictions.prob_D) || 0, odds: calculateOddsFromProb(predictions.prob_D) },
+            { type: 'Away Win (2)', prob: parseFloat(predictions.prob_AW) || 0, odds: calculateOddsFromProb(predictions.prob_AW) },
+            { type: 'Over 2.5 Goals', prob: parseFloat(predictions.prob_O) || 0, odds: calculateOddsFromProb(predictions.prob_O) },
+            { type: 'Under 2.5 Goals', prob: parseFloat(predictions.prob_U) || 0, odds: calculateOddsFromProb(predictions.prob_U) },
+            { type: 'BTTS Yes', prob: parseFloat(predictions.prob_bts) || 0, odds: calculateOddsFromProb(predictions.prob_bts) },
         ];
 
         return tips.sort((a, b) => b.prob - a.prob)[0];
@@ -130,22 +171,22 @@ function PredictionDetail() {
                                 <div className="prediction-columns">
                                     <div className="pred-column">
                                         <div className="pred-header">1</div>
-                                        <div className="pred-odds highlighted">{predictions.odds_1 || '2.58'}</div>
-                                        <div className="pred-prob">{predictions.prob_HW}%</div>
+                                        <div className="pred-odds highlighted">{calculateOddsFromProb(predictions.prob_HW)}</div>
+                                        <div className="pred-prob">{formatPercentage(predictions.prob_HW)}</div>
                                     </div>
                                     <div className="pred-column">
                                         <div className="pred-header">X</div>
-                                        <div className="pred-odds">{predictions.odds_X || '3.08'}</div>
-                                        <div className="pred-prob">{predictions.prob_D}%</div>
+                                        <div className="pred-odds">{calculateOddsFromProb(predictions.prob_D)}</div>
+                                        <div className="pred-prob">{formatPercentage(predictions.prob_D)}</div>
                                     </div>
                                     <div className="pred-column">
                                         <div className="pred-header">2</div>
-                                        <div className="pred-odds">{predictions.odds_2 || '2.78'}</div>
-                                        <div className="pred-prob">{predictions.prob_AW}%</div>
+                                        <div className="pred-odds">{calculateOddsFromProb(predictions.prob_AW)}</div>
+                                        <div className="pred-prob">{formatPercentage(predictions.prob_AW)}</div>
                                     </div>
                                 </div>
                                 <div className="best-pick">
-                                    W1 {predictions.odds_1 || '2.58'}
+                                    {bestTip && `${bestTip.type.split(' ')[0]} ${bestTip.odds}`}
                                 </div>
                             </div>
                             <div className="prediction-row away-row">
@@ -211,18 +252,18 @@ function PredictionDetail() {
                                 <div className="pred-options">
                                     <div className="pred-option">
                                         <span className="option-label">Home Win (1)</span>
-                                        <span className="option-prob">{predictions.prob_HW}%</span>
-                                        <span className="option-odds">{predictions.odds_1}</span>
+                                        <span className="option-prob">{formatPercentage(predictions.prob_HW)}</span>
+                                        <span className="option-odds">{calculateOddsFromProb(predictions.prob_HW)}</span>
                                     </div>
                                     <div className="pred-option">
                                         <span className="option-label">Draw (X)</span>
-                                        <span className="option-prob">{predictions.prob_D}%</span>
-                                        <span className="option-odds">{predictions.odds_X}</span>
+                                        <span className="option-prob">{formatPercentage(predictions.prob_D)}</span>
+                                        <span className="option-odds">{calculateOddsFromProb(predictions.prob_D)}</span>
                                     </div>
                                     <div className="pred-option">
                                         <span className="option-label">Away Win (2)</span>
-                                        <span className="option-prob">{predictions.prob_AW}%</span>
-                                        <span className="option-odds">{predictions.odds_2}</span>
+                                        <span className="option-prob">{formatPercentage(predictions.prob_AW)}</span>
+                                        <span className="option-odds">{calculateOddsFromProb(predictions.prob_AW)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -232,13 +273,13 @@ function PredictionDetail() {
                                 <div className="pred-options">
                                     <div className="pred-option">
                                         <span className="option-label">Over 2.5</span>
-                                        <span className="option-prob">{predictions.prob_O}%</span>
-                                        <span className="option-odds">{predictions.odds_over || '-'}</span>
+                                        <span className="option-prob">{formatPercentage(predictions.prob_O)}</span>
+                                        <span className="option-odds">{calculateOddsFromProb(predictions.prob_O)}</span>
                                     </div>
                                     <div className="pred-option">
                                         <span className="option-label">Under 2.5</span>
-                                        <span className="option-prob">{predictions.prob_U}%</span>
-                                        <span className="option-odds">{predictions.odds_under || '-'}</span>
+                                        <span className="option-prob">{formatPercentage(predictions.prob_U)}</span>
+                                        <span className="option-odds">{calculateOddsFromProb(predictions.prob_U)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -248,13 +289,13 @@ function PredictionDetail() {
                                 <div className="pred-options">
                                     <div className="pred-option">
                                         <span className="option-label">Yes</span>
-                                        <span className="option-prob">{predictions.prob_bts}%</span>
-                                        <span className="option-odds">{predictions.odds_bts_yes || '-'}</span>
+                                        <span className="option-prob">{formatPercentage(predictions.prob_bts)}</span>
+                                        <span className="option-odds">{calculateOddsFromProb(predictions.prob_bts)}</span>
                                     </div>
                                     <div className="pred-option">
                                         <span className="option-label">No</span>
-                                        <span className="option-prob">{predictions.prob_ots}%</span>
-                                        <span className="option-odds">{predictions.odds_bts_no || '-'}</span>
+                                        <span className="option-prob">{formatPercentage(predictions.prob_ots)}</span>
+                                        <span className="option-odds">{calculateOddsFromProb(predictions.prob_ots)}</span>
                                     </div>
                                 </div>
                             </div>

@@ -305,7 +305,9 @@
 .match-time {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 4px;
+    text-align: left;
     font-size: 13px;
     white-space: nowrap;
 }
@@ -656,6 +658,7 @@
 
     .match-time {
         font-size: 12px;
+        text-align: left;
     }
 
     .league-detail-page .match-teams {

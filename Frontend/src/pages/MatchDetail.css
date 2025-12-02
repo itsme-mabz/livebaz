@@ -171,7 +171,7 @@
     line-height: 1;
     margin-bottom: 5px;
     font-family: 'Outfit', sans-serif;
-    /* Assuming font availability or fallback */
+    gap: 5px;
 }
 
 .score-display .divider {
@@ -188,25 +188,117 @@
 .scorers-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    font-size: 12px;
-    color: #ccc;
+    gap: 10px;
     width: 100%;
+    max-width: 400px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.scorers-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffd700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.scorers-title.clickable {
+    cursor: pointer;
+}
+
+.scorers-title.clickable:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 215, 0, 0.5);
+    transform: translateY(-1px);
+}
+
+.expand-arrow {
+    font-size: 10px;
+    transition: transform 0.3s ease;
+}
+
+.scorers-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .scorer-item {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
     width: 100%;
 }
 
-.home-scorer {
-    text-align: left;
+.scorer-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.away-scorer {
-    text-align: right;
-    margin-left: auto;
+.scorer-card.home {
+    justify-content: flex-start;
+}
+
+.scorer-card.away {
+    justify-content: flex-end;
+}
+
+.scorer-card.empty {
+    visibility: hidden;
+}
+
+.scorer-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.scorer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.scorer-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.scorer-time {
+    font-size: 11px;
+    font-weight: 500;
+    color: #ffd700;
 }
 
 /* Tabs Navigation */
@@ -361,28 +453,348 @@
     /* Blue for away */
 }
 
+/* Lineups Section */
+.lineups-section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.lineups-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.lineup-column {
+    background: #fafafa;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #e8e8e8;
+}
+
+.lineup-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.lineup-team-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.lineup-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.formation-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.lineup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.player-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    transition: all 0.2s;
+    border: 1px solid #e8e8e8;
+}
+
+.player-row:hover {
+    background: #f0f5ff;
+    border-color: #5b89ff;
+    transform: translateX(2px);
+}
+
+.player-row.substitute {
+    opacity: 0.7;
+    background: #f8f8f8;
+}
+
+.player-number {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    background: #333;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.player-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.player-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.player-position {
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    background: #e8e8e8;
+    padding: 2px 8px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.substitutes-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #666;
+    margin: 20px 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.predictions-section,
+.odds-section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.predictions-content,
+.odds-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.prediction-category,
+.odds-category {
+    background: #fafafa;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #e8e8e8;
+}
+
+.prediction-category h4,
+.odds-category h5 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.prediction-row,
+.odds-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.prediction-item,
+.odds-item {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 1px solid #e8e8e8;
+    transition: all 0.2s;
+}
+
+.prediction-item:hover,
+.odds-item:hover {
+    border-color: #5b89ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(91, 137, 255, 0.15);
+}
+
+.prediction-label,
+.odds-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.prediction-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #5b89ff;
+}
+
+.odds-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #4CAF50;
+}
+
+.bookmaker-card {
+    background: #fafafa;
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid #e8e8e8;
+}
+
+.bookmaker-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #5b89ff;
+}
+
+.odds-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.h2h-section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.h2h-section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 20px 0;
+}
+
+.h2h-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.h2h-card {
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #e8e8e8;
+    transition: all 0.2s;
+}
+
+.h2h-card:hover {
+    background: #f0f5ff;
+    border-color: #5b89ff;
+}
+
+.h2h-card .date {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.h2h-card .teams {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.h2h-card .score {
+    font-size: 16px;
+    font-weight: 700;
+    color: #5b89ff;
+    padding: 0 16px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .match-header-content {
-        flex-direction: column;
-        padding: 0 20px;
-        gap: 20px;
+        flex-direction: row;
+        padding: 0 10px;
+        gap: 8px;
+        align-items: center;
     }
 
     .team {
-        width: 100%;
-        justify-content: center !important;
-        text-align: center !important;
-        flex-direction: column !important;
+        flex: 0 0 auto;
+        width: auto;
+        gap: 8px;
+    }
+
+    .team.home {
+        justify-content: flex-start;
+    }
+
+    .team.away {
+        justify-content: flex-end;
+    }
+
+    .team-logo {
+        width: 50px;
+        height: 50px;
+    }
+
+    .team-info h2 {
+        font-size: 14px;
+        margin-bottom: 4px;
     }
 
     .team-form {
-        justify-content: center !important;
+        display: none;
+    }
+
+    .team-standing {
+        display: none;
     }
 
     .score-board {
-        margin: 10px 0;
-        width: 100%;
+        margin: 0 auto;
+        min-width: 120px;
+        flex-shrink: 0;
+    }
+
+    .score-display {
+        font-size: 36px;
+    }
+
+    .match-meta-top {
+        font-size: 10px;
+    }
+
+    .match-status {
+        font-size: 11px;
     }
 
     .stat-row-new {
@@ -392,5 +804,76 @@
     .stat-val {
         width: 40px;
         font-size: 12px;
+    }
+
+    .lineups-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .lineup-column {
+        padding: 16px;
+    }
+
+    .lineup-header {
+        gap: 8px;
+    }
+
+    .lineup-team-logo {
+        width: 24px;
+        height: 24px;
+    }
+
+    .lineup-header h3 {
+        font-size: 16px;
+    }
+
+    .player-row {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .player-number {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+
+    .player-name {
+        font-size: 13px;
+    }
+
+    .player-position {
+        font-size: 10px;
+    }
+
+    .scorers-list {
+        max-width: 100%;
+        gap: 8px;
+    }
+
+    .scorer-item {
+        gap: 8px;
+    }
+
+    .scorer-card {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+
+    .scorer-icon {
+        font-size: 16px;
+    }
+
+    .scorer-name {
+        font-size: 12px;
+    }
+
+    .scorer-time {
+        font-size: 10px;
+    }
+
+    .scorers-title {
+        font-size: 10px;
     }
 }
