@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './MathPredictions.css';
 import { TableSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
 
-const API_BASE_URL = '/api/v1';
+const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
+const API_BASE_URL = 'https://apiv3.apifootball.com';
+
 
 function MathPredictions() {
+    const navigate = useNavigate();
     const [predictions, setPredictions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState('today');
@@ -18,6 +22,11 @@ function MathPredictions() {
     const [leaguesByCountry, setLeaguesByCountry] = useState({});
     const [expandedCountries, setExpandedCountries] = useState(new Set());
     const [visibleCount, setVisibleCount] = useState(30);
+
+    // Handle match row click to navigate to detail page
+    const handleMatchClick = (matchId) => {
+        navigate(`/match/${matchId}`);
+    };
 
     // Date tabs configuration
     const dateTabs = [
@@ -51,43 +60,144 @@ function MathPredictions() {
             }
 
             const params = {
-                date: dateParam
+                action: 'get_predictions',
+                APIkey: API_KEY,
+                from: dateParam,
+                to: dateParam
             };
 
             if (filters.league) {
                 params.league_id = filters.league;
             }
 
-            const response = await axios.get(`${API_BASE_URL}/predictions`, { params });
+            const response = await axios.get(API_BASE_URL, { params });
 
-            if (response.data.success) {
-                setPredictions(response.data.data);
+            // The API returns an array directly, not wrapped in a success object
+            const data = Array.isArray(response.data) ? response.data : [];
 
-                // Group leagues by country
-                const leaguesMap = {};
-                response.data.data.forEach(pred => {
-                    if (!leaguesMap[pred.country]) {
-                        leaguesMap[pred.country] = [];
+            // Helper function to parse probability string to number
+            const parseProb = (value) => {
+                const num = parseFloat(value);
+                return isNaN(num) ? 0 : parseFloat(num.toFixed(2));
+            };
+
+            // Helper function to calculate odds from probability
+            const calcOdds = (probability) => {
+                if (!probability || probability <= 0) return '-';
+                const odds = 100 / probability;
+                return odds.toFixed(2);
+            };
+
+            // Transform API response to match component expectations
+            const transformedData = data.map(match => {
+                // Parse all probabilities
+                const probHW = parseProb(match.prob_HW);
+                const probD = parseProb(match.prob_D);
+                const probAW = parseProb(match.prob_AW);
+                const probO = parseProb(match.prob_O);
+                const probU = parseProb(match.prob_U);
+                const probBTS = parseProb(match.prob_bts);
+
+                return {
+                    id: match.match_id,
+                    homeTeam: match.match_hometeam_name,
+                    awayTeam: match.match_awayteam_name,
+                    homeScore: match.match_hometeam_score || '-',
+                    awayScore: match.match_awayteam_score || '-',
+                    time: match.match_time,
+                    league: match.league_name,
+                    league_id: match.league_id,
+                    country: match.country_name,
+                    leagueLogo: match.league_logo || match.team_home_badge || '',
+                    homeLogo: match.team_home_badge || '',
+                    awayLogo: match.team_away_badge || '',
+                    status: match.match_status || 'Not Started',
+                    isLive: match.match_live === '1' || match.match_status === 'Live',
+                    predictions: {
+                        '1x2': {
+                            w1: {
+                                prob: probHW,
+                                odds: calcOdds(probHW)
+                            },
+                            draw: {
+                                prob: probD,
+                                odds: calcOdds(probD)
+                            },
+                            w2: {
+                                prob: probAW,
+                                odds: calcOdds(probAW)
+                            }
+                        },
+                        goals: {
+                            over: {
+                                prob: probO,
+                                odds: calcOdds(probO)
+                            },
+                            under: {
+                                prob: probU,
+                                odds: calcOdds(probU)
+                            }
+                        },
+                        btts: {
+                            yes: {
+                                prob: probBTS,
+                                odds: calcOdds(probBTS)
+                            },
+                            no: {
+                                prob: parseFloat((100 - probBTS).toFixed(2)),
+                                odds: calcOdds(100 - probBTS)
+                            }
+                        },
+                        bestTip: (() => {
+                            // Find the highest probability prediction
+                            const tips = [
+                                { type: 'Home Win', probability: probHW, odds: calcOdds(probHW) },
+                                { type: 'Draw', probability: probD, odds: calcOdds(probD) },
+                                { type: 'Away Win', probability: probAW, odds: calcOdds(probAW) },
+                                { type: 'Over 2.5', probability: probO, odds: calcOdds(probO) },
+                                { type: 'Under 2.5', probability: probU, odds: calcOdds(probU) },
+                                { type: 'BTTS Yes', probability: probBTS, odds: calcOdds(probBTS) }
+                            ];
+                            return tips.reduce((best, tip) => tip.probability > best.probability ? tip : best, tips[0]);
+                        })()
                     }
-                    const exists = leaguesMap[pred.country].find(l => l.id === pred.league_id);
-                    if (!exists) {
-                        leaguesMap[pred.country].push({
-                            id: pred.league_id,
-                            name: pred.league,
-                            logo: pred.leagueLogo
-                        });
-                    }
-                });
+                };
+            });
 
-                // Sort leagues within each country
-                Object.keys(leaguesMap).forEach(country => {
-                    leaguesMap[country].sort((a, b) => a.name.localeCompare(b.name));
-                });
+            setPredictions(transformedData);
 
-                setLeaguesByCountry(leaguesMap);
+            // Log successful data fetch
+            console.log(`Fetched ${transformedData.length} predictions for ${dateParam}`);
+            if (transformedData.length > 0) {
+                console.log('Sample prediction:', transformedData[0]);
             }
+
+            // Group leagues by country
+            const leaguesMap = {};
+            transformedData.forEach(pred => {
+                if (!leaguesMap[pred.country]) {
+                    leaguesMap[pred.country] = [];
+                }
+                const exists = leaguesMap[pred.country].find(l => l.id === pred.league_id);
+                if (!exists) {
+                    leaguesMap[pred.country].push({
+                        id: pred.league_id,
+                        name: pred.league,
+                        logo: pred.leagueLogo
+                    });
+                }
+            });
+
+            // Sort leagues within each country
+            Object.keys(leaguesMap).forEach(country => {
+                leaguesMap[country].sort((a, b) => a.name.localeCompare(b.name));
+            });
+
+            setLeaguesByCountry(leaguesMap);
         } catch (error) {
             console.error('Error fetching predictions:', error);
+            console.error('Error details:', error.response?.data);
+            console.error('Request URL:', `${API_BASE_URL}?action=get_predictions&from=${dateParam}&to=${dateParam}`);
             setPredictions([]);
         } finally {
             setLoading(false);
@@ -387,7 +497,14 @@ function MathPredictions() {
                                             <div
                                                 key={match.id}
                                                 className="match-row"
-                                                style={{ gridTemplateColumns: columnConfig.template }}
+                                                style={{
+                                                    gridTemplateColumns: columnConfig.template,
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onClick={() => handleMatchClick(match.id)}
+                                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.01)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                                             >
                                                 {/* Live Indicator */}
                                                 {match.isLive && (
