@@ -379,80 +379,134 @@ function MatchDetail() {
                     {activeTab === 'lineups' && (
                         <div className="lineups-section">
                             {matchData.lineup?.home?.starting_lineups || matchData.lineup?.away?.starting_lineups ? (
-                                <div className="lineups-grid">
-                                    <div className="lineup-column">
-                                        <div className="lineup-header">
-                                            <img src={matchData.team_home_badge} alt="Home" className="lineup-team-logo" />
-                                            <h3>{matchData.match_hometeam_name}</h3>
+                                <>
+                                    {/* Formation Headers */}
+                                    <div className="formation-headers">
+                                        <div className="team-formation">
+                                            <img src={matchData.team_home_badge} alt="Home" className="formation-badge" />
+                                            <span>{matchData.match_hometeam_name}</span>
+                                            <span className="formation-text">{matchData.lineup?.home?.starting_lineups?.[0]?.lineup_position || 'N/A'}</span>
                                         </div>
-                                        <div className="formation-label">
-                                            Formation: {matchData.lineup?.home?.starting_lineups?.[0]?.lineup_position?.split(',').length > 0 ? 'Tactical' : 'Standard'}
+                                        <div className="team-formation">
+                                            <img src={matchData.team_away_badge} alt="Away" className="formation-badge" />
+                                            <span>{matchData.match_awayteam_name}</span>
+                                            <span className="formation-text">{matchData.lineup?.away?.starting_lineups?.[0]?.lineup_position || 'N/A'}</span>
                                         </div>
-                                        <div className="lineup-list">
-                                            {matchData.lineup?.home?.starting_lineups?.map((player, i) => (
-                                                <div key={i} className="player-row">
-                                                    <span className="player-number">{player.lineup_number}</span>
-                                                    <div className="player-info">
-                                                        <span className="player-name">{player.lineup_player}</span>
-                                                        <span className="player-position">{player.lineup_position}</span>
+                                    </div>
+
+                                    {/* Football Field */}
+                                    <div className="football-field">
+                                        {/* Home Team (Left Side) */}
+                                        <div className="field-half home-half">
+                                            {matchData.lineup?.home?.starting_lineups?.map((player, i) => {
+                                                const position = player.lineup_position || '';
+                                                let positionClass = 'midfielder';
+                                                let topPercent = 50;
+
+                                                // Determine position type and placement
+                                                if (position.toLowerCase().includes('goalkeeper') || position.toLowerCase().includes('gk')) {
+                                                    positionClass = 'goalkeeper';
+                                                    topPercent = 50;
+                                                } else if (position.toLowerCase().includes('defender') || position.toLowerCase().includes('back')) {
+                                                    positionClass = 'defender';
+                                                    topPercent = 20 + (i % 4) * 20;
+                                                } else if (position.toLowerCase().includes('midfielder') || position.toLowerCase().includes('midfield')) {
+                                                    positionClass = 'midfielder';
+                                                    topPercent = 15 + (i % 4) * 23;
+                                                } else if (position.toLowerCase().includes('forward') || position.toLowerCase().includes('attacker') || position.toLowerCase().includes('striker')) {
+                                                    positionClass = 'forward';
+                                                    topPercent = 20 + (i % 3) * 30;
+                                                }
+
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        className={`field-player ${positionClass}`}
+                                                        style={{ top: `${topPercent}%` }}
+                                                    >
+                                                        <div className="player-avatar">
+                                                            <div className="player-jersey-number">{player.lineup_number}</div>
+                                                        </div>
+                                                        <div className="player-field-name">{player.lineup_player}</div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
+
+                                        {/* Away Team (Right Side) */}
+                                        <div className="field-half away-half">
+                                            {matchData.lineup?.away?.starting_lineups?.map((player, i) => {
+                                                const position = player.lineup_position || '';
+                                                let positionClass = 'midfielder';
+                                                let topPercent = 50;
+
+                                                // Determine position type and placement
+                                                if (position.toLowerCase().includes('goalkeeper') || position.toLowerCase().includes('gk')) {
+                                                    positionClass = 'goalkeeper';
+                                                    topPercent = 50;
+                                                } else if (position.toLowerCase().includes('defender') || position.toLowerCase().includes('back')) {
+                                                    positionClass = 'defender';
+                                                    topPercent = 20 + (i % 4) * 20;
+                                                } else if (position.toLowerCase().includes('midfielder') || position.toLowerCase().includes('midfield')) {
+                                                    positionClass = 'midfielder';
+                                                    topPercent = 15 + (i % 4) * 23;
+                                                } else if (position.toLowerCase().includes('forward') || position.toLowerCase().includes('attacker') || position.toLowerCase().includes('striker')) {
+                                                    positionClass = 'forward';
+                                                    topPercent = 20 + (i % 3) * 30;
+                                                }
+
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        className={`field-player ${positionClass}`}
+                                                        style={{ top: `${topPercent}%` }}
+                                                    >
+                                                        <div className="player-avatar">
+                                                            <div className="player-jersey-number">{player.lineup_number}</div>
+                                                        </div>
+                                                        <div className="player-field-name">{player.lineup_player}</div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Center Line */}
+                                        <div className="center-line"></div>
+                                        <div className="center-circle"></div>
+                                    </div>
+
+                                    {/* Substitutes Section */}
+                                    <div className="substitutes-section">
                                         {matchData.lineup?.home?.substitutes && (
-                                            <>
-                                                <h4 className="substitutes-title">Substitutes</h4>
-                                                <div className="lineup-list">
+                                            <div className="substitutes-column">
+                                                <h4 className="subs-title">{matchData.match_hometeam_name} - Substitutes</h4>
+                                                <div className="subs-list">
                                                     {matchData.lineup.home.substitutes.map((player, i) => (
-                                                        <div key={i} className="player-row substitute">
-                                                            <span className="player-number">{player.lineup_number}</span>
-                                                            <div className="player-info">
-                                                                <span className="player-name">{player.lineup_player}</span>
-                                                                <span className="player-position">{player.lineup_position}</span>
-                                                            </div>
+                                                        <div key={i} className="sub-player">
+                                                            <span className="sub-number">{player.lineup_number}</span>
+                                                            <span className="sub-name">{player.lineup_player}</span>
+                                                            <span className="sub-pos">{player.lineup_position}</span>
                                                         </div>
                                                     ))}
                                                 </div>
-                                            </>
+                                            </div>
                                         )}
-                                    </div>
-                                    <div className="lineup-column">
-                                        <div className="lineup-header">
-                                            <img src={matchData.team_away_badge} alt="Away" className="lineup-team-logo" />
-                                            <h3>{matchData.match_awayteam_name}</h3>
-                                        </div>
-                                        <div className="formation-label">
-                                            Formation: {matchData.lineup?.away?.starting_lineups?.[0]?.lineup_position?.split(',').length > 0 ? 'Tactical' : 'Standard'}
-                                        </div>
-                                        <div className="lineup-list">
-                                            {matchData.lineup?.away?.starting_lineups?.map((player, i) => (
-                                                <div key={i} className="player-row">
-                                                    <span className="player-number">{player.lineup_number}</span>
-                                                    <div className="player-info">
-                                                        <span className="player-name">{player.lineup_player}</span>
-                                                        <span className="player-position">{player.lineup_position}</span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
                                         {matchData.lineup?.away?.substitutes && (
-                                            <>
-                                                <h4 className="substitutes-title">Substitutes</h4>
-                                                <div className="lineup-list">
+                                            <div className="substitutes-column">
+                                                <h4 className="subs-title">{matchData.match_awayteam_name} - Substitutes</h4>
+                                                <div className="subs-list">
                                                     {matchData.lineup.away.substitutes.map((player, i) => (
-                                                        <div key={i} className="player-row substitute">
-                                                            <span className="player-number">{player.lineup_number}</span>
-                                                            <div className="player-info">
-                                                                <span className="player-name">{player.lineup_player}</span>
-                                                                <span className="player-position">{player.lineup_position}</span>
-                                                            </div>
+                                                        <div key={i} className="sub-player">
+                                                            <span className="sub-number">{player.lineup_number}</span>
+                                                            <span className="sub-name">{player.lineup_player}</span>
+                                                            <span className="sub-pos">{player.lineup_position}</span>
                                                         </div>
                                                     ))}
                                                 </div>
-                                            </>
+                                            </div>
                                         )}
                                     </div>
-                                </div>
+                                </>
                             ) : (
                                 <div className="no-data">Lineup information not available</div>
                             )}

@@ -461,124 +461,258 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.lineups-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-}
-
-.lineup-column {
-    background: #fafafa;
+/* Formation Headers */
+.formation-headers {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #f8f9fa;
     border-radius: 12px;
-    padding: 24px;
-    border: 1px solid #e8e8e8;
 }
 
-.lineup-header {
+.team-formation {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #e0e0e0;
+    flex: 1;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.lineup-team-logo {
-    width: 32px;
-    height: 32px;
+.formation-badge {
+    width: 40px;
+    height: 40px;
     object-fit: contain;
 }
 
-.lineup-header h3 {
+.team-formation span:nth-child(2) {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+    flex: 1;
+}
+
+.formation-text {
+    font-weight: 700;
+    font-size: 16px;
+    color: #5b89ff;
+    padding: 4px 12px;
+    background: #f0f5ff;
+    border-radius: 6px;
+}
+
+/* Football Field */
+.football-field {
+    position: relative;
+    width: 100%;
+    min-height: 600px;
+    background: linear-gradient(180deg, #1e8449 0%, #27ae60 50%, #1e8449 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
+}
+
+.field-half {
+    position: relative;
+    flex: 1;
+    padding: 40px 20px;
+}
+
+.home-half {
+    border-right: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Field Markings */
+.center-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translateX(-50%);
+}
+
+.center-circle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 120px;
+    height: 120px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Field Players */
+.field-player {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transform: translateY(-50%);
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.field-player:hover {
+    transform: translateY(-50%) scale(1.1);
+    z-index: 20;
+}
+
+/* Positioning by role */
+.goalkeeper {
+    left: 10%;
+}
+
+.defender {
+    left: 25%;
+}
+
+.midfielder {
+    left: 50%;
+}
+
+.forward {
+    left: 75%;
+}
+
+/* Away team mirrored positions */
+.away-half .goalkeeper {
+    left: auto;
+    right: 10%;
+}
+
+.away-half .defender {
+    left: auto;
+    right: 25%;
+}
+
+.away-half .midfielder {
+    left: auto;
+    right: 50%;
+}
+
+.away-half .forward {
+    left: auto;
+    right: 75%;
+}
+
+/* Player Avatar */
+.player-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 3px solid white;
+    position: relative;
+}
+
+.player-jersey-number {
     font-size: 18px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.player-field-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 4px 8px;
+    border-radius: 6px;
+    text-align: center;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Substitutes Section */
+.substitutes-section {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.substitutes-column {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e8e8e8;
+}
+
+.subs-title {
+    font-size: 14px;
     font-weight: 700;
     color: #333;
-    margin: 0;
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e0e0e0;
 }
 
-.formation-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #666;
-    background: #fff;
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin-bottom: 16px;
-    text-align: center;
-}
-
-.lineup-list {
+.subs-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.player-row {
+.sub-player {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
+    padding: 10px 12px;
     background: white;
     border-radius: 8px;
-    transition: all 0.2s;
     border: 1px solid #e8e8e8;
+    transition: all 0.2s;
 }
 
-.player-row:hover {
-    background: #f0f5ff;
+.sub-player:hover {
     border-color: #5b89ff;
-    transform: translateX(2px);
+    background: #f0f5ff;
 }
 
-.player-row.substitute {
-    opacity: 0.7;
-    background: #f8f8f8;
-}
-
-.player-number {
-    font-size: 16px;
+.sub-number {
+    font-size: 14px;
     font-weight: 700;
-    color: #fff;
-    background: #333;
-    width: 32px;
-    height: 32px;
+    color: white;
+    background: #666;
+    width: 28px;
+    height: 28px;
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
 }
 
-.player-info {
+.sub-name {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.player-name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: #333;
 }
 
-.player-position {
-    font-size: 11px;
+.sub-pos {
+    font-size: 10px;
     font-weight: 500;
     color: #666;
     background: #e8e8e8;
-    padding: 2px 8px;
+    padding: 3px 8px;
     border-radius: 4px;
-    width: fit-content;
-}
-
-.substitutes-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #666;
-    margin: 20px 0 12px 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .predictions-section,
@@ -922,45 +1056,62 @@
         font-size: 11px;
     }
 
-    .lineups-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .lineup-column {
+    /* Lineups Responsive */
+    .formation-headers {
+        flex-direction: column;
         padding: 16px;
+        gap: 12px;
     }
 
-    .lineup-header {
-        gap: 8px;
+    .formation-badge {
+        width: 32px;
+        height: 32px;
     }
 
-    .lineup-team-logo {
-        width: 24px;
-        height: 24px;
-    }
-
-    .lineup-header h3 {
-        font-size: 16px;
-    }
-
-    .player-row {
-        padding: 10px;
-        gap: 10px;
-    }
-
-    .player-number {
-        width: 28px;
-        height: 28px;
+    .formation-text {
         font-size: 14px;
     }
 
-    .player-name {
-        font-size: 13px;
+    .football-field {
+        min-height: 500px;
     }
 
-    .player-position {
-        font-size: 10px;
+    .player-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .player-jersey-number {
+        font-size: 14px;
+    }
+
+    .player-field-name {
+        font-size: 9px;
+        padding: 3px 6px;
+        max-width: 90px;
+    }
+
+    .substitutes-section {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .sub-player {
+        padding: 8px 10px;
+    }
+
+    .sub-number {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+
+    .sub-name {
+        font-size: 12px;
+    }
+
+    .sub-pos {
+        font-size: 9px;
     }
 
     .scorers-list {
@@ -991,15 +1142,6 @@
 
     .scorers-title {
         font-size: 10px;
-    }
-
-    .lineup-column h3 {
-        font-size: 14px;
-    }
-
-    .player-row {
-        font-size: 12px;
-        padding: 8px 12px;
     }
 
     .h2h-card {
