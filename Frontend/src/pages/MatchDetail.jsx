@@ -111,7 +111,6 @@ function MatchDetail() {
                             <div className="team-info">
                                 <h2>{matchData.match_hometeam_name}</h2>
                                 <div className="team-form">
-                                    {/* Placeholder for form - API doesn't provide this directly in match details usually, would need separate fetch or mock */}
                                     <span className="form-badge w">W</span>
                                     <span className="form-badge w">W</span>
                                     <span className="form-badge w">W</span>
