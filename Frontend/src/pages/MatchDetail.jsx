@@ -13,6 +13,7 @@ function MatchDetail() {
     const [h2h, setH2H] = useState([]);
     const [predictions, setPredictions] = useState(null);
     const [odds, setOdds] = useState([]);
+    const [standings, setStandings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showScorers, setShowScorers] = useState(false);
 
@@ -34,6 +35,18 @@ function MatchDetail() {
                 if (match.match_hometeam_id && match.match_awayteam_id) {
                     const h2hResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_H2H&firstTeamId=${match.match_hometeam_id}&secondTeamId=${match.match_awayteam_id}&APIkey=${API_KEY}`);
                     setH2H(h2hResponse.data?.firstTeam_VS_secondTeam || []);
+                }
+
+                // Fetch standings for the league
+                if (match.league_id) {
+                    try {
+                        const standingsResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_standings&league_id=${match.league_id}&APIkey=${API_KEY}`);
+                        if (standingsResponse.data && Array.isArray(standingsResponse.data)) {
+                            setStandings(standingsResponse.data);
+                        }
+                    } catch (err) {
+                        console.error('Error fetching standings:', err);
+                    }
                 }
 
                 // Fetch predictions for this match
@@ -67,6 +80,12 @@ function MatchDetail() {
     if (loading) return <MatchDetailSkeleton />;
     if (!matchData) return <div className="match-error">Match not found</div>;
 
+    // Helper function to get team position from standings
+    const getTeamPosition = (teamId) => {
+        const teamStanding = standings.find(standing => standing.team_id === teamId);
+        return teamStanding ? `${teamStanding.overall_league_position} place` : 'N/A';
+    };
+
     return (
         <div className="match-detail-page">
             <div className="match-detail-container">
@@ -99,7 +118,7 @@ function MatchDetail() {
                                     <span className="form-badge d">D</span>
                                     <span className="form-badge w">W</span>
                                 </div>
-                                <div className="team-standing">1 place</div>
+                                <div className="team-standing">{getTeamPosition(matchData.match_hometeam_id)}</div>
                             </div>
                         </div>
 
@@ -166,7 +185,7 @@ function MatchDetail() {
                                     <span className="form-badge d">D</span>
                                     <span className="form-badge w">W</span>
                                 </div>
-                                <div className="team-standing">3 place</div>
+                                <div className="team-standing">{getTeamPosition(matchData.match_awayteam_id)}</div>
                             </div>
                             <img src={matchData.team_away_badge} alt={matchData.match_awayteam_name} className="team-logo" />
                         </div>
