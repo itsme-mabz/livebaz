@@ -32,6 +32,27 @@ const fetchTeamLogos = async (matches) => {
   return teamLogos;
 };
 
+// Fetch popular items from local backend
+export const fetchPopularLeagues = async () => {
+  try {
+    const response = await fetch('/api/v1/public/popular-items?type=league');
+    const data = await response.json();
+
+    if (data.success && Array.isArray(data.data)) {
+      return data.data.map(item => ({
+        league_id: item.item_id,
+        league_name: item.item_name,
+        league_logo: item.item_data?.logo || '',
+        // Preserve other fields if needed, but these are the main ones for display
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching popular leagues:', error);
+    return [];
+  }
+};
+
 // ===================== LIVE MATCHES =====================
 
 // Fetch live matches - CORRECTED VERSION
@@ -44,7 +65,7 @@ export const fetchLiveMatches = async () => {
       // Get team logos for live matches
       const matchesArray = Object.values(liveData);
       const teamLogos = await fetchTeamLogos(matchesArray);
-      
+
       return matchesArray.map(match => ({
         ...match,
         status: 'Live',
@@ -117,7 +138,7 @@ export class RealTimeLiveMatches {
 
   notifySubscribers(type, data) {
     this.subscribers.forEach(cb => {
-      try { cb(type, data); } 
+      try { cb(type, data); }
       catch (e) { console.error(e); }
     });
   }
@@ -292,7 +313,7 @@ export class RealTimePredictions {
 
   notifySubscribers(type, data) {
     this.subscribers.forEach(cb => {
-      try { cb(type, data); } catch(e) { console.error(e); }
+      try { cb(type, data); } catch (e) { console.error(e); }
     });
   }
 }

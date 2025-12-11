@@ -4,6 +4,7 @@ import './Navigation.css';
 import AuthModal from '../AuthModal/AuthModal';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '../SkeletonLoader/SkeletonLoader';
+import { fetchPopularLeagues } from '../../Service/FootballService';
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
@@ -11,6 +12,7 @@ function Navigation() {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authMode, setAuthMode] = useState('login');
     const [allLeagues, setAllLeagues] = useState([]);
+    const [fetchedPopularLeagues, setFetchedPopularLeagues] = useState([]); // from backend
     const [loading, setLoading] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isMobileLeaguesExpanded, setIsMobileLeaguesExpanded] = useState(false);
@@ -56,12 +58,20 @@ function Navigation() {
 
     // Fetch leagues from API
     useEffect(() => {
-        const fetchLeagues = async () => {
+        const loadLeagues = async () => {
             try {
                 setLoading(true);
+
+                // Fetch external leagues (for "More Leagues" - existing logic)
                 const response = await axios.get(`https://apiv3.apifootball.com/?action=get_leagues&APIkey=${API_KEY}`);
                 if (Array.isArray(response.data)) {
                     setAllLeagues(response.data);
+                }
+
+                // Fetch popular leagues from our backend (for "Popular Leagues")
+                const popularData = await fetchPopularLeagues();
+                if (Array.isArray(popularData)) {
+                    setFetchedPopularLeagues(popularData);
                 }
             } catch (error) {
                 console.error('Error fetching leagues:', error);
@@ -70,7 +80,7 @@ function Navigation() {
             }
         };
 
-        fetchLeagues();
+        loadLeagues();
     }, []);
 
 
@@ -95,8 +105,9 @@ function Navigation() {
         </span>
     );
 
-    // Get first 20 leagues for display (10 per column)
-    const popularLeagues = allLeagues.slice(0, 10);
+    // "Popular Leagues" column now comes from backend.
+    // User requested to display ONLY the backend selection.
+    const popularLeagues = fetchedPopularLeagues;
     const moreLeagues = allLeagues.slice(10, 20);
 
     return (

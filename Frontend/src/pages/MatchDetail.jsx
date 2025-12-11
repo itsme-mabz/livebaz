@@ -95,8 +95,21 @@ function MatchDetail() {
 
                 // Fetch H2H if teams are available
                 if (match.match_hometeam_id && match.match_awayteam_id) {
-                    const h2hResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_H2H&firstTeamId=${match.match_hometeam_id}&secondTeamId=${match.match_awayteam_id}&APIkey=${API_KEY}`);
-                    setH2H(h2hResponse.data?.firstTeam_VS_secondTeam || []);
+                    try {
+                        console.log(`Fetching H2H for Home: ${match.match_hometeam_id} vs Away: ${match.match_awayteam_id}`);
+                        const h2hResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_H2H&firstTeamId=${match.match_hometeam_id}&secondTeamId=${match.match_awayteam_id}&APIkey=${API_KEY}`);
+                        console.log('H2H Full Response:', h2hResponse.data);
+
+                        if (h2hResponse.data?.firstTeam_VS_secondTeam) {
+                            console.log(`Found ${h2hResponse.data.firstTeam_VS_secondTeam.length} H2H matches`);
+                            setH2H(h2hResponse.data.firstTeam_VS_secondTeam);
+                        } else {
+                            console.warn('H2H data missing firstTeam_VS_secondTeam field:', h2hResponse.data);
+                            setH2H([]);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching H2H data:', error);
+                    }
 
                     // Fetch team forms
                     const homeForm = await fetchTeamForm(match.match_hometeam_id, match.match_hometeam_name);

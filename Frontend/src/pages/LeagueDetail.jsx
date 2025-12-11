@@ -27,12 +27,32 @@ function LeagueDetail() {
 
     const fetchLeagueData = async () => {
         try {
-            setLoading(true);
+            setLeagueInfo(null); // Reset to avoid showing stale data from previous league
+            setStandings([]); // Reset standings
+            setFixtures([]); // Reset fixtures
+
+            console.log('Fetching data for league ID:', leagueId);
 
             // Fetch league info
             const leaguesResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_leagues&league_id=${leagueId}&APIkey=${API_KEY}`);
-            if (leaguesResponse.data && leaguesResponse.data.length > 0) {
-                setLeagueInfo(leaguesResponse.data[0]);
+            console.log('League API Response:', leaguesResponse.data);
+
+            if (leaguesResponse.data && Array.isArray(leaguesResponse.data)) {
+                // Find matching league by ID
+                const matchedLeague = leaguesResponse.data.find(l => l.league_id == leagueId);
+
+                if (matchedLeague) {
+                    setLeagueInfo(matchedLeague);
+                } else if (leaguesResponse.data.length > 0) {
+                    // Fallback validation
+                    if (leaguesResponse.data[0].league_id == leagueId) {
+                        setLeagueInfo(leaguesResponse.data[0]);
+                    } else {
+                        console.warn(`Requested league ID ${leagueId} not found in response`);
+                    }
+                }
+            } else {
+                console.warn('No league info found for ID:', leagueId);
             }
 
             // Fetch standings
