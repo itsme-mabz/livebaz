@@ -8,7 +8,7 @@ dotenv.config();
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // allow requests from frontend
+    origin: ["http://localhost:5173", "https://livebaz.com", "https://www.livebaz.com"], // allow requests from frontend
     credentials: true, // allow cookies to be sent
   })
 );

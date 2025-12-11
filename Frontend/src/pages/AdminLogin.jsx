@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './AdminLogin.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = '';
 
 function AdminLogin() {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ function AdminLogin() {
 
     try {
       const response = await axios.post(
-        `${API_URL}/api/v1/user/login`,
+        `/api/v1/user/login`,
         {
           Email: formData.email,
           Password: formData.password

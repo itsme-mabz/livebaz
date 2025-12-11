@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './AdminDashboard.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = '';
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await axios.get(
-        `${API_URL}/api/v1/admin/popular-items?type=${activeTab === 'matches' ? 'match' : 'league'}`,
+        `/api/v1/admin/popular-items?type=${activeTab === 'matches' ? 'match' : 'league'}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true
@@ -69,9 +69,9 @@ function AdminDashboard() {
       let url;
 
       if (activeTab === 'matches') {
-        url = `${API_URL}/api/v1/admin/search/matches?date=${searchDate}`;
+        url = `/api/v1/admin/search/matches?date=${searchDate}`;
       } else {
-        url = `${API_URL}/api/v1/admin/search/leagues`;
+        url = `/api/v1/admin/search/leagues`;
       }
 
       const response = await axios.get(url, {
@@ -132,7 +132,7 @@ function AdminDashboard() {
       };
 
       const response = await axios.post(
-        `${API_URL}/api/v1/admin/popular-items`,
+        `/api/v1/admin/popular-items`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -160,7 +160,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await axios.delete(
-        `${API_URL}/api/v1/admin/popular-items/${id}`,
+        `/api/v1/admin/popular-items/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true
@@ -181,7 +181,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem('adminToken');
       await axios.put(
-        `${API_URL}/api/v1/admin/popular-items/${id}`,
+        `/api/v1/admin/popular-items/${id}`,
         { priority: parseInt(newPriority) },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -200,7 +200,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem('adminToken');
       await axios.put(
-        `${API_URL}/api/v1/admin/popular-items/${id}`,
+        `/api/v1/admin/popular-items/${id}`,
         { is_active: !currentStatus },
         {
           headers: { Authorization: `Bearer ${token}` },
