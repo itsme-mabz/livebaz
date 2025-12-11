@@ -16,10 +16,65 @@ function MatchDetail() {
     const [standings, setStandings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showScorers, setShowScorers] = useState(false);
+    const [homeTeamForm, setHomeTeamForm] = useState([]);
+    const [awayTeamForm, setAwayTeamForm] = useState([]);
 
     useEffect(() => {
         fetchMatchData();
     }, [matchId]);
+
+    // Fetch team form (last 5 matches)
+    const fetchTeamForm = async (teamId, teamName) => {
+        try {
+            const today = new Date();
+            const twoMonthsAgo = new Date(today);
+            twoMonthsAgo.setMonth(today.getMonth() - 2);
+
+            const fromDate = twoMonthsAgo.toISOString().split('T')[0];
+            const toDate = today.toISOString().split('T')[0];
+
+            const response = await axios.get(
+                `https://apiv3.apifootball.com/?action=get_events&team_id=${teamId}&from=${fromDate}&to=${toDate}&APIkey=${API_KEY}`
+            );
+
+            if (response.data && Array.isArray(response.data)) {
+                console.log(`\n=== FORM DATA for ${teamName} (ID: ${teamId}) ===`);
+                console.log(`Total matches found: ${response.data.length}`);
+
+                // Filter only finished matches and sort by date (most recent first)
+                const finishedMatches = response.data
+                    .filter(match => match.match_status === 'Finished')
+                    .sort((a, b) => new Date(b.match_date) - new Date(a.match_date))
+                    .slice(0, 5);
+
+                console.log(`Finished matches (last 5):`, finishedMatches.length);
+
+                // Calculate form (W/D/L) for each match
+                const form = finishedMatches.map(match => {
+                    const isHome = match.match_hometeam_id === teamId;
+                    const teamScore = isHome ? parseInt(match.match_hometeam_score) : parseInt(match.match_awayteam_score);
+                    const opponentScore = isHome ? parseInt(match.match_awayteam_score) : parseInt(match.match_hometeam_score);
+
+                    let result = 'D';
+                    if (teamScore > opponentScore) result = 'W';
+                    if (teamScore < opponentScore) result = 'L';
+
+                    console.log(`${match.match_date} | ${match.match_hometeam_name} ${match.match_hometeam_score}-${match.match_awayteam_score} ${match.match_awayteam_name} | Result: ${result}`);
+
+                    return result;
+                });
+
+                console.log(`Form: ${form.join('')}`);
+                console.log(`==============================\n`);
+
+                return form;
+            }
+            return [];
+        } catch (error) {
+            console.error(`Error fetching form for team ${teamName}:`, error);
+            return [];
+        }
+    };
 
     const fetchMatchData = async () => {
         try {
@@ -27,26 +82,50 @@ function MatchDetail() {
 
             // Fetch match details (events, lineups, stats)
             const matchResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_events&match_id=${matchId}&APIkey=${API_KEY}`);
+            console.log('Match API Response:', matchResponse.data);
             if (matchResponse.data && matchResponse.data.length > 0) {
                 const match = matchResponse.data[0];
+                console.log('Match Data:', {
+                    league_id: match.league_id,
+                    league_name: match.league_name,
+                    home_team: match.match_hometeam_name,
+                    away_team: match.match_awayteam_name
+                });
                 setMatchData(match);
 
                 // Fetch H2H if teams are available
                 if (match.match_hometeam_id && match.match_awayteam_id) {
                     const h2hResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_H2H&firstTeamId=${match.match_hometeam_id}&secondTeamId=${match.match_awayteam_id}&APIkey=${API_KEY}`);
                     setH2H(h2hResponse.data?.firstTeam_VS_secondTeam || []);
+
+                    // Fetch team forms
+                    const homeForm = await fetchTeamForm(match.match_hometeam_id, match.match_hometeam_name);
+                    const awayForm = await fetchTeamForm(match.match_awayteam_id, match.match_awayteam_name);
+                    setHomeTeamForm(homeForm);
+                    setAwayTeamForm(awayForm);
                 }
 
-                // Fetch standings for the league
-                if (match.league_id) {
+                // Fetch standings for the league - only if league_id exists and is valid
+                if (match.league_id && match.league_id !== '0' && parseInt(match.league_id) > 0) {
                     try {
                         const standingsResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_standings&league_id=${match.league_id}&APIkey=${API_KEY}`);
-                        if (standingsResponse.data && Array.isArray(standingsResponse.data)) {
+                        console.log('Standings API Response for league', match.league_id, ':', standingsResponse.data);
+                        console.log('Home Team ID:', match.match_hometeam_id);
+                        console.log('Away Team ID:', match.match_awayteam_id);
+
+                        if (standingsResponse.data && Array.isArray(standingsResponse.data) && standingsResponse.data.length > 0) {
                             setStandings(standingsResponse.data);
+                            console.log('Standings set:', standingsResponse.data.length, 'teams');
+                        } else if (standingsResponse.data && standingsResponse.data.error) {
+                            console.warn('Standings API error:', standingsResponse.data.message);
+                        } else {
+                            console.warn('No standings data available for league:', match.league_id);
                         }
                     } catch (err) {
                         console.error('Error fetching standings:', err);
                     }
+                } else {
+                    console.warn('Invalid or missing league_id:', match.league_id, '- Cannot fetch standings');
                 }
 
                 // Fetch predictions for this match
@@ -111,11 +190,15 @@ function MatchDetail() {
                             <div className="team-info">
                                 <h2>{matchData.match_hometeam_name}</h2>
                                 <div className="team-form">
-                                    <span className="form-badge w">W</span>
-                                    <span className="form-badge w">W</span>
-                                    <span className="form-badge w">W</span>
-                                    <span className="form-badge d">D</span>
-                                    <span className="form-badge w">W</span>
+                                    {homeTeamForm.length > 0 ? (
+                                        homeTeamForm.map((result, index) => (
+                                            <span key={index} className={`form-badge ${result.toLowerCase()}`}>
+                                                {result}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span className="form-loading">Loading...</span>
+                                    )}
                                 </div>
                                 <div className="team-standing">{getTeamPosition(matchData.match_hometeam_id)}</div>
                             </div>
@@ -125,10 +208,8 @@ function MatchDetail() {
                             <div className="match-meta-top">
                                 {new Date(matchData.match_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, {matchData.match_time}
                             </div>
-                            <div className="score-display">
-                                <span className="score">{matchData.match_hometeam_score}</span>
-                                <span className="divider">:</span>
-                                <span className="score">{matchData.match_awayteam_score}</span>
+                            <div className="score-display-detail">
+                                <span className="score score-home" style={{ color: '#fff' }}>{matchData.match_hometeam_score} : {matchData.match_awayteam_score}</span>
                             </div>
                             <div className="match-status">{matchData.match_status}</div>
                             {matchData.goalscorer && matchData.goalscorer.length > 0 && (
@@ -178,11 +259,15 @@ function MatchDetail() {
                             <div className="team-info">
                                 <h2>{matchData.match_awayteam_name}</h2>
                                 <div className="team-form">
-                                    <span className="form-badge w">W</span>
-                                    <span className="form-badge w">W</span>
-                                    <span className="form-badge w">W</span>
-                                    <span className="form-badge d">D</span>
-                                    <span className="form-badge w">W</span>
+                                    {awayTeamForm.length > 0 ? (
+                                        awayTeamForm.map((result, index) => (
+                                            <span key={index} className={`form-badge ${result.toLowerCase()}`}>
+                                                {result}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span className="form-loading">Loading...</span>
+                                    )}
                                 </div>
                                 <div className="team-standing">{getTeamPosition(matchData.match_awayteam_id)}</div>
                             </div>

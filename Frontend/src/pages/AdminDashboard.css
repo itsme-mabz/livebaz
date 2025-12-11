@@ -1,0 +1,398 @@
+.admin-dashboard {
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.admin-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+}
+
+.admin-user-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.admin-user-info span {
+  font-size: 14px;
+}
+
+.logout-btn {
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.admin-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-btn {
+  padding: 12px 30px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.tab-btn.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.admin-content {
+  display: grid;
+  gap: 30px;
+}
+
+.search-section,
+.popular-items-section {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.search-section h2,
+.popular-items-section h2 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  font-family: 'Inter', sans-serif;
+}
+
+.search-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-input,
+.date-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: border-color 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.search-input:focus,
+.date-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.date-input {
+  flex: 0 0 200px;
+}
+
+.search-btn {
+  padding: 12px 30px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.search-btn:hover:not(:disabled) {
+  background: #5568d3;
+}
+
+.search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.search-results {
+  margin-top: 20px;
+}
+
+.search-results h3 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #666;
+  font-family: 'Inter', sans-serif;
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.result-item:hover {
+  background: #e9ecef;
+}
+
+.match-result,
+.league-result {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.match-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-logo-small,
+.league-logo-small {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.team-names {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.match-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #666;
+  margin-left: auto;
+  text-align: right;
+}
+
+.league-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.league-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.league-country {
+  font-size: 12px;
+  color: #666;
+}
+
+.add-btn {
+  padding: 8px 20px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.add-btn:hover {
+  background: #059669;
+}
+
+.empty-message {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+  font-size: 15px;
+}
+
+.popular-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.popular-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.popular-item:hover {
+  border-color: #667eea;
+}
+
+.popular-item.inactive {
+  opacity: 0.5;
+}
+
+.item-content {
+  flex: 1;
+}
+
+.match-display,
+.league-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.item-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: #333;
+}
+
+.item-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.item-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.priority-input {
+  width: 60px;
+  padding: 6px 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.toggle-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn.active {
+  background: #10b981;
+  color: white;
+}
+
+.toggle-btn.inactive {
+  background: #6b7280;
+  color: white;
+}
+
+.remove-btn {
+  padding: 6px 16px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.remove-btn:hover {
+  background: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 15px 20px;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .admin-header h1 {
+    font-size: 22px;
+  }
+
+  .search-form {
+    flex-direction: column;
+  }
+
+  .date-input {
+    flex: 1;
+  }
+
+  .result-item,
+  .popular-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .item-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .match-details {
+    margin-left: 0;
+    text-align: left;
+    margin-top: 10px;
+  }
+}

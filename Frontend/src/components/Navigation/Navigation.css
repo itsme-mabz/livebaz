@@ -263,6 +263,7 @@
 
 /* Mobile: Hide desktop navigation and login button */
 @media screen and (max-width: 1074px) {
+
     /* Hide desktop login button on mobile */
     .header-login {
         display: none !important;

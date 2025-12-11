@@ -105,6 +105,7 @@
 .team-info h2 {
     font-size: 24px;
     font-weight: 700;
+    font-family: 'Inter', sans-serif;
     margin: 0 0 8px 0;
     text-transform: uppercase;
 }
@@ -146,6 +147,12 @@
     /* Red */
 }
 
+.form-loading {
+    font-size: 10px;
+    color: #aaa;
+    font-style: italic;
+}
+
 .team-standing {
     font-size: 12px;
     color: #aaa;
@@ -170,13 +177,36 @@
     font-weight: 800;
     line-height: 1;
     margin-bottom: 5px;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', sans-serif;
     gap: 5px;
 }
 
 .score-display .divider {
     margin: 0 10px;
     color: #aaa;
+}
+
+.score-display-detail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.score-display-detail .score {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+    font-family: 'Inter', sans-serif;
+    color: #333;
+}
+
+.score-divider-detail {
+    width: 80px;
+    height: 2px;
+    background: #d1d5db;
+    margin: 4px 0;
 }
 
 .match-status {
@@ -361,6 +391,7 @@
 .section-header h3 {
     font-size: 16px;
     font-weight: 700;
+    font-family: 'Inter', sans-serif;
     color: #333;
     text-transform: uppercase;
     margin: 0;
@@ -742,6 +773,7 @@
 .odds-category h5 {
     font-size: 16px;
     font-weight: 700;
+    font-family: 'Inter', sans-serif;
     color: #333;
     margin: 0 0 16px 0;
     padding-bottom: 12px;
@@ -827,6 +859,7 @@
 .h2h-section h3 {
     font-size: 18px;
     font-weight: 700;
+    font-family: 'Inter', sans-serif;
     color: #333;
     margin: 0 0 20px 0;
 }

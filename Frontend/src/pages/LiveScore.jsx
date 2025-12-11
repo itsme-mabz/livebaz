@@ -21,6 +21,7 @@ function LiveScore() {
     const [showStandingsModal, setShowStandingsModal] = useState(false);
     const [loadingStandings, setLoadingStandings] = useState(false);
     const socketRef = useRef(null);
+    const isInitialLoad = useRef(true);
 
     // Transform match data
     const transformMatch = (match) => ({
@@ -179,6 +180,15 @@ function LiveScore() {
             ]);
 
             if (matchResponse.data && Array.isArray(matchResponse.data)) {
+                console.log('=== MATCH DATA DEBUG ===');
+                console.log('Total matches fetched:', matchResponse.data.length);
+                const liveMatches = matchResponse.data.filter(m => m.match_live === '1');
+                console.log('Live matches:', liveMatches.length);
+                liveMatches.forEach(m => {
+                    console.log(`Live: ${m.match_hometeam_name} vs ${m.match_awayteam_name} - Status: ${m.match_status}`);
+                });
+                console.log('======================');
+
                 // Create a map of predictions by match_id for quick lookup
                 const predictionsMap = {};
                 if (predictionResponse.data && Array.isArray(predictionResponse.data)) {
@@ -204,6 +214,15 @@ function LiveScore() {
 
                 const transformed = matchesWithPredictions.map(transformMatch);
                 setAllMatches(transformed);
+
+                // Auto-select live filter if there are live matches on initial load
+                if (isInitialLoad.current) {
+                    const hasLiveMatches = transformed.some(match => match.isLive);
+                    if (hasLiveMatches) {
+                        setShowLiveOnly(true);
+                    }
+                    isInitialLoad.current = false;
+                }
 
                 // Group leagues by country
                 const leaguesMap = {};
@@ -615,10 +634,11 @@ function LiveScore() {
 
                                                 <div className="col-score-stat">
                                                     <div className="score-display">
-                                                        <span className={`score-number ${match.isLive ? 'live' : ''}`}>
+                                                        <span className={`score-number score-home ${match.isLive ? 'live' : ''}`}>
                                                             {match.homeScore}
                                                         </span>
-                                                        <span className={`score-number ${match.isLive ? 'live' : ''}`}>
+                                                        <div className="score-divider"></div>
+                                                        <span className={`score-number score-away ${match.isLive ? 'live' : ''}`}>
                                                             {match.awayScore}
                                                         </span>
                                                     </div>

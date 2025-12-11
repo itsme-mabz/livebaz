@@ -23,10 +23,18 @@ const matchRoutes = require("./routes/match.routes");
 
 const predictionsRoutes = require("./routes/predictions.routes");
 
+const adminRoutes = require("./routes/admin.routes");
+
+const publicRoutes = require("./routes/public.routes");
+
 app.use("/api/v1/user", userRoutes);
 
 app.use("/api/v1/match", matchRoutes);
 
 app.use("/api/v1/predictions", predictionsRoutes);
+
+app.use("/api/v1/admin", adminRoutes);
+
+app.use("/api/v1/public", publicRoutes);
 
 module.exports = app;

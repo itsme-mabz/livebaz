@@ -15,6 +15,8 @@ import Basketball from './pages/basketball';
 import Tennis from './pages/Tennis';
 import BestBettingapp from './pages/bestBettingapps';
 import PopularLeagues from './pages/PopularLeagues';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 
 
 function App() {
@@ -45,6 +47,9 @@ function App() {
 
         <Route path="/league/:leagueId/old" element={<PopularLeagues />} />
 
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
       </Routes>
 

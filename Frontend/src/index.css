@@ -10,7 +10,7 @@ body * {
     box-sizing: border-box;
     -ms-overflow-style: none;
     overflow: -moz-scrollbars-none;
-    font-family: 'Fira Sans Condensed', monospace !important;
+    font-family: 'Geom', monospace !important;
 }
 
 body ::-webkit-scrollbar {
@@ -49,7 +49,8 @@ h3,
 h4,
 h5,
 p {
-    margin: 0
+    margin: 0;
+    font-family: 'Inter', sans-serif;
 }
 
 img {
@@ -2822,7 +2823,8 @@ input::placeholder {
 .overall-content h3,
 .overall-content h4,
 .overall-content h5 {
-    margin: 40px 0 16px
+    margin: 40px 0 16px;
+    font-family: 'Inter', sans-serif;
 }
 
 @media screen and (max-width:767px) {
@@ -6165,7 +6167,8 @@ screen and (-ms-high-contrast:active) {
 .header h4,
 .header h5,
 .header p {
-    margin: 0
+    margin: 0;
+    font-family: 'Inter', sans-serif;
 }
 
 .header img {
@@ -11168,7 +11171,8 @@ h3,
 h4,
 h5,
 p {
-    margin: 0
+    margin: 0;
+    font-family: 'Inter', sans-serif;
 }
 
 img {
@@ -13941,7 +13945,8 @@ input::placeholder {
 .overall-content h3,
 .overall-content h4,
 .overall-content h5 {
-    margin: 40px 0 16px
+    margin: 40px 0 16px;
+    font-family: 'Inter', sans-serif;
 }
 
 @media screen and (max-width:767px) {
@@ -17284,7 +17289,8 @@ screen and (-ms-high-contrast:active) {
 .header h4,
 .header h5,
 .header p {
-    margin: 0
+    margin: 0;
+    font-family: 'Inter', sans-serif;
 }
 
 .header img {
@@ -22236,11 +22242,13 @@ screen and (-ms-high-contrast:active) {
         margin-bottom: 16px !important
     }
 }
+
 /* ========================================
    RESPONSIVE STYLES FOR HOMEPAGE
    ======================================== */
 
 @media screen and (max-width: 768px) {
+
     /* Main container */
     .main-page .wrap {
         padding: 12px 8px;
