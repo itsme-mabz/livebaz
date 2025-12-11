@@ -13,10 +13,18 @@ const sendToken = (user, statusCode, res) => {
   };
 
   // Send token in cookie and JSON response
+  // Send token in cookie and JSON response
   res.status(statusCode).cookie("token", token, options).json({
     success: true,
     token,
-    user,
+    user: {
+      id: user.id,
+      Name: user.Name,
+      Email: user.Email,
+      is_admin: user.is_admin,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    },
   });
 };
 
