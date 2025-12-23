@@ -10,19 +10,15 @@ const BASE_URL = 'https://apiv3.apifootball.com';
 function LiveScore() {
     const navigate = useNavigate();
     const [allMatches, setAllMatches] = useState([]);
-    const [matchCounts, setMatchCounts] = useState({});
-    const [selectedDate, setSelectedDate] = useState(new Date());
     const [loading, setLoading] = useState(false);
     const [selectedLeagues, setSelectedLeagues] = useState(new Set());
     const [leaguesByCountry, setLeaguesByCountry] = useState({});
     const [topLeagues, setTopLeagues] = useState([]);
     const [expandedCountries, setExpandedCountries] = useState(new Set());
-    const [showLiveOnly, setShowLiveOnly] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState('live'); // 'live', 'upcoming', 'finished'
     const [standingsData, setStandingsData] = useState(null);
     const [showStandingsModal, setShowStandingsModal] = useState(false);
     const [loadingStandings, setLoadingStandings] = useState(false);
-    const socketRef = useRef(null);
-    const isInitialLoad = useRef(true);
 
     // Transform match data
     const transformMatch = (match) => ({
@@ -97,77 +93,13 @@ function LiveScore() {
         return { odds, percentage };
     };
 
-    // Get date pills with match counts
-    const getDatePills = () => {
-        const pills = [];
-        const today = new Date();
-        for (let i = -2; i <= 2; i++) {
-            const date = new Date(today);
-            date.setDate(date.getDate() + i);
-            pills.push(date);
-        }
-        return pills;
-    };
 
-    const datePills = getDatePills();
-
-    // Get date label
-    const getDateLabel = (date) => {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        const dateStr = date.toISOString().split('T')[0];
-        const count = matchCounts[dateStr] || 0;
-
-        if (date.toDateString() === today.toDateString()) {
-            return `Today ${count}`;
-        } else if (date.toDateString() === tomorrow.toDateString()) {
-            return `Tomorrow ${count}`;
-        } else if (date.toDateString() === yesterday.toDateString()) {
-            return `Yesterday`;
-        } else {
-            const options = { day: 'numeric', month: 'short' };
-            return date.toLocaleDateString('en-US', options);
-        }
-    };
-
-    // Check if same day
-    const isSameDay = (date1, date2) => {
-        return date1.toISOString().split('T')[0] === date2.toISOString().split('T')[0];
-    };
-
-    // Fetch match counts for all dates
-    const fetchMatchCounts = useCallback(async () => {
-        try {
-            const startDate = new Date();
-            startDate.setDate(startDate.getDate() - 2);
-            const endDate = new Date();
-            endDate.setDate(endDate.getDate() + 2);
-
-            const url = `${BASE_URL}/?action=get_events&from=${startDate.toISOString().split('T')[0]}&to=${endDate.toISOString().split('T')[0]}&APIkey=${API_KEY}`;
-            const response = await axios.get(url);
-
-            if (response.data && Array.isArray(response.data)) {
-                const counts = {};
-                response.data.forEach(match => {
-                    const date = match.match_date;
-                    counts[date] = (counts[date] || 0) + 1;
-                });
-                setMatchCounts(counts);
-            }
-        } catch (error) {
-            console.error('Error fetching match counts:', error);
-        }
-    }, []);
-
-    // Fetch matches for selected date
+    // Fetch matches for today
     const fetchMatches = useCallback(async () => {
         setLoading(true);
         try {
-            const dateStr = selectedDate.toISOString().split('T')[0];
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
             let matchUrl = `${BASE_URL}/?action=get_events&from=${dateStr}&to=${dateStr}&APIkey=${API_KEY}`;
 
             if (selectedLeagues.size > 0) {
@@ -216,15 +148,6 @@ function LiveScore() {
                 const transformed = matchesWithPredictions.map(transformMatch);
                 setAllMatches(transformed);
 
-                // Auto-select live filter if there are live matches on initial load
-                if (isInitialLoad.current) {
-                    const hasLiveMatches = transformed.some(match => match.isLive);
-                    if (hasLiveMatches) {
-                        setShowLiveOnly(true);
-                    }
-                    isInitialLoad.current = false;
-                }
-
                 // Group leagues by country
                 const leaguesMap = {};
                 matchResponse.data.forEach(match => {
@@ -252,12 +175,44 @@ function LiveScore() {
         } finally {
             setLoading(false);
         }
-    }, [selectedDate, selectedLeagues]);
+    }, [selectedLeagues]);
 
-    // Filter matches based on live toggle
-    const filteredMatches = showLiveOnly
-        ? allMatches.filter(match => match.isLive)
-        : allMatches;
+    // Helper function to determine match status
+    const getMatchStatus = (match) => {
+        if (match.isLive) return 'live';
+
+        // Check if match is finished (has score and not live)
+        if (match.homeScore !== '-' && match.awayScore !== '-' && !match.isLive) {
+            return 'finished';
+        }
+
+        // Check status string for finished matches
+        if (match.status && (
+            match.status === '' ||
+            match.status === 'Match Finished' ||
+            match.status === 'After ET' ||
+            match.status === 'After Pen.' ||
+            match.status.toLowerCase().includes('finished') ||
+            match.status.toLowerCase().includes('ft')
+        )) {
+            return 'finished';
+        }
+
+        return 'upcoming';
+    };
+
+    // Filter matches based on selected status
+    const filteredMatches = allMatches.filter(match => {
+        const matchStatus = getMatchStatus(match);
+        return selectedStatus === matchStatus;
+    });
+
+    // Count matches by status
+    const matchCounts = {
+        live: allMatches.filter(m => getMatchStatus(m) === 'live').length,
+        upcoming: allMatches.filter(m => getMatchStatus(m) === 'upcoming').length,
+        finished: allMatches.filter(m => getMatchStatus(m) === 'finished').length
+    };
 
     // Group matches by league
     const groupedMatches = filteredMatches.reduce((acc, match) => {
@@ -274,6 +229,11 @@ function LiveScore() {
         acc[key].matches.push(match);
         return acc;
     }, {});
+
+    // Sort matches within each league group by time
+    Object.values(groupedMatches).forEach(group => {
+        group.matches.sort((a, b) => a.time.localeCompare(b.time));
+    });
 
     const toggleCountry = (country) => {
         setExpandedCountries(prev => {
@@ -347,17 +307,24 @@ function LiveScore() {
     };
 
     useEffect(() => {
-        fetchMatchCounts();
         fetchTopLeagues();
-    }, [fetchMatchCounts, fetchTopLeagues]);
+    }, [fetchTopLeagues]);
 
     useEffect(() => {
         fetchMatches();
     }, [fetchMatches]);
 
-    // Count live matches for today
-    const todayStr = new Date().toISOString().split('T')[0];
-    const liveCount = allMatches.filter(m => m.isLive && m.date === todayStr).length;
+    // Auto-switch to upcoming if no live matches on initial load
+    useEffect(() => {
+        if (allMatches.length > 0 && matchCounts.live === 0 && selectedStatus === 'live') {
+            if (matchCounts.upcoming > 0) {
+                setSelectedStatus('upcoming');
+            } else if (matchCounts.finished > 0) {
+                setSelectedStatus('finished');
+            }
+        }
+    }, [allMatches, matchCounts, selectedStatus]);
+
 
     return (
         <div className="livescore-page wrap " style={{ paddingTop: '8px' }}>
@@ -382,6 +349,7 @@ function LiveScore() {
                             Clear All
                         </button>
                     </div>
+
 
                     {topLeagues.length > 0 && (
                         <div className="sidebar-section">
@@ -442,29 +410,51 @@ function LiveScore() {
                 <main className="livescore-main">
                     {/* Header */}
                     <div className="livescore-header">
-                        <h1 className="livescore-title">Football Games Today</h1>
-                        <div className="livescore-date-pills">
-                            {datePills.map((date, index) => (
-                                <button
-                                    key={index}
-                                    className={`livescore-date-pill ${isSameDay(date, selectedDate) ? 'active' : ''}`}
-                                    onClick={() => {
-                                        setSelectedDate(date);
-                                        setShowLiveOnly(false);
-                                    }}
-                                >
-                                    {getDateLabel(date)}
-                                </button>
-                            ))}
-                            {liveCount > 0 && isSameDay(selectedDate, new Date()) && (
-                                <button
-                                    className={`livescore-date-pill live-filter-pill ${showLiveOnly ? 'active' : ''}`}
-                                    onClick={() => setShowLiveOnly(!showLiveOnly)}
-                                >
-                                    <span className="live-dot"></span>
-                                    Live {liveCount}
-                                </button>
+                        <h1 className="livescore-title" style={{ display: 'flex', alignItems: 'center' }}>
+                            Live Football Games
+                            {matchCounts.live > 0 && (
+                                <span className="live-indicator" style={{
+                                    width: '12px',
+                                    height: '12px',
+                                    minWidth: '12px',
+                                    minHeight: '12px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#00c853',
+                                    display: 'block',
+                                    marginLeft: '15px',
+                                    animation: 'pulse 2s infinite',
+                                    boxShadow: '0 0 8px rgba(0, 200, 83, 0.8)',
+                                    flexShrink: '0'
+                                }}></span>
                             )}
+                        </h1>
+                        <div className="livescore-date-pills">
+                            <button
+                                className={`livescore-date-pill ${selectedStatus === 'live' ? 'active' : ''}`}
+                                onClick={() => setSelectedStatus('live')}
+                            >
+                                <span className="live-dot" style={{
+                                    width: '6px',
+                                    height: '6px',
+                                    borderRadius: '50%',
+                                    backgroundColor: selectedStatus === 'live' ? '#fff' : '#00c853',
+                                    display: 'inline-block',
+                                    marginRight: '6px'
+                                }}></span>
+                                Live {matchCounts.live}
+                            </button>
+                            <button
+                                className={`livescore-date-pill ${selectedStatus === 'upcoming' ? 'active' : ''}`}
+                                onClick={() => setSelectedStatus('upcoming')}
+                            >
+                                Upcoming {matchCounts.upcoming}
+                            </button>
+                            <button
+                                className={`livescore-date-pill ${selectedStatus === 'finished' ? 'active' : ''}`}
+                                onClick={() => setSelectedStatus('finished')}
+                            >
+                                Finished {matchCounts.finished}
+                            </button>
                         </div>
                     </div>
 
@@ -473,10 +463,11 @@ function LiveScore() {
                         {loading ? (
                             <div className="loading-state">Loading matches...</div>
                         ) : Object.keys(groupedMatches).length === 0 ? (
-                            <div className="empty-state">No matches found for this date</div>
+                            <div className="empty-state">No {selectedStatus} matches found</div>
                         ) : (
                             Object.values(groupedMatches)
                                 .sort((a, b) => {
+                                    // Sort by country and league name
                                     const countryCompare = a.country.localeCompare(b.country);
                                     if (countryCompare !== 0) return countryCompare;
                                     return a.league.localeCompare(b.league);
@@ -507,16 +498,16 @@ function LiveScore() {
                                             <div className="matches-header-stats">
                                                 <div className="col-time-stat">Time</div>
                                                 <div className="col-match-stat">Match</div>
-                                                <div className="col-result-stat" title="Match Result: Home Win (1) / Draw (X) / Away Win (2)">1X2</div>
-                                                <div className="col-goals-stat" title="Over/Under 2.5 Goals">O/U 2.5</div>
-                                                <div className="col-btts-stat" title="Both Teams To Score">BTTS</div>
                                                 <div className="col-score-stat">Score</div>
+                                                <div className="col-1-stat">1</div>
+                                                <div className="col-x-stat">X</div>
+                                                <div className="col-2-stat">2</div>
                                             </div>
 
                                             {group.matches.map((match) => (
                                                 <div
                                                     key={match.id}
-                                                    className={`match-row-stats ${match.isLive ? 'live-match-row' : ''}`}
+                                                    className={`match-row-stats`}
                                                     onClick={() => navigate(`/match/${match.id}`)}
                                                 >
                                                     <div className="col-time-stat">
@@ -540,85 +531,6 @@ function LiveScore() {
                                                             <span className="team-name-new">{match.awayTeam}</span>
                                                         </div>
                                                     </div>
-
-                                                    <div className="col-result-stat">
-                                                        <div className="prob-row">
-                                                            <div className="prob-item">
-                                                                <span className="prob-label">1</span>
-                                                                <span className="prob-value">
-                                                                    {match.probHome ? (
-                                                                        <>
-                                                                            <span className="prob-odds">{calculateOdds(match.probHome)}</span>
-                                                                            <span className="prob-percent">{formatPercentage(match.probHome)}</span>
-                                                                        </>
-                                                                    ) : '-'}
-                                                                </span>
-                                                            </div>
-                                                            <div className="prob-item">
-                                                                <span className="prob-label">X</span>
-                                                                <span className="prob-value">
-                                                                    {match.probDraw ? (
-                                                                        <>
-                                                                            <span className="prob-odds">{calculateOdds(match.probDraw)}</span>
-                                                                            <span className="prob-percent">{formatPercentage(match.probDraw)}</span>
-                                                                        </>
-                                                                    ) : '-'}
-                                                                </span>
-                                                            </div>
-                                                            <div className="prob-item">
-                                                                <span className="prob-label">2</span>
-                                                                <span className="prob-value">
-                                                                    {match.probAway ? (
-                                                                        <>
-                                                                            <span className="prob-odds">{calculateOdds(match.probAway)}</span>
-                                                                            <span className="prob-percent">{formatPercentage(match.probAway)}</span>
-                                                                        </>
-                                                                    ) : '-'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="col-goals-stat">
-                                                        <div className="prob-row">
-                                                            <div className="prob-item">
-                                                                <span className="prob-label">O</span>
-                                                                <span className="prob-value">
-                                                                    {match.probOver ? (
-                                                                        <>
-                                                                            <span className="prob-odds">{calculateOdds(match.probOver)}</span>
-                                                                            <span className="prob-percent">{formatPercentage(match.probOver)}</span>
-                                                                        </>
-                                                                    ) : '-'}
-                                                                </span>
-                                                            </div>
-                                                            <div className="prob-item">
-                                                                <span className="prob-label">U</span>
-                                                                <span className="prob-value">
-                                                                    {match.probUnder ? (
-                                                                        <>
-                                                                            <span className="prob-odds">{calculateOdds(match.probUnder)}</span>
-                                                                            <span className="prob-percent">{formatPercentage(match.probUnder)}</span>
-                                                                        </>
-                                                                    ) : '-'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="col-btts-stat">
-                                                        <div className="prob-single">
-                                                            {match.probBTTS ? (
-                                                                <span className="prob-value-large">
-                                                                    <span className="prob-odds-large">{calculateOdds(match.probBTTS)}</span>
-                                                                    <span className="prob-percent-large">{formatPercentage(match.probBTTS)}</span>
-                                                                </span>
-                                                            ) : (
-                                                                <span className="prob-value-large">-</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
                                                     <div className="col-score-stat">
                                                         <div className="score-display">
                                                             <span className={`score-number score-home ${match.isLive ? 'live' : ''}`}>
@@ -630,6 +542,48 @@ function LiveScore() {
                                                             </span>
                                                         </div>
                                                     </div>
+
+                                                    <div className="col-1-stat">
+                                                        <div className="prob-item-new">
+                                                            <span className="prob-value">
+                                                                {match.probHome ? (
+                                                                    <>
+                                                                        <span className="prob-odds">{calculateOdds(match.probHome)}</span>
+                                                                        <span className="prob-percent">{formatPercentage(match.probHome)}</span>
+                                                                    </>
+                                                                ) : '-'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-x-stat">
+                                                        <div className="prob-item-new">
+                                                            <span className="prob-value">
+                                                                {match.probDraw ? (
+                                                                    <>
+                                                                        <span className="prob-odds">{calculateOdds(match.probDraw)}</span>
+                                                                        <span className="prob-percent">{formatPercentage(match.probDraw)}</span>
+                                                                    </>
+                                                                ) : '-'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-2-stat">
+                                                        <div className="prob-item-new">
+                                                            <span className="prob-value">
+                                                                {match.probAway ? (
+                                                                    <>
+                                                                        <span className="prob-odds">{calculateOdds(match.probAway)}</span>
+                                                                        <span className="prob-percent">{formatPercentage(match.probAway)}</span>
+                                                                    </>
+                                                                ) : '-'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+
+
+
+
                                                 </div>
                                             ))}
                                         </div>

@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './AdminDashboard.css';
 
-const API_URL = '';
-
-function AdminDashboard() {
+function AdminDashboard({ initialTab = 'matches' }) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('matches'); // 'matches' or 'leagues'
+  const [activeTab, setActiveTab] = useState(initialTab); // 'matches' or 'leagues'
   const [popularItems, setPopularItems] = useState([]);
   const [allItems, setAllItems] = useState([]); // All matches/leagues from API
   const [filteredItems, setFilteredItems] = useState([]); // Filtered results
   const [searchQuery, setSearchQuery] = useState('');
   const [searchDate, setSearchDate] = useState(new Date().toISOString().split('T')[0]);
-  const [loading, setLoading] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    // Update active tab if initialTab prop changes (e.g. navigation)
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  useEffect(() => {
     // Check if user is logged in and is admin
     const adminUser = localStorage.getItem('adminUser');
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem('token'); // changed from adminToken to token to match AdminLogin
 
     if (!adminUser || !token) {
       navigate('/admin/login');
@@ -29,19 +30,30 @@ function AdminDashboard() {
 
     const parsedUser = JSON.parse(adminUser);
     if (!parsedUser.is_admin) {
-      alert('Access denied. Admin privileges required.');
       navigate('/admin/login');
       return;
     }
 
     setUser(parsedUser);
     fetchPopularItems();
-    fetchAllItems(); // Load all items when tab changes
-  }, [navigate, activeTab]);
+    // fetchAllItems(); // Load only when needed
+  }, [navigate]);
+
+  useEffect(() => {
+    if (user) {
+      setAllItems([]); // Clear previous items
+      setFilteredItems([]);
+      fetchPopularItems();
+      // Auto-load leagues when tab is 'leagues', or matches when 'matches'
+      // The user specifically complained about leagues not loading, so we ensure it loads.
+      // We can just call fetchAllItems() for both to provide a better UX.
+      fetchAllItems();
+    }
+  }, [activeTab, user]); // Added user dependency to ensure it runs after user is set
 
   const fetchPopularItems = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('token');
       const response = await axios.get(
         `/api/v1/admin/popular-items?type=${activeTab === 'matches' ? 'match' : 'league'}`,
         {
@@ -65,7 +77,7 @@ function AdminDashboard() {
   const fetchAllItems = async () => {
     setLoadingItems(true);
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('token');
       let url;
 
       if (activeTab === 'matches') {
@@ -120,7 +132,7 @@ function AdminDashboard() {
 
   const addPopularItem = async (item) => {
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('token');
       const payload = {
         type: activeTab === 'matches' ? 'match' : 'league',
         item_id: activeTab === 'matches' ? item.match_id : item.league_id,
@@ -141,7 +153,6 @@ function AdminDashboard() {
       );
 
       if (response.data.success) {
-        alert('Item added to popular list!');
         fetchPopularItems();
         // Remove from filtered items
         setFilteredItems(filteredItems.filter(i =>
@@ -158,7 +169,7 @@ function AdminDashboard() {
     if (!confirm('Are you sure you want to remove this item?')) return;
 
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('token');
       const response = await axios.delete(
         `/api/v1/admin/popular-items/${id}`,
         {
@@ -168,7 +179,6 @@ function AdminDashboard() {
       );
 
       if (response.data.success) {
-        alert('Item removed successfully!');
         fetchPopularItems();
       }
     } catch (error) {
@@ -179,7 +189,7 @@ function AdminDashboard() {
 
   const updatePriority = async (id, newPriority) => {
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('token');
       await axios.put(
         `/api/v1/admin/popular-items/${id}`,
         { priority: parseInt(newPriority) },
@@ -192,13 +202,12 @@ function AdminDashboard() {
       fetchPopularItems();
     } catch (error) {
       console.error('Error updating priority:', error);
-      alert('Error updating priority.');
     }
   };
 
   const toggleActive = async (id, currentStatus) => {
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('token');
       await axios.put(
         `/api/v1/admin/popular-items/${id}`,
         { is_active: !currentStatus },
@@ -211,199 +220,325 @@ function AdminDashboard() {
       fetchPopularItems();
     } catch (error) {
       console.error('Error toggling active status:', error);
-      alert('Error updating status.');
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    navigate('/admin/login');
-  };
-
   return (
-    <div className="admin-dashboard">
-      <div className="admin-header">
-        <h1>Admin Panel</h1>
-        <div className="admin-user-info">
-          <span>Welcome, {user?.Name}</span>
-          <button onClick={handleLogout} className="logout-btn">Logout</button>
-        </div>
+    <div style={{ padding: '28px 32px', maxWidth: '1400px' }}>
+
+      {/* Header */}
+      <div style={{
+        marginBottom: '24px'
+      }}>
+        <h1 style={{
+          margin: 0,
+          fontSize: '22px',
+          fontWeight: '600',
+          color: '#1a1a1a'
+        }}>
+          Dashboard
+        </h1>
+        <p style={{
+          margin: '4px 0 0',
+          fontSize: '13px',
+          color: '#666'
+        }}>
+          Manage popular matches and leagues
+        </p>
       </div>
 
-      <div className="admin-container">
-        <div className="admin-tabs">
-          <button
-            className={`tab-btn ${activeTab === 'matches' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('matches');
-              setAllItems([]);
-              setFilteredItems([]);
-              setSearchQuery('');
-            }}
-          >
-            Popular Matches
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'leagues' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('leagues');
-              setAllItems([]);
-              setFilteredItems([]);
-              setSearchQuery('');
-            }}
-          >
-            Popular Leagues
-          </button>
+      {/* Tabs */}
+      <div style={{ marginBottom: '24px', borderBottom: '1px solid #e0e0e0' }}>
+        <button
+          onClick={() => {
+            setActiveTab('matches');
+            setAllItems([]);
+            setFilteredItems([]);
+            setSearchQuery('');
+          }}
+          style={{
+            padding: '12px 24px',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'matches' ? '2px solid #ffc107' : '2px solid transparent',
+            color: activeTab === 'matches' ? '#1a1a1a' : '#666',
+            fontWeight: '500',
+            fontSize: '14px',
+            cursor: 'pointer',
+            marginRight: '20px'
+          }}
+        >
+          Popular Matches
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('leagues');
+            setAllItems([]);
+            setFilteredItems([]);
+            setSearchQuery('');
+          }}
+          style={{
+            padding: '12px 24px',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'leagues' ? '2px solid #ffc107' : '2px solid transparent',
+            color: activeTab === 'leagues' ? '#1a1a1a' : '#666',
+            fontWeight: '500',
+            fontSize: '14px',
+            cursor: 'pointer'
+          }}
+        >
+          Popular Leagues
+        </button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+
+        {/* Left Column: Current Popular Items */}
+        <div style={{
+          background: '#fff',
+          border: '1px solid #e0e0e0',
+          borderRadius: '8px',
+          padding: '24px'
+        }}>
+          <h2 style={{
+            margin: '0 0 20px',
+            fontSize: '16px',
+            fontWeight: '600',
+            color: '#1a1a1a'
+          }}>
+            Active {activeTab === 'matches' ? 'Matches' : 'Leagues'} ({popularItems.length})
+          </h2>
+
+          {popularItems.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: '#999', fontSize: '13px' }}>
+              No items selected yet. Add some from the search panel.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {popularItems.map((item) => (
+                <div key={item.id} style={{
+                  padding: '16px',
+                  background: item.is_active ? '#fff' : '#fafafa',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  opacity: item.is_active ? 1 : 0.7
+                }}>
+                  <div style={{ flex: 1 }}>
+                    {activeTab === 'matches' && item.item_data ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500' }}>
+                        <span style={{ color: '#333' }}>{item.item_data.home_team}</span>
+                        <span style={{ color: '#999', fontSize: '12px' }}>vs</span>
+                        <span style={{ color: '#333' }}>{item.item_data.away_team}</span>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                        {item.item_data?.logo && (
+                          <img src={item.item_data.logo} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                        )}
+                        {item.item_name}
+                      </div>
+                    )}
+                    <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>
+                      Priority: {item.priority}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="number"
+                      value={item.priority}
+                      onChange={(e) => updatePriority(item.id, e.target.value)}
+                      style={{
+                        width: '50px',
+                        padding: '6px',
+                        border: '1px solid #d0d0d0',
+                        borderRadius: '4px',
+                        fontSize: '13px'
+                      }}
+                    />
+                    <button
+                      onClick={() => toggleActive(item.id, item.is_active)}
+                      style={{
+                        padding: '6px 12px',
+                        background: item.is_active ? '#e8f5e9' : '#f5f5f5',
+                        color: item.is_active ? '#2e7d32' : '#666',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        fontWeight: '500'
+                      }}
+                    >
+                      {item.is_active ? 'Active' : 'Hidden'}
+                    </button>
+                    <button
+                      onClick={() => removePopularItem(item.id)}
+                      style={{
+                        padding: '6px 12px',
+                        background: '#ffe5e5',
+                        color: '#d32f2f',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        fontWeight: '500'
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="admin-content">
-          {/* Search Section */}
-          <div className="search-section">
-            <h2>Add New {activeTab === 'matches' ? 'Match' : 'League'}</h2>
+        {/* Right Column: Search & Add */}
+        <div style={{
+          background: '#fff',
+          border: '1px solid #e0e0e0',
+          borderRadius: '8px',
+          padding: '24px'
+        }}>
+          <h2 style={{
+            margin: '0 0 20px',
+            fontSize: '16px',
+            fontWeight: '600',
+            color: '#1a1a1a'
+          }}>
+            Add New {activeTab === 'matches' ? 'Match' : 'League'}
+          </h2>
 
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+            {/* Match specific controls */}
             {activeTab === 'matches' && (
-              <div className="date-selector">
-                <label>Select Date:</label>
+              <div style={{ display: 'flex', gap: '12px' }}>
                 <input
                   type="date"
                   value={searchDate}
-                  onChange={(e) => {
-                    setSearchDate(e.target.value);
-                    setSearchQuery('');
+                  onChange={(e) => setSearchDate(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    border: '1px solid #d0d0d0',
+                    borderRadius: '6px',
+                    fontSize: '14px'
                   }}
-                  className="date-input"
                 />
                 <button
                   onClick={fetchAllItems}
                   disabled={loadingItems}
-                  className="load-btn"
+                  style={{
+                    padding: '10px 20px',
+                    background: '#ffc107',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#000',
+                    fontWeight: '500',
+                    cursor: loadingItems ? 'wait' : 'pointer'
+                  }}
                 >
-                  {loadingItems ? 'Loading...' : 'Load Matches'}
+                  {loadingItems ? 'Loading...' : 'Fetch'}
                 </button>
               </div>
             )}
 
-            <div className="search-form">
-              <input
-                type="text"
-                placeholder={`Search from ${allItems.length} ${activeTab}...`}
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="search-input"
-                disabled={allItems.length === 0}
-              />
-              <span className="search-info">
-                {loadingItems ? 'Loading...' : `${filteredItems.length} results`}
-              </span>
-            </div>
+            {/* Search Input */}
+            <input
+              type="text"
+              placeholder={`Search ${activeTab}...`}
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              disabled={allItems.length === 0}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #d0d0d0',
+                borderRadius: '6px',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+            />
 
-            {filteredItems.length > 0 && (
-              <div className="search-results">
-                <h3>Available {activeTab === 'matches' ? 'Matches' : 'Leagues'} ({filteredItems.length})</h3>
-                <div className="results-list">
-                  {filteredItems.map((item, index) => (
-                    <div key={index} className="result-item">
-                      {activeTab === 'matches' ? (
-                        <div className="match-result">
-                          <div className="match-info">
-                            <img src={item.home_logo} alt="" className="team-logo-small" />
-                            <span className="team-names">
+            {/* Results List */}
+            <div style={{
+              marginTop: '10px',
+              border: '1px solid #f0f0f0',
+              borderRadius: '6px',
+              maxHeight: '400px',
+              overflowY: 'auto'
+            }}>
+              {loadingItems ? (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#999', fontSize: '13px' }}>
+                  Loading data...
+                </div>
+              ) : filteredItems.length > 0 ? (
+                <div>
+                  {filteredItems.map((item) => (
+                    <div key={activeTab === 'matches' ? item.match_id : item.league_id} style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #f0f0f0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: '#fff'
+                    }}>
+                      <div style={{ fontSize: '13px', color: '#333' }}>
+                        {activeTab === 'matches' ? (
+                          <>
+                            <div style={{ fontWeight: '500', marginBottom: '4px' }}>
                               {item.home_team} vs {item.away_team}
-                            </span>
-                            <img src={item.away_logo} alt="" className="team-logo-small" />
-                          </div>
-                          <div className="match-details">
-                            <span>{item.league}</span>
-                            <span>{item.date} {item.time}</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="league-result">
-                          <img src={item.logo} alt="" className="league-logo-small" />
-                          <div className="league-info">
-                            <span className="league-name">{item.league_name}</span>
-                            <span className="league-country">{item.country}</span>
-                          </div>
-                        </div>
-                      )}
+                            </div>
+                            <div style={{ color: '#999', fontSize: '12px' }}>
+                              {item.league} • {item.time}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ fontWeight: '500', marginBottom: '4px' }}>
+                              {item.league_name}
+                            </div>
+                            <div style={{ color: '#999', fontSize: '12px' }}>
+                              {item.country}
+                            </div>
+                          </>
+                        )}
+                      </div>
                       <button
                         onClick={() => addPopularItem(item)}
-                        className="add-btn"
+                        style={{
+                          padding: '6px 14px',
+                          background: '#f5f5f5',
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '4px',
+                          color: '#333',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          cursor: 'pointer'
+                        }}
                       >
                         Add
                       </button>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div style={{ padding: '30px', textAlign: 'center', color: '#999', fontSize: '13px' }}>
+                  {allItems.length === 0
+                    ? (activeTab === 'matches' ? 'Select a date and click Fetch' : 'Click "Popular Leagues" tab to load leagues')
+                    : 'No results found'}
+                </div>
+              )}
+            </div>
 
-            {!loadingItems && allItems.length === 0 && (
-              <div className="empty-search">
-                <p>
-                  {activeTab === 'matches'
-                    ? 'Select a date and click "Load Matches" to see available matches'
-                    : 'Loading leagues...'}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Popular Items List */}
-          <div className="popular-items-section">
-            <h2>Current Popular {activeTab === 'matches' ? 'Matches' : 'Leagues'} ({popularItems.length})</h2>
-            {popularItems.length === 0 ? (
-              <p className="empty-message">No popular items yet. Search and add some!</p>
-            ) : (
-              <div className="popular-items-list">
-                {popularItems.map((item) => (
-                  <div key={item.id} className={`popular-item ${!item.is_active ? 'inactive' : ''}`}>
-                    <div className="item-content">
-                      {activeTab === 'matches' && item.item_data ? (
-                        <div className="match-display">
-                          <img src={item.item_data.home_logo} alt="" className="team-logo-small" />
-                          <span className="item-name">{item.item_name}</span>
-                          <img src={item.item_data.away_logo} alt="" className="team-logo-small" />
-                        </div>
-                      ) : (
-                        <div className="league-display">
-                          {item.item_data?.logo && (
-                            <img src={item.item_data.logo} alt="" className="league-logo-small" />
-                          )}
-                          <span className="item-name">{item.item_name}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="item-controls">
-                      <label>
-                        Priority:
-                        <input
-                          type="number"
-                          value={item.priority}
-                          onChange={(e) => updatePriority(item.id, e.target.value)}
-                          className="priority-input"
-                        />
-                      </label>
-                      <button
-                        onClick={() => toggleActive(item.id, item.is_active)}
-                        className={`toggle-btn ${item.is_active ? 'active' : 'inactive'}`}
-                      >
-                        {item.is_active ? 'Active' : 'Inactive'}
-                      </button>
-                      <button
-                        onClick={() => removePopularItem(item.id)}
-                        className="remove-btn"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
+
       </div>
     </div>
   );

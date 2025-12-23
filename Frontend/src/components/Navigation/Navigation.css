@@ -287,7 +287,6 @@
     /* Make sure mobile logo is visible */
     .header-logo {
         display: block !important;
-        margin: 0;
     }
 
     /* Hide desktop logo */
@@ -398,4 +397,234 @@ body.mobile-menu-open {
 .mobile-menu__login-btn,
 .mobile-header-login {
     -webkit-tap-highlight-color: transparent;
+}
+
+
+/* ========================================
+   CUSTOM GOOGLE TRANSLATE STYLES
+   ======================================== */
+
+.custom-translate-wrapper {
+    position: relative;
+    display: inline-block;
+    z-index: 2000;
+}
+
+/* Trigger Button */
+.custom-translate-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    /* Dark glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 130px;
+    /* Consistent width */
+    justify-content: space-evenly;
+}
+
+.custom-translate-btn:hover,
+.custom-translate-btn.active {
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.lang-flag {
+    font-size: 16px;
+}
+
+.lang-arrow {
+    font-size: 10px;
+    opacity: 0.7;
+    transition: transform 0.2s;
+}
+
+.custom-translate-btn.active .lang-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.custom-translate-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    width: 200px;
+    background: #1e1e1e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.custom-translate-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-scroll-container {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 6px;
+}
+
+/* Scrollbar styling for dropdown */
+.dropdown-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.dropdown-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}
+
+/* Dropdown Items */
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    margin-bottom: 2px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #e0e0e0;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.dropdown-item.selected {
+    background: rgba(var(--primary-rgb, 59, 130, 246), 0.15);
+    /* Fallback blue if var undefined */
+    color: #fff;
+    font-weight: 500;
+}
+
+.item-flag {
+    font-size: 18px;
+}
+
+.item-check {
+    margin-left: auto;
+    font-size: 12px;
+    color: #4ade80;
+    /* Green check */
+}
+
+/* Mobile Adjustments */
+@media screen and (max-width: 1074px) {
+    .custom-translate-wrapper {
+        display: block;
+        width: 100%;
+    }
+
+    .custom-translate-btn {
+        width: 100%;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.05);
+        /* Slightly darker on mobile menu */
+    }
+
+    .custom-translate-dropdown {
+        position: static;
+        /* Stack naturally in mobile menu */
+        width: 100%;
+        margin-top: 8px;
+        box-shadow: none;
+        background: rgba(0, 0, 0, 0.2);
+        max-height: 0;
+        /* Animate height instead of transform for accordion feel */
+        transform: none;
+        transition: max-height 0.3s ease, opacity 0.3s;
+        border: none;
+        opacity: 0;
+    }
+
+    .custom-translate-dropdown.show {
+        max-height: 400px;
+        opacity: 1;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* ========================================
+   HIDE GOOGLE TRANSLATE BANNER - AGGRESSIVE
+   ======================================== */
+
+/* Force body position to stay at top */
+body {
+    top: 0 !important;
+    position: static !important;
+}
+
+/* Hide banner frame */
+.goog-te-banner-frame {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+iframe.goog-te-banner-frame {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+.goog-te-menu-frame {
+    display: none !important;
+}
+
+.goog-te-gadget-icon {
+    display: none !important;
+}
+
+.goog-te-gadget-simple {
+    display: none !important;
+}
+
+/* Hide all Google Translate UI iframes and tooltips */
+iframe.skiptranslate,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+#google_translate_element .goog-te-gadget-simple {
+    display: none !important;
+}
+
+/* Ensure body doesn't get pushed down after translation */
+body.translated-ltr,
+body.translated-rtl {
+    top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Hide the skip translate iframe */
+.skiptranslate {
+    display: none !important;
 }

@@ -5,6 +5,7 @@ import AuthModal from '../AuthModal/AuthModal';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '../SkeletonLoader/SkeletonLoader';
 import { fetchPopularLeagues } from '../../Service/FootballService';
+import GoogleTranslate from './GoogleTranslate';
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
@@ -115,22 +116,7 @@ function Navigation() {
             <div className="header fl_c w-full mb-8 mb-m-0" style={{ minHeight: '64px' }}>
                 <div className="wrap fl_c_sb" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '100%' }}>
-                        <div className="header-menu rounded_6" onClick={toggleMobileMenu} style={{
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <button
-                                type="button"
-                                className="header-menu__button"
-                                aria-label="Open main menu"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleMobileMenu();
-                                }}
-                            ></button>
-                        </div>
+
                         <span className='header-logo' style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -310,6 +296,11 @@ function Navigation() {
                             </li>
                         </ul>
 
+                        {/* Google Translate Widget for Desktop */}
+                        <div className="desktop-google-translate" style={{ marginLeft: '20px' }}>
+                            <GoogleTranslate />
+                        </div>
+
 
                     </div>
 
@@ -406,6 +397,11 @@ function Navigation() {
                         flex: 1,
                         backgroundColor: '#121212'
                     }}>
+                        {/* Google Translate Widget for Mobile */}
+                        <div style={{ padding: '0 24px 16px', display: 'flex', justifyContent: 'flex-start' }}>
+                            <GoogleTranslate />
+                        </div>
+
                         <a href='/predictions/' className='mobile-menu__link' onClick={toggleMobileMenu}>
                             Predictions
                         </a>

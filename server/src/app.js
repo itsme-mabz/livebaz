@@ -27,6 +27,10 @@ const adminRoutes = require("./routes/admin.routes");
 
 const publicRoutes = require("./routes/public.routes");
 
+const blogRoutes = require("./routes/blog.routes");
+
+const blogAdminRoutes = require("./routes/blog.admin.routes");
+
 app.use("/api/v1/user", userRoutes);
 
 app.use("/api/v1/match", matchRoutes);
@@ -36,5 +40,9 @@ app.use("/api/v1/predictions", predictionsRoutes);
 app.use("/api/v1/admin", adminRoutes);
 
 app.use("/api/v1/public", publicRoutes);
+
+app.use("/api/v1", blogRoutes);
+
+app.use("/api/v1/admin", blogAdminRoutes);
 
 module.exports = app;

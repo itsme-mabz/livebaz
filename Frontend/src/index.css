@@ -1822,7 +1822,7 @@ input::placeholder {
 }
 
 .active:before {
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='none'%3E%3Crect width='29' height='29' x='1.5' y='1.5' fill='%23FEDB0D' stroke='%23FD6230' stroke-width='3' rx='14.5'/%3E%3Cpath fill='%23212121' d='M8.667 22h2.666v-8H8.666zm14.666-7.333c0-.734-.6-1.334-1.333-1.334h-4.207l.634-3.046.02-.214c0-.273-.114-.526-.294-.706l-.706-.7-4.387 4.393c-.247.24-.394.573-.394.94v6.667c0 .733.6 1.333 1.334 1.333h6c.553 0 1.026-.333 1.227-.813l2.013-4.7q.091-.23.093-.487z'/%3E%3C/svg%3E");
+    /* background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='none'%3E%3Crect width='29' height='29' x='1.5' y='1.5' fill='%23FEDB0D' stroke='%23FD6230' stroke-width='3' rx='14.5'/%3E%3Cpath fill='%23212121' d='M8.667 22h2.666v-8H8.666zm14.666-7.333c0-.734-.6-1.334-1.333-1.334h-4.207l.634-3.046.02-.214c0-.273-.114-.526-.294-.706l-.706-.7-4.387 4.393c-.247.24-.394.573-.394.94v6.667c0 .733.6 1.333 1.334 1.333h6c.553 0 1.026-.333 1.227-.813l2.013-4.7q.091-.23.093-.487z'/%3E%3C/svg%3E"); */
     content: "";
     height: 32px;
     left: 0;
@@ -12944,7 +12944,7 @@ input::placeholder {
 }
 
 .active:before {
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='none'%3E%3Crect width='29' height='29' x='1.5' y='1.5' fill='%23FEDB0D' stroke='%23FD6230' stroke-width='3' rx='14.5'/%3E%3Cpath fill='%23212121' d='M8.667 22h2.666v-8H8.666zm14.666-7.333c0-.734-.6-1.334-1.333-1.334h-4.207l.634-3.046.02-.214c0-.273-.114-.526-.294-.706l-.706-.7-4.387 4.393c-.247.24-.394.573-.394.94v6.667c0 .733.6 1.333 1.334 1.333h6c.553 0 1.026-.333 1.227-.813l2.013-4.7q.091-.23.093-.487z'/%3E%3C/svg%3E");
+    /* background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='none'%3E%3Crect width='29' height='29' x='1.5' y='1.5' fill='%23FEDB0D' stroke='%23FD6230' stroke-width='3' rx='14.5'/%3E%3Cpath fill='%23212121' d='M8.667 22h2.666v-8H8.666zm14.666-7.333c0-.734-.6-1.334-1.333-1.334h-4.207l.634-3.046.02-.214c0-.273-.114-.526-.294-.706l-.706-.7-4.387 4.393c-.247.24-.394.573-.394.94v6.667c0 .733.6 1.333 1.334 1.333h6c.553 0 1.026-.333 1.227-.813l2.013-4.7q.091-.23.093-.487z'/%3E%3C/svg%3E"); */
     content: "";
     height: 32px;
     left: 0;

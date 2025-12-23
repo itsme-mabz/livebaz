@@ -8,7 +8,7 @@ const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f
 
 function MatchDetail() {
     const { matchId } = useParams();
-    const [activeTab, setActiveTab] = useState('overview');
+    const [activeTab, setActiveTab] = useState('stats');
     const [matchData, setMatchData] = useState(null);
     const [h2h, setH2H] = useState([]);
     const [predictions, setPredictions] = useState(null);
@@ -22,6 +22,46 @@ function MatchDetail() {
     useEffect(() => {
         fetchMatchData();
     }, [matchId]);
+
+    // Scroll to section function
+    const scrollToSection = (sectionId) => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            const offset = 150; // Offset for sticky header
+            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+            setActiveTab(sectionId);
+        }
+    };
+
+    // Scroll spy to update active tab based on scroll position
+    useEffect(() => {
+        const handleScroll = () => {
+            const sections = ['stats', 'predictions', 'odds', 'lineups', 'h2h'];
+            const scrollPosition = window.scrollY + 150;
+
+            for (const sectionId of sections) {
+                const element = document.getElementById(sectionId);
+                if (element) {
+                    const offsetTop = element.offsetTop;
+                    const offsetBottom = offsetTop + element.offsetHeight;
+
+                    if (scrollPosition >= offsetTop && scrollPosition < offsetBottom) {
+                        setActiveTab(sectionId);
+                        break;
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     // Fetch team form (last 5 matches)
     const fetchTeamForm = async (teamId, teamName) => {
@@ -199,7 +239,7 @@ function MatchDetail() {
                     </div>
                     <div className="match-header-content">
                         <div className="team home">
-                            <img src={matchData.team_home_badge} alt={matchData.match_hometeam_name} className="team-logo" />
+                            <img src={matchData.team_home_badge} alt={matchData.match_hometeam_name} className="team-logo-header" />
                             <div className="team-info">
                                 <h2>{matchData.match_hometeam_name}</h2>
                                 <div className="team-form">
@@ -225,50 +265,10 @@ function MatchDetail() {
                                 <span className="score score-home" style={{ color: '#fff' }}>{matchData.match_hometeam_score} : {matchData.match_awayteam_score}</span>
                             </div>
                             <div className="match-status">{matchData.match_status}</div>
-                            {matchData.goalscorer && matchData.goalscorer.length > 0 && (
-                                <div className="scorers-list">
-                                    <div
-                                        className="scorers-title clickable"
-                                        onClick={() => setShowScorers(!showScorers)}
-                                    >
-                                        <span>Goal Scorers</span>
-                                        <span className="expand-arrow">{showScorers ? '▼' : '▶'}</span>
-                                    </div>
-                                    {showScorers && (
-                                        <div className="scorers-content">
-                                            {matchData.goalscorer.map((goal, idx) => (
-                                                <div key={idx} className="scorer-item">
-                                                    {goal.home_scorer ? (
-                                                        <div className="scorer-card home">
-                                                            <span className="scorer-icon">⚽</span>
-                                                            <div className="scorer-info">
-                                                                <span className="scorer-name">{goal.home_scorer}</span>
-                                                                <span className="scorer-time">{goal.time}'</span>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="scorer-card empty"></div>
-                                                    )}
-                                                    {goal.away_scorer ? (
-                                                        <div className="scorer-card away">
-                                                            <div className="scorer-info">
-                                                                <span className="scorer-name">{goal.away_scorer}</span>
-                                                                <span className="scorer-time">{goal.time}'</span>
-                                                            </div>
-                                                            <span className="scorer-icon">⚽</span>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="scorer-card empty"></div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                         </div>
 
                         <div className="team away">
+                            <img src={matchData.team_away_badge} alt={matchData.match_awayteam_name} className="team-logo-header" />
                             <div className="team-info">
                                 <h2>{matchData.match_awayteam_name}</h2>
                                 <div className="team-form">
@@ -284,368 +284,405 @@ function MatchDetail() {
                                 </div>
                                 <div className="team-standing">{getTeamPosition(matchData.match_awayteam_id)}</div>
                             </div>
-                            <img src={matchData.team_away_badge} alt={matchData.match_awayteam_name} className="team-logo" />
+
                         </div>
-                    </div>
-                    <div className="match-tabs-nav">
-                        <button className={`nav-tab ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => setActiveTab('stats')}>Stats</button>
-                        <button className={`nav-tab ${activeTab === 'predictions' ? 'active' : ''}`} onClick={() => setActiveTab('predictions')}>Predictions</button>
-                        <button className={`nav-tab ${activeTab === 'odds' ? 'active' : ''}`} onClick={() => setActiveTab('odds')}>Odds</button>
-                        <button className={`nav-tab ${activeTab === 'lineups' ? 'active' : ''}`} onClick={() => setActiveTab('lineups')}>Lineups</button>
-                        <button className={`nav-tab ${activeTab === 'h2h' ? 'active' : ''}`} onClick={() => setActiveTab('h2h')}>H2H</button>
                     </div>
                 </div>
 
-                {/* Tabs */}
+                {/* Tabs Navigation - Sticky */}
+                <div className="match-tabs-nav">
+                    <button className={`nav-tab ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => scrollToSection('stats')}>Match</button>
+                    <button className={`nav-tab ${activeTab === 'predictions' ? 'active' : ''}`} onClick={() => scrollToSection('predictions')}>Predictions</button>
+                    <button className={`nav-tab ${activeTab === 'odds' ? 'active' : ''}`} onClick={() => scrollToSection('odds')}>Odds</button>
+                    <button className={`nav-tab ${activeTab === 'lineups' ? 'active' : ''}`} onClick={() => scrollToSection('lineups')}>Lineups</button>
+                    <button className={`nav-tab ${activeTab === 'h2h' ? 'active' : ''}`} onClick={() => scrollToSection('h2h')}>H2H</button>
+                </div>
 
                 {/* Content */}
                 <div className="match-content">
-                    {(activeTab === 'overview' || activeTab === 'stats') && (
-                        <div className="stats-section">
-                            <div className="section-header">
-                                <img src={matchData.team_home_badge} alt="Home" width="24" />
-                                <h3>{matchData.match_hometeam_name} vs {matchData.match_awayteam_name} Match Stats</h3>
-                                <img src={matchData.team_away_badge} alt="Away" width="24" />
+                    <div id="stats" className="stats-section">
+                        <div className="section-header">
+                            <img src={matchData.team_home_badge} alt="Home" width="24" />
+                            <h3>{matchData.match_hometeam_name} vs {matchData.match_awayteam_name}</h3>
+                            <img src={matchData.team_away_badge} alt="Away" width="24" />
+                        </div>
+
+                        {matchData.statistics && matchData.statistics.length > 0 ? (
+                            <div className="stats-comparison">
+                                {(() => {
+                                    // Filter out stats with no data (both 0 or empty) and remove duplicates
+                                    const seenStats = new Set();
+                                    const filteredStats = matchData.statistics.filter(stat => {
+                                        const homeVal = parseInt(stat.home) || 0;
+                                        const awayVal = parseInt(stat.away) || 0;
+                                        const hasData = homeVal > 0 || awayVal > 0;
+                                        const isDuplicate = seenStats.has(stat.type);
+
+                                        if (hasData && !isDuplicate) {
+                                            seenStats.add(stat.type);
+                                            return true;
+                                        }
+                                        return false;
+                                    });
+
+                                    return filteredStats.length > 0 ? filteredStats.map((stat, index) => {
+                                        const homeVal = parseInt(stat.home) || 0;
+                                        const awayVal = parseInt(stat.away) || 0;
+                                        const total = homeVal + awayVal;
+                                        const homePercent = total > 0 ? (homeVal / total) * 100 : 0;
+                                        const awayPercent = total > 0 ? (awayVal / total) * 100 : 0;
+
+                                        // Determine which value is higher for highlighting
+                                        const homeIsHigher = homeVal > awayVal;
+                                        const awayIsHigher = awayVal > homeVal;
+
+                                        return (
+                                            <div key={index} className="stat-row-new">
+                                                <div className={`stat-val ${homeIsHigher ? 'highlight' : ''}`}>{stat.home}</div>
+                                                <div className="stat-bars-container">
+                                                    <div className="bar-home-wrapper">
+                                                        <div className="bar home-bar" style={{ width: `${homePercent}%` }}></div>
+                                                    </div>
+                                                    <div className="stat-label">{stat.type}</div>
+                                                    <div className="bar-away-wrapper">
+                                                        <div className="bar away-bar" style={{ width: `${awayPercent}%` }}></div>
+                                                    </div>
+                                                </div>
+                                                <div className={`stat-val ${awayIsHigher ? 'highlight' : ''}`}>{stat.away}</div>
+                                            </div>
+                                        );
+                                    }) : <div className="no-data">No statistics available</div>;
+                                })()}
                             </div>
+                        ) : (
+                            <div className="no-data">No statistics available</div>
+                        )}
+                    </div>
 
-                            {matchData.statistics && matchData.statistics.length > 0 ? (
-                                <div className="stats-comparison">
-                                    {(() => {
-                                        // Filter out stats with no data (both 0 or empty) and remove duplicates
-                                        const seenStats = new Set();
-                                        const filteredStats = matchData.statistics.filter(stat => {
-                                            const homeVal = parseInt(stat.home) || 0;
-                                            const awayVal = parseInt(stat.away) || 0;
-                                            const hasData = homeVal > 0 || awayVal > 0;
-                                            const isDuplicate = seenStats.has(stat.type);
+                    <div id="predictions" className="predictions-section">
+                        <div className="section-header">
+                            <img src={matchData.team_home_badge} alt="Home" width="24" />
+                            <h3> Match Predictions</h3>
+                            <img src={matchData.team_away_badge} alt="Away" width="24" />
+                        </div>
+                        {predictions ? (
+                            <div className="predictions-cards-grid">
+                                {/* Full-time result */}
+                                <div className="prediction-card">
+                                    <h4 className="prediction-card-title">Full-time result</h4>
+                                    <div className="prediction-circles">
+                                        <div className="circle-item">
+                                            <span className="circle-label">Home</span>
+                                            <div className="circle-progress">
+                                                <svg className="progress-ring" width="85" height="85">
+                                                    <circle className="progress-ring-circle-bg" cx="42.5" cy="42.5" r="37" />
+                                                    <circle
+                                                        className="progress-ring-circle"
+                                                        cx="42.5"
+                                                        cy="42.5"
+                                                        r="37"
+                                                        style={{ strokeDashoffset: 232.5 - (232.5 * (predictions.prob_HW || 0)) / 100 }}
+                                                    />
+                                                </svg>
+                                                <span className="circle-percentage">{predictions.prob_HW || 0}%</span>
+                                            </div>
+                                            <div className={`odd-badge ${(predictions.prob_HW || 0) >= Math.max(predictions.prob_D || 0, predictions.prob_AW || 0) ? 'highest' : ''}`}>
+                                                1.59
+                                            </div>
+                                        </div>
+                                        <div className="circle-item">
+                                            <span className="circle-label">Draw</span>
+                                            <div className="circle-progress">
+                                                <svg className="progress-ring" width="85" height="85">
+                                                    <circle className="progress-ring-circle-bg" cx="42.5" cy="42.5" r="37" />
+                                                    <circle
+                                                        className="progress-ring-circle"
+                                                        cx="42.5"
+                                                        cy="42.5"
+                                                        r="37"
+                                                        style={{ strokeDashoffset: 232.5 - (232.5 * (predictions.prob_D || 0)) / 100 }}
+                                                    />
+                                                </svg>
+                                                <span className="circle-percentage">{predictions.prob_D || 0}%</span>
+                                            </div>
+                                            <div className={`odd-badge ${(predictions.prob_D || 0) >= Math.max(predictions.prob_HW || 0, predictions.prob_AW || 0) ? 'highest' : ''}`}>
+                                                3.22
+                                            </div>
+                                        </div>
+                                        <div className="circle-item">
+                                            <span className="circle-label">Away</span>
+                                            <div className="circle-progress">
+                                                <svg className="progress-ring" width="85" height="85">
+                                                    <circle className="progress-ring-circle-bg" cx="42.5" cy="42.5" r="37" />
+                                                    <circle
+                                                        className="progress-ring-circle"
+                                                        cx="42.5"
+                                                        cy="42.5"
+                                                        r="37"
+                                                        style={{ strokeDashoffset: 232.5 - (232.5 * (predictions.prob_AW || 0)) / 100 }}
+                                                    />
+                                                </svg>
+                                                <span className="circle-percentage">{predictions.prob_AW || 0}%</span>
+                                            </div>
+                                            <div className={`odd-badge ${(predictions.prob_AW || 0) >= Math.max(predictions.prob_HW || 0, predictions.prob_D || 0) ? 'highest' : ''}`}>
+                                                6.26
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="prediction-footer">
+                                        <div className="footer-info">
+                                            <span className="footer-label">W1</span>
+                                            <span className="footer-rate">Win rate {predictions.prob_HW || 0}%</span>
+                                        </div>
+                                        <span className="footer-odd">1.59</span>
+                                    </div>
+                                </div>
 
-                                            if (hasData && !isDuplicate) {
-                                                seenStats.add(stat.type);
-                                                return true;
+                                {/* Both teams to score */}
+                                <div className="prediction-card">
+                                    <h4 className="prediction-card-title">Both teams to score</h4>
+                                    <div className="prediction-circles">
+                                        <div className="circle-item">
+                                            <span className="circle-label">Yes</span>
+                                            <div className="circle-progress">
+                                                <svg className="progress-ring" width="85" height="85">
+                                                    <circle className="progress-ring-circle-bg" cx="42.5" cy="42.5" r="37" />
+                                                    <circle
+                                                        className="progress-ring-circle"
+                                                        cx="42.5"
+                                                        cy="42.5"
+                                                        r="37"
+                                                        style={{ strokeDashoffset: 232.5 - (232.5 * (predictions.prob_bts || predictions.prob_BTTS || 0)) / 100 }}
+                                                    />
+                                                </svg>
+                                                <span className="circle-percentage">{predictions.prob_bts || predictions.prob_BTTS || 0}%</span>
+                                            </div>
+                                            <div className={`odd-badge ${(predictions.prob_bts || predictions.prob_BTTS || 0) >= (predictions.prob_ots || 0) ? 'highest' : ''}`}>
+                                                2.50
+                                            </div>
+                                        </div>
+                                        <div className="circle-item">
+                                            <span className="circle-label">No</span>
+                                            <div className="circle-progress">
+                                                <svg className="progress-ring" width="85" height="85">
+                                                    <circle className="progress-ring-circle-bg" cx="42.5" cy="42.5" r="37" />
+                                                    <circle
+                                                        className="progress-ring-circle"
+                                                        cx="42.5"
+                                                        cy="42.5"
+                                                        r="37"
+                                                        style={{ strokeDashoffset: 232.5 - (232.5 * (predictions.prob_ots || 0)) / 100 }}
+                                                    />
+                                                </svg>
+                                                <span className="circle-percentage">{predictions.prob_ots || 0}%</span>
+                                            </div>
+                                            <div className={`odd-badge ${(predictions.prob_ots || 0) >= (predictions.prob_bts || predictions.prob_BTTS || 0) ? 'highest' : ''}`}>
+                                                1.46
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="prediction-footer">
+                                        <div className="footer-info">
+                                            <span className="footer-label">BTTS: No</span>
+                                            <span className="footer-rate">Win rate {predictions.prob_ots || 0}%</span>
+                                        </div>
+                                        <span className="footer-odd">1.46</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="no-data">No predictions available for this match</div>
+                        )}
+                    </div>
+
+                    <div id="odds" className="odds-section">
+                        <div className=" odds-header">
+                            <img src={matchData.team_home_badge} alt="Home" width="24" />
+                            <h3>Betting Odds</h3>
+                            <img src={matchData.team_away_badge} alt="Away" width="24" />
+                        </div>
+                        {odds && odds.length > 0 ? (
+                            <div className="odds-table-container">
+                                <table className="odds-table">
+                                    <thead>
+                                        <tr>
+                                            <th>BM</th>
+                                            <th>1</th>
+                                            <th>X</th>
+                                            <th>2</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(() => {
+                                            // Calculate highest odds for each column
+                                            const highest1 = Math.max(...odds.map(b => parseFloat(b.odd_1) || 0));
+                                            const highestX = Math.max(...odds.map(b => parseFloat(b.odd_x || b.odd_X) || 0));
+                                            const highest2 = Math.max(...odds.map(b => parseFloat(b.odd_2) || 0));
+
+                                            return odds.map((bookmaker, index) => {
+                                                const odd1 = parseFloat(bookmaker.odd_1) || 0;
+                                                const oddX = parseFloat(bookmaker.odd_x || bookmaker.odd_X) || 0;
+                                                const odd2 = parseFloat(bookmaker.odd_2) || 0;
+
+                                                return (
+                                                    <tr key={index}>
+                                                        <td className="bookmaker-cell">
+                                                            <div className="bookmaker-info">
+                                                                <div className="bookmaker-logo">{bookmaker.odd_bookmakers.substring(0, 2).toUpperCase()}</div>
+                                                                <span>{bookmaker.odd_bookmakers}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className={odd1 === highest1 ? 'highlight' : ''}>{bookmaker.odd_1 || '-'}</td>
+                                                        <td className={oddX === highestX ? 'highlight' : ''}>{bookmaker.odd_x || bookmaker.odd_X || '-'}</td>
+                                                        <td className={odd2 === highest2 ? 'highlight' : ''}>{bookmaker.odd_2 || '-'}</td>
+                                                    </tr>
+                                                );
+                                            });
+                                        })()}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr className="average-row">
+                                            <td>Average</td>
+
+                                            <td>{(odds.reduce((sum, b) => sum + (parseFloat(b.odd_1) || 0), 0) / odds.length).toFixed(2)}</td>
+                                            <td>{(odds.reduce((sum, b) => sum + (parseFloat(b.odd_x || b.odd_X) || 0), 0) / odds.length).toFixed(2)}</td>
+                                            <td>{(odds.reduce((sum, b) => sum + (parseFloat(b.odd_2) || 0), 0) / odds.length).toFixed(2)}</td>
+                                        </tr>
+                                        <tr className="highest-row">
+                                            <td>Highest</td>
+
+                                            <td>{Math.max(...odds.map(b => parseFloat(b.odd_1) || 0)).toFixed(2)}</td>
+                                            <td>{Math.max(...odds.map(b => parseFloat(b.odd_x || b.odd_X) || 0)).toFixed(2)}</td>
+                                            <td>{Math.max(...odds.map(b => parseFloat(b.odd_2) || 0)).toFixed(2)}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="no-data">No odds available for this match</div>
+                        )}
+                    </div>
+
+                    <div id="lineups" className="lineups-section">
+                        {matchData.lineup?.home?.starting_lineups || matchData.lineup?.away?.starting_lineups ? (
+                            <>
+                                {/* Formation Headers */}
+                                <div className="formation-headers">
+                                    <div className="team-formation">
+                                        <img src={matchData.team_home_badge} alt="Home" className="formation-badge" />
+                                        <span>{matchData.match_hometeam_name}</span>
+                                        <span className="formation-text">{matchData.lineup?.home?.starting_lineups?.[0]?.lineup_position || 'N/A'}</span>
+                                    </div>
+                                    <div className="team-formation">
+                                        <img src={matchData.team_away_badge} alt="Away" className="formation-badge" />
+                                        <span>{matchData.match_awayteam_name}</span>
+                                        <span className="formation-text">{matchData.lineup?.away?.starting_lineups?.[0]?.lineup_position || 'N/A'}</span>
+                                    </div>
+                                </div>
+
+                                {/* Football Field */}
+                                <div className="football-field">
+                                    {/* Home Team (Left Side) */}
+                                    <div className="field-half home-half">
+                                        {matchData.lineup?.home?.starting_lineups?.map((player, i) => {
+                                            const position = player.lineup_position || '';
+                                            let positionClass = 'midfielder';
+                                            let topPercent = 50;
+
+                                            // Determine position type and placement
+                                            if (position.toLowerCase().includes('goalkeeper') || position.toLowerCase().includes('gk')) {
+                                                positionClass = 'goalkeeper';
+                                                topPercent = 50;
+                                            } else if (position.toLowerCase().includes('defender') || position.toLowerCase().includes('back')) {
+                                                positionClass = 'defender';
+                                                topPercent = 20 + (i % 4) * 20;
+                                            } else if (position.toLowerCase().includes('midfielder') || position.toLowerCase().includes('midfield')) {
+                                                positionClass = 'midfielder';
+                                                topPercent = 15 + (i % 4) * 23;
+                                            } else if (position.toLowerCase().includes('forward') || position.toLowerCase().includes('attacker') || position.toLowerCase().includes('striker')) {
+                                                positionClass = 'forward';
+                                                topPercent = 20 + (i % 3) * 30;
                                             }
-                                            return false;
-                                        });
-
-                                        return filteredStats.length > 0 ? filteredStats.map((stat, index) => {
-                                            const homeVal = parseInt(stat.home) || 0;
-                                            const awayVal = parseInt(stat.away) || 0;
-                                            const total = homeVal + awayVal;
-                                            const homePercent = total > 0 ? (homeVal / total) * 100 : 0;
-                                            const awayPercent = total > 0 ? (awayVal / total) * 100 : 0;
 
                                             return (
-                                                <div key={index} className="stat-row-new">
-                                                    <div className="stat-val home">{stat.home}</div>
-                                                    <div className="stat-bars">
-                                                        <div className="stat-label-center">{stat.type}</div>
-                                                        <div className="bars-container">
-                                                            <div className="bar-wrapper home">
-                                                                <div className="bar" style={{ width: `${homePercent}%` }}></div>
-                                                            </div>
-                                                            <div className="bar-wrapper away">
-                                                                <div className="bar" style={{ width: `${awayPercent}%` }}></div>
-                                                            </div>
-                                                        </div>
+                                                <div
+                                                    key={i}
+                                                    className={`field-player ${positionClass}`}
+                                                    style={{ top: `${topPercent}%` }}
+                                                >
+                                                    <div className="player-avatar">
+                                                        <div className="player-jersey-number">{player.lineup_number}</div>
                                                     </div>
-                                                    <div className="stat-val away">{stat.away}</div>
+                                                    <div className="player-field-name">{player.lineup_player}</div>
                                                 </div>
                                             );
-                                        }) : <div className="no-data">No statistics available</div>;
-                                    })()}
-                                </div>
-                            ) : (
-                                <div className="no-data">No statistics available</div>
-                            )}
-                        </div>
-                    )}
-
-                    {activeTab === 'predictions' && (
-                        <div className="predictions-section">
-                            <div className="section-header">
-                                <img src={matchData.team_home_badge} alt="Home" width="24" />
-                                <h3>Match Predictions</h3>
-                                <img src={matchData.team_away_badge} alt="Away" width="24" />
-                            </div>
-                            {predictions ? (
-                                <div className="predictions-content">
-                                    <div className="prediction-category">
-                                        <h4>Match Result (1X2)</h4>
-                                        <div className="prediction-row">
-                                            <div className="prediction-item">
-                                                <span className="prediction-label">Home Win (1)</span>
-                                                <span className="prediction-value">{predictions.prob_HW || '-'}%</span>
-                                            </div>
-                                            <div className="prediction-item">
-                                                <span className="prediction-label">Draw (X)</span>
-                                                <span className="prediction-value">{predictions.prob_D || '-'}%</span>
-                                            </div>
-                                            <div className="prediction-item">
-                                                <span className="prediction-label">Away Win (2)</span>
-                                                <span className="prediction-value">{predictions.prob_AW || '-'}%</span>
-                                            </div>
-                                        </div>
+                                        })}
                                     </div>
 
-                                    <div className="prediction-category">
-                                        <h4>Over/Under 2.5 Goals</h4>
-                                        <div className="prediction-row">
-                                            <div className="prediction-item">
-                                                <span className="prediction-label">Over 2.5</span>
-                                                <span className="prediction-value">{predictions.prob_O || '-'}%</span>
-                                            </div>
-                                            <div className="prediction-item">
-                                                <span className="prediction-label">Under 2.5</span>
-                                                <span className="prediction-value">{predictions.prob_U || '-'}%</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    {/* Away Team (Right Side) */}
+                                    <div className="field-half away-half">
+                                        {matchData.lineup?.away?.starting_lineups?.map((player, i) => {
+                                            const position = player.lineup_position || '';
+                                            let positionClass = 'midfielder';
+                                            let topPercent = 50;
 
-                                    <div className="prediction-category">
-                                        <h4>Both Teams To Score (BTTS)</h4>
-                                        <div className="prediction-row">
-                                            <div className="prediction-item">
-                                                <span className="prediction-label">Yes</span>
-                                                <span className="prediction-value">{predictions.prob_bts || predictions.prob_BTTS || '-'}%</span>
-                                            </div>
-                                            <div className="prediction-item">
-                                                <span className="prediction-label">No</span>
-                                                <span className="prediction-value">{predictions.prob_ots || '-'}%</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="no-data">No predictions available for this match</div>
-                            )}
-                        </div>
-                    )}
+                                            // Determine position type and placement
+                                            if (position.toLowerCase().includes('goalkeeper') || position.toLowerCase().includes('gk')) {
+                                                positionClass = 'goalkeeper';
+                                                topPercent = 50;
+                                            } else if (position.toLowerCase().includes('defender') || position.toLowerCase().includes('back')) {
+                                                positionClass = 'defender';
+                                                topPercent = 20 + (i % 4) * 20;
+                                            } else if (position.toLowerCase().includes('midfielder') || position.toLowerCase().includes('midfield')) {
+                                                positionClass = 'midfielder';
+                                                topPercent = 15 + (i % 4) * 23;
+                                            } else if (position.toLowerCase().includes('forward') || position.toLowerCase().includes('attacker') || position.toLowerCase().includes('striker')) {
+                                                positionClass = 'forward';
+                                                topPercent = 20 + (i % 3) * 30;
+                                            }
 
-                    {activeTab === 'odds' && (
-                        <div className="odds-section">
-                            <div className="section-header">
-                                <img src={matchData.team_home_badge} alt="Home" width="24" />
-                                <h3>Betting Odds</h3>
-                                <img src={matchData.team_away_badge} alt="Away" width="24" />
-                            </div>
-                            {odds && odds.length > 0 ? (
-                                <div className="odds-content">
-                                    {odds.map((bookmaker, index) => (
-                                        <div key={index} className="bookmaker-card">
-                                            <h4 className="bookmaker-name">{bookmaker.odd_bookmakers}</h4>
-                                            <div className="odds-grid">
-                                                {bookmaker.odd_1 && (
-                                                    <div className="odds-category">
-                                                        <h5>Match Result (1X2)</h5>
-                                                        <div className="odds-row">
-                                                            <div className="odds-item">
-                                                                <span className="odds-label">Home (1)</span>
-                                                                <span className="odds-value">{bookmaker.odd_1}</span>
-                                                            </div>
-                                                            <div className="odds-item">
-                                                                <span className="odds-label">Draw (X)</span>
-                                                                <span className="odds-value">{bookmaker.odd_x || bookmaker.odd_X}</span>
-                                                            </div>
-                                                            <div className="odds-item">
-                                                                <span className="odds-label">Away (2)</span>
-                                                                <span className="odds-value">{bookmaker.odd_2}</span>
-                                                            </div>
-                                                        </div>
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className={`field-player ${positionClass}`}
+                                                    style={{ top: `${topPercent}%` }}
+                                                >
+                                                    <div className="player-avatar">
+                                                        <div className="player-jersey-number">{player.lineup_number}</div>
                                                     </div>
-                                                )}
-                                                {(bookmaker['o+2.5'] || bookmaker['u+2.5']) && (
-                                                    <div className="odds-category">
-                                                        <h5>Over/Under 2.5</h5>
-                                                        <div className="odds-row">
-                                                            <div className="odds-item">
-                                                                <span className="odds-label">Over 2.5</span>
-                                                                <span className="odds-value">{bookmaker['o+2.5'] || '-'}</span>
-                                                            </div>
-                                                            <div className="odds-item">
-                                                                <span className="odds-label">Under 2.5</span>
-                                                                <span className="odds-value">{bookmaker['u+2.5'] || '-'}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {(bookmaker.bts_yes || bookmaker.bts_no) && (
-                                                    <div className="odds-category">
-                                                        <h5>Both Teams To Score</h5>
-                                                        <div className="odds-row">
-                                                            <div className="odds-item">
-                                                                <span className="odds-label">Yes</span>
-                                                                <span className="odds-value">{bookmaker.bts_yes || '-'}</span>
-                                                            </div>
-                                                            <div className="odds-item">
-                                                                <span className="odds-label">No</span>
-                                                                <span className="odds-value">{bookmaker.bts_no || '-'}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="no-data">No odds available for this match</div>
-                            )}
-                        </div>
-                    )}
-
-                    {activeTab === 'lineups' && (
-                        <div className="lineups-section">
-                            {matchData.lineup?.home?.starting_lineups || matchData.lineup?.away?.starting_lineups ? (
-                                <>
-                                    {/* Formation Headers */}
-                                    <div className="formation-headers">
-                                        <div className="team-formation">
-                                            <img src={matchData.team_home_badge} alt="Home" className="formation-badge" />
-                                            <span>{matchData.match_hometeam_name}</span>
-                                            <span className="formation-text">{matchData.lineup?.home?.starting_lineups?.[0]?.lineup_position || 'N/A'}</span>
-                                        </div>
-                                        <div className="team-formation">
-                                            <img src={matchData.team_away_badge} alt="Away" className="formation-badge" />
-                                            <span>{matchData.match_awayteam_name}</span>
-                                            <span className="formation-text">{matchData.lineup?.away?.starting_lineups?.[0]?.lineup_position || 'N/A'}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Football Field */}
-                                    <div className="football-field">
-                                        {/* Home Team (Left Side) */}
-                                        <div className="field-half home-half">
-                                            {matchData.lineup?.home?.starting_lineups?.map((player, i) => {
-                                                const position = player.lineup_position || '';
-                                                let positionClass = 'midfielder';
-                                                let topPercent = 50;
-
-                                                // Determine position type and placement
-                                                if (position.toLowerCase().includes('goalkeeper') || position.toLowerCase().includes('gk')) {
-                                                    positionClass = 'goalkeeper';
-                                                    topPercent = 50;
-                                                } else if (position.toLowerCase().includes('defender') || position.toLowerCase().includes('back')) {
-                                                    positionClass = 'defender';
-                                                    topPercent = 20 + (i % 4) * 20;
-                                                } else if (position.toLowerCase().includes('midfielder') || position.toLowerCase().includes('midfield')) {
-                                                    positionClass = 'midfielder';
-                                                    topPercent = 15 + (i % 4) * 23;
-                                                } else if (position.toLowerCase().includes('forward') || position.toLowerCase().includes('attacker') || position.toLowerCase().includes('striker')) {
-                                                    positionClass = 'forward';
-                                                    topPercent = 20 + (i % 3) * 30;
-                                                }
-
-                                                return (
-                                                    <div
-                                                        key={i}
-                                                        className={`field-player ${positionClass}`}
-                                                        style={{ top: `${topPercent}%` }}
-                                                    >
-                                                        <div className="player-avatar">
-                                                            <div className="player-jersey-number">{player.lineup_number}</div>
-                                                        </div>
-                                                        <div className="player-field-name">{player.lineup_player}</div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {/* Away Team (Right Side) */}
-                                        <div className="field-half away-half">
-                                            {matchData.lineup?.away?.starting_lineups?.map((player, i) => {
-                                                const position = player.lineup_position || '';
-                                                let positionClass = 'midfielder';
-                                                let topPercent = 50;
-
-                                                // Determine position type and placement
-                                                if (position.toLowerCase().includes('goalkeeper') || position.toLowerCase().includes('gk')) {
-                                                    positionClass = 'goalkeeper';
-                                                    topPercent = 50;
-                                                } else if (position.toLowerCase().includes('defender') || position.toLowerCase().includes('back')) {
-                                                    positionClass = 'defender';
-                                                    topPercent = 20 + (i % 4) * 20;
-                                                } else if (position.toLowerCase().includes('midfielder') || position.toLowerCase().includes('midfield')) {
-                                                    positionClass = 'midfielder';
-                                                    topPercent = 15 + (i % 4) * 23;
-                                                } else if (position.toLowerCase().includes('forward') || position.toLowerCase().includes('attacker') || position.toLowerCase().includes('striker')) {
-                                                    positionClass = 'forward';
-                                                    topPercent = 20 + (i % 3) * 30;
-                                                }
-
-                                                return (
-                                                    <div
-                                                        key={i}
-                                                        className={`field-player ${positionClass}`}
-                                                        style={{ top: `${topPercent}%` }}
-                                                    >
-                                                        <div className="player-avatar">
-                                                            <div className="player-jersey-number">{player.lineup_number}</div>
-                                                        </div>
-                                                        <div className="player-field-name">{player.lineup_player}</div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {/* Center Line */}
-                                        <div className="center-line"></div>
-                                        <div className="center-circle"></div>
-                                    </div>
-
-                                    {/* Substitutes Section */}
-                                    <div className="substitutes-section">
-                                        {matchData.lineup?.home?.substitutes && (
-                                            <div className="substitutes-column">
-                                                <h4 className="subs-title">{matchData.match_hometeam_name} - Substitutes</h4>
-                                                <div className="subs-list">
-                                                    {matchData.lineup.home.substitutes.map((player, i) => (
-                                                        <div key={i} className="sub-player">
-                                                            <span className="sub-number">{player.lineup_number}</span>
-                                                            <span className="sub-name">{player.lineup_player}</span>
-                                                            <span className="sub-pos">{player.lineup_position}</span>
-                                                        </div>
-                                                    ))}
+                                                    <div className="player-field-name">{player.lineup_player}</div>
                                                 </div>
-                                            </div>
-                                        )}
-                                        {matchData.lineup?.away?.substitutes && (
-                                            <div className="substitutes-column">
-                                                <h4 className="subs-title">{matchData.match_awayteam_name} - Substitutes</h4>
-                                                <div className="subs-list">
-                                                    {matchData.lineup.away.substitutes.map((player, i) => (
-                                                        <div key={i} className="sub-player">
-                                                            <span className="sub-number">{player.lineup_number}</span>
-                                                            <span className="sub-name">{player.lineup_player}</span>
-                                                            <span className="sub-pos">{player.lineup_position}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                                            );
+                                        })}
                                     </div>
-                                </>
-                            ) : (
-                                <div className="no-data">Lineup information not available</div>
-                            )}
-                        </div>
-                    )}
 
-                    {activeTab === 'h2h' && (
-                        <div className="h2h-section">
-                            <h3>Head to Head</h3>
-                            <div className="h2h-list">
-                                {h2h.map((match, index) => (
-                                    <div key={index} className="h2h-card">
-                                        <div className="date">{match.match_date}</div>
-                                        <div className="teams">
-                                            <span>{match.match_hometeam_name}</span>
-                                            <span className="score">{match.match_hometeam_score} - {match.match_awayteam_score}</span>
-                                            <span>{match.match_awayteam_name}</span>
-                                        </div>
+                                    {/* Center Line */}
+                                    <div className="center-line"></div>
+                                    <div className="center-circle"></div>
+                                </div>
+
+
+                            </>
+                        ) : (
+                            <div className="no-data">Lineup information not available</div>
+                        )}
+                    </div>
+
+                    <div id="h2h" className="h2h-section">
+                        <h3>Head to Head</h3>
+                        <div className="h2h-list">
+                            {h2h.map((match, index) => (
+                                <div key={index} className="h2h-card">
+                                    <div className="date">{match.match_date}</div>
+                                    <div className="teams">
+                                        <span>{match.match_hometeam_name}</span>
+                                        <span className="score">{match.match_hometeam_score} - {match.match_awayteam_score}</span>
+                                        <span>{match.match_awayteam_name}</span>
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            ))}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>
