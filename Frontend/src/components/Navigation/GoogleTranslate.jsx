@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './Navigation.css'; // Ensure CSS is available
+import { MdOutlineLanguage } from "react-icons/md";
 
 const LANGUAGES = [
     { code: 'en', label: 'English', flag: '🇬🇧' },
@@ -188,9 +189,8 @@ const GoogleTranslate = () => {
                     <span className="lang-label" style={{ color: '#ff6b6b' }}>Blocked by AdBlock</span>
                 ) : (
                     <>
-                        <span className="lang-flag">{selectedLang.flag}</span>
-                        <span className="lang-label">{selectedLang.label}</span>
-                        <span className="lang-arrow">▼</span>
+                        <MdOutlineLanguage size={23} color="white" />
+
                     </>
                 )}
             </button>

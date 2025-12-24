@@ -251,17 +251,30 @@ exports.searchLeagues = async (req, res) => {
     }
 
     // Format leagues for frontend
-    const formattedLeagues = leagues.slice(0, 50).map(league => ({
+    const formattedLeagues = leagues.map(league => ({
       league_id: league.league_id,
       league_name: league.league_name,
       country: league.country_name,
       logo: league.league_logo
     }));
 
+    // Sort leagues alphabetically by country then league name
+    formattedLeagues.sort((a, b) => {
+      const countryCompare = a.country.localeCompare(b.country);
+      if (countryCompare !== 0) return countryCompare;
+      return a.league_name.localeCompare(b.league_name);
+    });
+
+    // Limit to first 1000 for performance (instead of 50)
+    const limitedLeagues = formattedLeagues.slice(0, 1000);
+
+    console.log(`Returning ${limitedLeagues.length} leagues out of ${formattedLeagues.length} total`);
+
     res.status(200).json({
       success: true,
-      count: formattedLeagues.length,
-      data: formattedLeagues
+      count: limitedLeagues.length,
+      total: formattedLeagues.length,
+      data: limitedLeagues
     });
   } catch (error) {
     console.error('Error searching leagues:', error);

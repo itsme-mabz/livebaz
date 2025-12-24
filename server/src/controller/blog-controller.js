@@ -1,5 +1,6 @@
 const Blog = require("../model/blog.model");
 const User = require("../model/user.model");
+const Comment = require("../model/comment.model");
 const AsyncHandler = require("express-async-handler");
 const ErrorHandler = require("../utils/Errorhandler");
 
@@ -302,5 +303,83 @@ exports.getCategories = AsyncHandler(async (req, res, next) => {
     success: true,
     message: "Categories fetched successfully",
     data: categories
+  });
+});
+
+// Get comments for a blog (public)
+exports.getComments = AsyncHandler(async (req, res, next) => {
+  const { blogId } = req.params;
+
+  const blog = await Blog.findByPk(blogId);
+  if (!blog) {
+    return next(new ErrorHandler("Blog not found", 404));
+  }
+
+  const comments = await Comment.findAll({
+    where: { blog_id: blogId },
+    order: [['createdAt', 'DESC']]
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Comments fetched successfully",
+    count: comments.length,
+    data: comments
+  });
+});
+
+// Post a comment (authenticated)
+exports.postComment = AsyncHandler(async (req, res, next) => {
+  const { blogId } = req.params;
+  const { content } = req.body;
+
+  if (!content || content.trim().length === 0) {
+    return next(new ErrorHandler("Comment content is required", 400));
+  }
+
+  const blog = await Blog.findByPk(blogId);
+  if (!blog) {
+    return next(new ErrorHandler("Blog not found", 404));
+  }
+
+  const comment = await Comment.create({
+    blog_id: blogId,
+    user_id: req.user.id,
+    user_name: req.user.Name,
+    content: content.trim()
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "Comment posted successfully",
+    data: comment
+  });
+});
+
+// Delete a comment (authenticated - only owner or admin)
+exports.deleteComment = AsyncHandler(async (req, res, next) => {
+  const { blogId, commentId } = req.params;
+
+  const comment = await Comment.findOne({
+    where: {
+      id: commentId,
+      blog_id: blogId
+    }
+  });
+
+  if (!comment) {
+    return next(new ErrorHandler("Comment not found", 404));
+  }
+
+  // Check if user is the comment owner or admin
+  if (comment.user_id !== req.user.id && !req.user.is_admin) {
+    return next(new ErrorHandler("You don't have permission to delete this comment", 403));
+  }
+
+  await comment.destroy();
+
+  res.status(200).json({
+    success: true,
+    message: "Comment deleted successfully"
   });
 });

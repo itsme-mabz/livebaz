@@ -45,4 +45,8 @@ app.use("/api/v1", blogRoutes);
 
 app.use("/api/v1/admin", blogAdminRoutes);
 
+// Error Middleware (must be last)
+const errorMiddleware = require("./middleware/error.middleware");
+app.use(errorMiddleware);
+
 module.exports = app;

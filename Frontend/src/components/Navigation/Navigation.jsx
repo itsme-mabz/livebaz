@@ -6,6 +6,10 @@ import { Link } from 'react-router-dom';
 import { Skeleton } from '../SkeletonLoader/SkeletonLoader';
 import { fetchPopularLeagues } from '../../Service/FootballService';
 import GoogleTranslate from './GoogleTranslate';
+import { IoLogInOutline } from "react-icons/io5";
+import { LiaTelegramPlane } from "react-icons/lia";
+
+
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
@@ -17,6 +21,8 @@ function Navigation() {
     const [loading, setLoading] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isMobileLeaguesExpanded, setIsMobileLeaguesExpanded] = useState(false);
+    const [user, setUser] = useState(null);
+    const [showUserDropdown, setShowUserDropdown] = useState(false);
 
     const openLoginModal = () => {
         setAuthMode('login');
@@ -32,6 +38,14 @@ function Navigation() {
         setIsAuthModalOpen(false);
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        setUser(null);
+        setShowUserDropdown(false);
+        window.location.href = '/';
+    };
+
     const toggleMobileMenu = () => {
         const newState = !isMobileMenuOpen;
         console.log('Mobile menu toggled. Current state:', isMobileMenuOpen, '-> New state:', newState);
@@ -42,6 +56,33 @@ function Navigation() {
     useEffect(() => {
         console.log('Mobile menu state changed:', isMobileMenuOpen);
     }, [isMobileMenuOpen]);
+
+    // Check for logged in user
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                localStorage.removeItem('user');
+            }
+        }
+    }, []);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showUserDropdown && !event.target.closest('.user-dropdown-container')) {
+                setShowUserDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showUserDropdown]);
 
     // Prevent body scroll when mobile menu is open
     useEffect(() => {
@@ -137,25 +178,63 @@ function Navigation() {
                     </div>
 
                     {/* Mobile Login Button - visible only on mobile */}
-                    <button
-                        className="mobile-header-login"
-                        onClick={openLoginModal}
-                        style={{
-                            display: 'none',
-                            padding: '10px 20px',
-                            backgroundColor: '#f5f5f5',
-                            color: '#121212',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            height: '40px'
-                        }}
-                    >
-                        Log in
-                    </button>
+                    {user ? (
+                        <button
+                            className="mobile-header-login"
+                            onClick={() => setShowUserDropdown(!showUserDropdown)}
+                            style={{
+                                display: 'none',
+                                padding: '8px 16px',
+                                backgroundColor: '#f5f5f5',
+                                color: '#121212',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                height: '40px',
+                                gap: '8px',
+                                alignItems: 'center'
+                            }}
+                        >
+                            <div style={{
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '50%',
+                                backgroundColor: '#fbbf24',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 'bold',
+                                color: '#1f2937',
+                                fontSize: '12px'
+                            }}>
+                                {user.Name ? user.Name.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <span>{user.Name}</span>
+                        </button>
+                    ) : (
+                        <button
+                            className="mobile-header-login"
+                            onClick={openLoginModal}
+                            style={{
+                                display: 'none',
+                                padding: '10px 20px',
+                                backgroundColor: '#f5f5f5',
+                                color: '#121212',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                height: '40px'
+                            }}
+                        >
+                            Log in
+                        </button>
+                    )}
 
                     <div className="header-center fl_c_sb w-full">
                         <span className='header-logo-desktop'>
@@ -225,7 +304,10 @@ function Navigation() {
                             <li>
                                 <a href='/math-predictions/' className='header-nav__link fl_c'>Math predictions</a>
                             </li>
-                            <li className="dropdown-menu__wrapper">
+                            <li>
+                                <a href='/blogs/' className='header-nav__link fl_c'>Insights</a>
+                            </li>
+                            {/* <li className="dropdown-menu__wrapper">
                                 <span className="header-nav__link fl_c nav__link-arrow-down">Football Tips</span>
                                 <div className="dropdown-menu">
                                     <div className="section-title mb-12 section-title_ft">
@@ -290,21 +372,106 @@ function Navigation() {
                                     </div>
                                 </div>
 
-                            </li>
+                            </li> */}
                             <li>
                                 <a href='/livescore/' className='header-nav__link fl_c'>Scores</a>
                             </li>
                         </ul>
 
-                        {/* Google Translate Widget for Desktop */}
-                        <div className="desktop-google-translate" style={{ marginLeft: '20px' }}>
-                            <GoogleTranslate />
-                        </div>
 
 
                     </div>
 
+                    {/* Right side buttons - placed outside header-center */}
+                    <div className="desktop-nav-buttons items-center gap-1 pl-8">
+                        {user ? (
+                            <div className="user-dropdown-container" style={{ position: 'relative' }}>
+                                <button
+                                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-200 font-medium"
+                                >
+                                    <div style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
+                                        backgroundColor: '#fbbf24',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 'bold',
+                                        color: '#1f2937'
+                                    }}>
+                                        {user.Name ? user.Name.charAt(0).toUpperCase() : 'U'}
+                                    </div>
+                                    <span>{user.Name}</span>
+                                    <span style={{ fontSize: '12px' }}>▼</span>
+                                </button>
+                                {showUserDropdown && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        right: 0,
+                                        marginTop: '8px',
+                                        backgroundColor: '#1f2937',
+                                        borderRadius: '8px',
+                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                                        minWidth: '200px',
+                                        zIndex: 1000,
+                                        overflow: 'hidden'
+                                    }}>
+                                        <div style={{
+                                            padding: '12px 16px',
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                                        }}>
+                                            <div style={{ color: '#f3f4f6', fontWeight: '600' }}>{user.Name}</div>
+                                            <div style={{ color: '#9ca3af', fontSize: '12px', marginTop: '2px' }}>{user.Email}</div>
+                                        </div>
+                                        <button
+                                            onClick={handleLogout}
+                                            style={{
+                                                width: '100%',
+                                                padding: '12px 16px',
+                                                backgroundColor: 'transparent',
+                                                color: '#f87171',
+                                                border: 'none',
+                                                textAlign: 'left',
+                                                cursor: 'pointer',
+                                                fontSize: '14px',
+                                                fontWeight: '500',
+                                                transition: 'background-color 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'}
+                                            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                        >
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <button
+                                onClick={openLoginModal}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-200 font-medium"
+                            >
+                                <IoLogInOutline size={20} className="text-lg" />
+                                <span>Login</span>
+                            </button>
+                        )}
 
+                        <a
+                            href="https://t.me/livebaz"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 font-medium"
+                        >
+                            <LiaTelegramPlane size={20} className="text-lg" />
+                            <span>Telegram</span>
+                        </a>
+                        {/* Google Translate Widget for Desktop */}
+                        <div className="desktop-google-translate">
+                            <GoogleTranslate />
+                        </div>
+                    </div>
 
                 </div>
             </div>
@@ -481,7 +648,7 @@ function Navigation() {
                             Math Predictions
                         </a>
 
-                        <div className='mobile-menu__section'>
+                        {/* <div className='mobile-menu__section'>
                             <div className='mobile-menu__section-title'>Football Tips</div>
                             <a href='#' className='mobile-menu__sublink disabled' onClick={(e) => e.preventDefault()}>
                                 Betting Tips 1x2 <span className='coming-soon'>Coming Soon</span>
@@ -495,7 +662,7 @@ function Navigation() {
                             <a href='#' className='mobile-menu__sublink disabled' onClick={(e) => e.preventDefault()}>
                                 HT/FT Prediction <span className='coming-soon'>Coming Soon</span>
                             </a>
-                        </div>
+                        </div> */}
 
                         <a href='/livescore/' className='mobile-menu__link' onClick={toggleMobileMenu}>
                             Scores

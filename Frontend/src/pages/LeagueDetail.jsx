@@ -20,6 +20,8 @@ function LeagueDetail() {
     const [availableRounds, setAvailableRounds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showOdds, setShowOdds] = useState(false);
+    const [standingsView, setStandingsView] = useState('all'); // 'all', 'home', 'away'
+    const [fixturesView, setFixturesView] = useState('schedule'); // 'schedule', 'results'
 
     useEffect(() => {
         fetchLeagueData();
@@ -256,42 +258,156 @@ function LeagueDetail() {
                     {/* Predictions Tab */}
                     {activeTab === 'predictions' && (
                         <div className="predictions-section">
-                            <h2 className="section-title">PREDICTIONS FOR {leagueInfo.league_name.toUpperCase()}</h2>
+                            <h2 className="section-title mb-6">PREDICTIONS FOR {leagueInfo.league_name.toUpperCase()}</h2>
+                            <br />
+                            {/* Prediction Type Filters - Inline Style */}
+                            <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '0',
+                                marginBottom: '24px',
+                                borderBottom: '1px solid #e5e7eb',
+
+                            }}>
+                                <button
+                                    onClick={() => setPredictionType('1x2')}
+                                    style={{
+                                        padding: '12px 24px',
+                                        background: predictionType === '1x2' ? '#1f2937' : 'transparent',
+                                        color: predictionType === '1x2' ? '#fff' : '#4b5563',
+                                        border: 'none',
+                                        fontWeight: '600',
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        borderBottom: predictionType === '1x2' ? '3px solid #3b82f6' : '3px solid transparent',
+                                        borderRadius: '12px 12px 0 0'
+                                    }}
+                                >
+                                    1X2
+                                </button>
+                                <button
+                                    onClick={() => setPredictionType('goals')}
+                                    style={{
+                                        padding: '12px 24px',
+                                        background: predictionType === 'goals' ? '#1f2937' : 'transparent',
+                                        color: predictionType === 'goals' ? '#fff' : '#4b5563',
+                                        border: 'none',
+                                        fontWeight: '600',
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        borderBottom: predictionType === 'goals' ? '3px solid #3b82f6' : '3px solid transparent',
+                                        borderRadius: '12px 12px 0 0'
+                                    }}
+                                >
+                                    Total Goals
+                                </button>
+                                <button
+                                    onClick={() => setPredictionType('1x2-first-half')}
+                                    style={{
+                                        padding: '12px 24px',
+                                        background: predictionType === '1x2-first-half' ? '#1f2937' : 'transparent',
+                                        color: predictionType === '1x2-first-half' ? '#fff' : '#4b5563',
+                                        border: 'none',
+                                        fontWeight: '600',
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        borderBottom: predictionType === '1x2-first-half' ? '3px solid #3b82f6' : '3px solid transparent',
+                                        borderRadius: '12px 12px 0 0'
+                                    }}
+                                >
+                                    1X2 First Half
+                                </button>
+                                <button
+                                    onClick={() => setPredictionType('btts')}
+                                    style={{
+                                        padding: '12px 24px',
+                                        background: predictionType === 'btts' ? '#1f2937' : 'transparent',
+                                        color: predictionType === 'btts' ? '#fff' : '#4b5563',
+                                        border: 'none',
+                                        fontWeight: '600',
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        borderBottom: predictionType === 'btts' ? '3px solid #3b82f6' : '3px solid transparent',
+                                        borderRadius: '12px 12px 0 0'
+                                    }}
+                                >
+                                    Both Teams To Score
+                                </button>
+                                <button
+                                    onClick={() => setPredictionType('correct-score')}
+                                    style={{
+                                        padding: '12px 24px',
+                                        background: predictionType === 'correct-score' ? '#1f2937' : 'transparent',
+                                        color: predictionType === 'correct-score' ? '#fff' : '#4b5563',
+                                        border: 'none',
+                                        fontWeight: '600',
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        borderBottom: predictionType === 'correct-score' ? '3px solid #3b82f6' : '3px solid transparent',
+                                        borderRadius: '12px 12px 0 0'
+                                    }}
+                                >
+                                    Correct Score
+                                </button>
+                                <button
+                                    onClick={() => setPredictionType('double-chance')}
+                                    style={{
+                                        padding: '12px 24px',
+                                        background: predictionType === 'double-chance' ? '#1f2937' : 'transparent',
+                                        color: predictionType === 'double-chance' ? '#fff' : '#4b5563',
+                                        border: 'none',
+                                        fontWeight: '600',
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        borderBottom: predictionType === 'double-chance' ? '3px solid #3b82f6' : '3px solid transparent',
+                                        borderRadius: '12px 12px 0 0'
+                                    }}
+                                >
+                                    Double Chance
+                                </button>
+                                {/* Round Selector - Dropdown */}
+                                {availableRounds.length > 0 && (
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                    }}>
+                                        <select
+                                            value={currentRound || ''}
+                                            onChange={(e) => setCurrentRound(e.target.value)}
+                                            style={{
+                                                padding: '12px 24px',
+                                                background: predictionType === 'double-chance' ? '#1f2937' : 'transparent',
+                                                color: predictionType === 'double-chance' ? '#fff' : '#4b5563',
+                                                border: 'none',
+                                                fontWeight: '600',
+                                                fontSize: '14px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                borderBottom: predictionType === 'double-chance' ? '3px solid #3b82f6' : '3px solid transparent',
+                                                borderRadius: '12px 12px 0 0'
+                                            }}
+                                            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                        >
+                                            {availableRounds.map((round) => (
+                                                <option key={round} value={round}>
+                                                    {leagueInfo.league_name} - {round}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
 
 
 
-                            {/* Round Selector */}
-                            {availableRounds.length > 0 && (
-                                <div className="round-selector">
-                                    <button
-                                        className="round-nav-btn"
-                                        onClick={() => {
-                                            const currentIndex = availableRounds.indexOf(currentRound);
-                                            if (currentIndex > 0) {
-                                                setCurrentRound(availableRounds[currentIndex - 1]);
-                                            }
-                                        }}
-                                        disabled={availableRounds.indexOf(currentRound) === 0}
-                                    >
-                                        ◄
-                                    </button>
-                                    <span className="current-round">
-                                        {leagueInfo.league_name} - {currentRound || 'Round'}
-                                    </span>
-                                    <button
-                                        className="round-nav-btn"
-                                        onClick={() => {
-                                            const currentIndex = availableRounds.indexOf(currentRound);
-                                            if (currentIndex < availableRounds.length - 1) {
-                                                setCurrentRound(availableRounds[currentIndex + 1]);
-                                            }
-                                        }}
-                                        disabled={availableRounds.indexOf(currentRound) === availableRounds.length - 1}
-                                    >
-                                        ►
-                                    </button>
-                                </div>
-                            )}
+
 
                             {/* Matches Table */}
                             <div className="matches-table">
@@ -308,7 +424,7 @@ function LeagueDetail() {
                                 {getCurrentRoundFixtures().map(match => {
                                     const predData = getPredictionData(match, predictionType);
                                     const highest = getHighestProb(predData.prob1, predData.probX, predData.prob2);
-
+                                    console.log(match);
                                     return (
                                         <Link to={`/match/${match.match_id}`} key={match.match_id} className="match-row" style={{ textDecoration: 'none', color: 'inherit' }}>
                                             {/* make this match time left aligned */}
@@ -321,11 +437,11 @@ function LeagueDetail() {
                                                     {/* we need to display the scores as well but on end of the column.. like right of it */}
                                                     <div style={{ display: 'flex', alignItems: 'center' }}>
                                                         <img style={{ marginRight: '10px', width: '20px', height: '20px' }} src={match.team_home_badge} alt={match.match_hometeam_name} />
-                                                        <span className="score-home">{match.match_hometeam_name || '-'}</span>
+                                                        <span style={{ fontSize: '13px', fontWeight: '600' }}>{match.match_hometeam_name || '-'}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center' }}>
                                                         <img style={{ marginRight: '10px', width: '20px', height: '20px' }} src={match.team_away_badge} alt={match.match_awayteam_name} />
-                                                        <span className="score-away">{match.match_awayteam_name || '-'}</span>
+                                                        <span style={{ fontSize: '13px', fontWeight: '600' }}>{match.match_awayteam_name || '-'}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -350,67 +466,241 @@ function LeagueDetail() {
                     {/* Fixtures Tab */}
                     {activeTab === 'fixtures' && (
                         <div className="fixtures-section">
-                            <h2 className="section-title">FIXTURES & RESULTS</h2>
-                            {/* Similar structure to predictions but without prediction percentages */}
-                            <div className="fixtures-list">
-                                {fixtures.map(match => (
-                                    <div key={match.match_id} className="fixture-card">
-                                        <div className="fixture-date">{match.match_date} - {match.match_time}</div>
-                                        <div className="fixture-teams">
-                                            <div className="fixture-team">
-                                                {match.team_home_badge && <img src={match.team_home_badge} alt={match.match_hometeam_name} />}
-                                                <span>{match.match_hometeam_name}</span>
-                                            </div>
-                                            <div className="fixture-score">
-                                                {match.match_hometeam_score || '0'} - {match.match_awayteam_score || '0'}
-                                            </div>
-                                            <div className="fixture-team">
-                                                {match.team_away_badge && <img src={match.team_away_badge} alt={match.match_awayteam_name} />}
-                                                <span>{match.match_awayteam_name}</span>
-                                            </div>
-                                        </div>
-                                        <div className="fixture-status">{match.match_status || 'Scheduled'}</div>
-                                    </div>
-                                ))}
+                            <div className="flex justify-between items-start mb-6">
+                                <h2 className="section-title">{leagueInfo.league_name.toUpperCase()} FIXTURES</h2>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-sm font-semibold text-gray-700">Season {leagueInfo.league_season || '2025/2026'}</span>
+                                    <span className="text-sm font-semibold text-gray-900">{leagueInfo.league_name}</span>
+                                </div>
                             </div>
+
+                            {/* Schedule/Results Toggle */}
+                            <div className="flex gap-2 mb-6">
+                                <button
+                                    className={`px-6 py-2 rounded-lg font-medium transition ${fixturesView === 'schedule' ? 'bg-white border-2 border-gray-300 text-gray-900' : 'bg-gray-100 text-gray-600'}`}
+                                    onClick={() => setFixturesView('schedule')}
+                                >
+                                    Schedule
+                                </button>
+                                <button
+                                    className={`px-6 py-2 rounded-lg font-medium transition ${fixturesView === 'results' ? 'bg-white border-2 border-gray-300 text-gray-900' : 'bg-gray-100 text-gray-600'}`}
+                                    onClick={() => setFixturesView('results')}
+                                >
+                                    Results
+                                </button>
+                            </div>
+
+                            {/* Group fixtures by rounds */}
+                            {availableRounds.map(round => {
+                                const roundFixtures = fixtures.filter(f => f.match_round === round);
+
+                                // Filter based on view
+                                const filteredFixtures = roundFixtures.filter(match => {
+                                    if (fixturesView === 'schedule') {
+                                        return !match.match_status || match.match_status === '' || match.match_status === 'Scheduled';
+                                    } else {
+                                        return match.match_status && match.match_status !== '' && match.match_status !== 'Scheduled';
+                                    }
+                                });
+
+                                if (filteredFixtures.length === 0) return null;
+
+                                return (
+                                    <div key={round} className="mb-6">
+                                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-2 flex justify-between items-center">
+                                            <h3 className="text-base font-bold text-gray-900">{leagueInfo.league_name} {round}</h3>
+                                            <button className="text-gray-500 hover:text-gray-700">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                            {/* Table Header */}
+                                            <div className="grid grid-cols-[180px_1fr_80px] gap-4 p-4 bg-gray-50 border-b border-gray-200">
+                                                <div className="text-xs font-semibold text-gray-600 uppercase">Time</div>
+                                                <div className="text-xs font-semibold text-gray-600 uppercase">Match</div>
+                                                <div></div>
+                                            </div>
+
+                                            {/* Fixtures List */}
+                                            {filteredFixtures.map(match => (
+                                                <Link
+                                                    to={`/match/${match.match_id}`}
+                                                    key={match.match_id}
+                                                    className="grid grid-cols-[180px_1fr_80px] gap-4 p-4 border-b border-gray-100 hover:bg-gray-50 transition items-center no-underline text-gray-900"
+                                                >
+                                                    {/* Time */}
+                                                    <div className="flex flex-col text-sm">
+                                                        <span className="font-semibold text-gray-700">
+                                                            {new Date(match.match_date).toLocaleDateString('en-GB', {
+                                                                day: '2-digit',
+                                                                month: 'short',
+                                                                year: 'numeric'
+                                                            })}
+                                                        </span>
+                                                        <span className="text-gray-500 text-xs">{match.match_time}</span>
+                                                    </div>
+
+                                                    {/* Teams */}
+                                                    <div className="flex flex-col gap-2">
+                                                        <div className="flex items-center gap-2">
+                                                            {match.team_home_badge && (
+                                                                <img
+                                                                    src={match.team_home_badge}
+                                                                    alt={match.match_hometeam_name}
+                                                                    className="w-5 h-5 object-contain"
+                                                                />
+                                                            )}
+                                                            <span className="font-medium text-sm">{match.match_hometeam_name}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {match.team_away_badge && (
+                                                                <img
+                                                                    src={match.team_away_badge}
+                                                                    alt={match.match_awayteam_name}
+                                                                    className="w-5 h-5 object-contain"
+                                                                />
+                                                            )}
+                                                            <span className="font-medium text-sm">{match.match_awayteam_name}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Score/Status */}
+                                                    <div className="flex flex-col gap-2 items-end">
+                                                        <span className="text-gray-400 font-bold">
+                                                            {match.match_hometeam_score || '–'}
+                                                        </span>
+                                                        <span className="text-gray-400 font-bold">
+                                                            {match.match_awayteam_score || '–'}
+                                                        </span>
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {fixtures.length === 0 && (
+                                <div className="text-center py-12 text-gray-500">
+                                    <p>No fixtures available</p>
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {/* Standings Tab */}
                     {activeTab === 'standings' && (
                         <div className="standings-section">
-                            <h2 className="section-title">LEAGUE STANDINGS</h2>
+                            <h2 className="section-title mb-4">STANDINGS {leagueInfo.league_name.toUpperCase()}</h2>
+
+                            {/* View Tabs */}
+                            <div className="flex gap-2 mb-6">
+                                <button
+                                    className={`px-4 py-2 rounded-lg font-medium transition ${standingsView === 'all' ? 'bg-white border-2 border-gray-300' : 'bg-gray-100 text-gray-700'}`}
+                                    onClick={() => setStandingsView('all')}
+                                >
+                                    All games
+                                </button>
+                                <button
+                                    className={`px-4 py-2 rounded-lg font-medium transition ${standingsView === 'home' ? 'bg-white border-2 border-gray-300' : 'bg-gray-100 text-gray-700'}`}
+                                    onClick={() => setStandingsView('home')}
+                                >
+                                    Home
+                                </button>
+                                <button
+                                    className={`px-4 py-2 rounded-lg font-medium transition ${standingsView === 'away' ? 'bg-white border-2 border-gray-300' : 'bg-gray-100 text-gray-700'}`}
+                                    onClick={() => setStandingsView('away')}
+                                >
+                                    Away
+                                </button>
+                            </div>
+
                             {Array.isArray(standings) && standings.length > 0 ? (
-                                <div className="standings-table">
-                                    <div className="standings-header">
-                                        <span className="pos">#</span>
-                                        <span className="team">Team</span>
-                                        <span className="stat">P</span>
-                                        <span className="stat">W</span>
-                                        <span className="stat">D</span>
-                                        <span className="stat">L</span>
-                                        <span className="stat">GF</span>
-                                        <span className="stat">GA</span>
-                                        <span className="stat">GD</span>
-                                        <span className="stat pts">Pts</span>
-                                    </div>
-                                    {standings.map((team, index) => (
-                                        <div key={team.team_id || index} className={`standings-row ${team.overall_promotion ? 'promotion' : ''}`}>
-                                            <span className="pos">{team.overall_league_position}</span>
-                                            <span className="team">
-                                                {team.team_badge && <img src={team.team_badge} alt={team.team_name} />}
-                                                {team.team_name}
-                                            </span>
-                                            <span className="stat">{team.overall_league_payed}</span>
-                                            <span className="stat">{team.overall_league_W}</span>
-                                            <span className="stat">{team.overall_league_D}</span>
-                                            <span className="stat">{team.overall_league_L}</span>
-                                            <span className="stat">{team.overall_league_GF}</span>
-                                            <span className="stat">{team.overall_league_GA}</span>
-                                            <span className="stat">{parseInt(team.overall_league_GF) - parseInt(team.overall_league_GA)}</span>
-                                            <span className="stat pts">{team.overall_league_PTS}</span>
-                                        </div>
-                                    ))}
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm border-collapse">
+                                        <thead>
+                                            <tr className="border-b-2 border-gray-200 bg-gray-50 text-left">
+                                                <th className="p-2 font-semibold">№</th>
+                                                <th className="p-2 font-semibold sticky left-0 bg-gray-50">Team</th>
+                                                <th className="p-2 font-semibold text-center">MP</th>
+                                                <th className="p-2 font-semibold text-center">W</th>
+                                                <th className="p-2 font-semibold text-center">D</th>
+                                                <th className="p-2 font-semibold text-center">L</th>
+                                                <th className="p-2 font-semibold text-center">Goals</th>
+                                                <th className="p-2 font-semibold text-center">Diff</th>
+                                                <th className="p-2 font-semibold text-center font-bold">Pt</th>
+                                                <th className="p-2 font-semibold text-center">Form</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {standings.map((team, index) => {
+                                                // Determine which stats to show based on view
+                                                const stats = standingsView === 'home' ? {
+                                                    position: team.home_league_position,
+                                                    played: team.home_league_payed,
+                                                    wins: team.home_league_W,
+                                                    draws: team.home_league_D,
+                                                    losses: team.home_league_L,
+                                                    gf: team.home_league_GF,
+                                                    ga: team.home_league_GA,
+                                                    pts: team.home_league_PTS
+                                                } : standingsView === 'away' ? {
+                                                    position: team.away_league_position,
+                                                    played: team.away_league_payed,
+                                                    wins: team.away_league_W,
+                                                    draws: team.away_league_D,
+                                                    losses: team.away_league_L,
+                                                    gf: team.away_league_GF,
+                                                    ga: team.away_league_GA,
+                                                    pts: team.away_league_PTS
+                                                } : {
+                                                    position: team.overall_league_position,
+                                                    played: team.overall_league_payed,
+                                                    wins: team.overall_league_W,
+                                                    draws: team.overall_league_D,
+                                                    losses: team.overall_league_L,
+                                                    gf: team.overall_league_GF,
+                                                    ga: team.overall_league_GA,
+                                                    pts: team.overall_league_PTS
+                                                };
+
+                                                const diff = parseInt(stats.gf || 0) - parseInt(stats.ga || 0);
+                                                const promotionClass = team.overall_promotion && team.overall_promotion.toLowerCase().includes('promotion') ? 'border-l-4 border-l-green-500' : '';
+
+                                                return (
+                                                    <tr key={team.team_id || index} className={`border-b border-gray-100 hover:bg-gray-50 ${promotionClass}`}>
+                                                        <td className="p-2 text-gray-600">{stats.position}</td>
+                                                        <td className="p-2 sticky left-0 bg-white hover:bg-gray-50">
+                                                            <div className="flex items-center gap-2">
+                                                                {team.team_badge && <img src={team.team_badge} alt={team.team_name} className="w-5 h-5 object-contain" />}
+                                                                <span className="font-medium">{team.team_name}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-2 text-center">{stats.played}</td>
+                                                        <td className="p-2 text-center">{stats.wins}</td>
+                                                        <td className="p-2 text-center">{stats.draws}</td>
+                                                        <td className="p-2 text-center">{stats.losses}</td>
+                                                        <td className="p-2 text-center">{stats.gf}:{stats.ga}</td>
+                                                        <td className="p-2 text-center">{diff > 0 ? '+' : ''}{diff}</td>
+                                                        <td className="p-2 text-center font-bold">{stats.pts}</td>
+                                                        <td className="p-2">
+                                                            {/* Form badges - would need last 5 matches data */}
+                                                            <div className="flex gap-0.5 justify-center">
+                                                                {[...Array(5)].map((_, i) => (
+                                                                    <div key={i} className="w-5 h-5 rounded-sm bg-gray-200 flex items-center justify-center text-xs">
+                                                                        -
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
                                 </div>
                             ) : (
                                 <div className="no-data">

@@ -1,0 +1,1 @@
+- use tailwindcss classes rather than pure css (use pure css only when needed)

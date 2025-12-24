@@ -17,16 +17,32 @@ module.exports.Register = AsyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("User already exists", 400));
   }
 
-  // 4️⃣ Create new user (Sequelize auto-hashes password if set in model hooks)
-  const user = await User.create({
-    Name,
-    Email,
-    Password,
-    confirmpassword,
-  });
+  try {
+    // 4️⃣ Create new user (Sequelize auto-hashes password if set in model hooks)
+    const user = await User.create({
+      Name,
+      Email,
+      Password,
+      confirmPassword: confirmpassword,
+    });
 
-  // 5️⃣ Send JWT token response
-  sendToken(user, 201, res);
+    // 5️⃣ Send JWT token response
+    sendToken(user, 201, res);
+  } catch (error) {
+    // Handle Sequelize validation errors
+    if (error.name === 'SequelizeValidationError') {
+      const messages = error.errors.map(err => err.message);
+      return next(new ErrorHandler(messages.join(', '), 400));
+    }
+
+    // Handle unique constraint errors
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return next(new ErrorHandler("User with this email or username already exists", 400));
+    }
+
+    // For other errors, pass to error handler
+    return next(error);
+  }
 });
 
 

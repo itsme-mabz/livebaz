@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './MathPredictions.css';
 import { PredictionsPageSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
+import { fetchTrendingBlogs } from '../Service/BlogService';
 
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
@@ -14,6 +15,8 @@ function Predictions() {
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState('today');
     const [selectedSport, setSelectedSport] = useState('all');
+    const [trendingBlogs, setTrendingBlogs] = useState([]);
+    const [blogsLoading, setBlogsLoading] = useState(false);
 
     // Date tabs configuration
     const dateTabs = [
@@ -160,10 +163,28 @@ function Predictions() {
         }
     };
 
+    // Fetch trending blogs
+    const loadTrendingBlogs = async () => {
+        setBlogsLoading(true);
+        try {
+            const blogs = await fetchTrendingBlogs(10);
+            setTrendingBlogs(blogs);
+        } catch (error) {
+            console.error('Error fetching trending blogs:', error);
+        } finally {
+            setBlogsLoading(false);
+        }
+    };
+
     // Fetch predictions when date changes
     useEffect(() => {
         fetchPredictions();
     }, [selectedDate]);
+
+    // Fetch trending blogs on mount
+    useEffect(() => {
+        loadTrendingBlogs();
+    }, []);
 
     // Format match time
     const formatMatchTime = (timeString) => {
@@ -175,6 +196,16 @@ function Predictions() {
     const getBestTip = (prediction) => {
         if (!prediction?.predictions?.bestTip) return null;
         return prediction.predictions.bestTip;
+    };
+
+    // Format date for blog
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
     };
 
     return (
@@ -327,6 +358,99 @@ function Predictions() {
                                 </div>
                             </section>
                         </div>
+
+                        {/* Blog Sidebar */}
+                        <aside className="container-sidebar">
+                            <div style={{
+                                background: '#fff',
+                                borderRadius: '8px',
+                                padding: '24px 20px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                position: 'sticky',
+                                top: '80px'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    marginBottom: '24px'
+                                }}>
+                                    <div style={{
+                                        width: '4px',
+                                        height: '24px',
+                                        background: 'linear-gradient(to bottom, #4169e1, #ff6b6b)',
+                                        borderRadius: '2px'
+                                    }}></div>
+                                    <h2 style={{
+                                        fontSize: '18px',
+                                        fontWeight: '700',
+                                        color: '#1a1a1a',
+                                        margin: 0,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.5px'
+                                    }}>
+                                        Latest Predictions
+                                    </h2>
+                                </div>
+
+                                {blogsLoading ? (
+                                    <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+                                        Loading...
+                                    </div>
+                                ) : trendingBlogs.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '20px', color: '#999', fontSize: '14px' }}>
+                                        No predictions available
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                                        {trendingBlogs.map((blog, index) => (
+                                            <div
+                                                key={blog.id}
+                                                onClick={() => navigate(`/blog/${blog.slug}`)}
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    padding: '16px 0',
+                                                    borderBottom: index < trendingBlogs.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor = '#f8f9fa';
+                                                    e.currentTarget.style.paddingLeft = '8px';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                                    e.currentTarget.style.paddingLeft = '0';
+                                                }}
+                                            >
+                                                <div style={{
+                                                    fontSize: '11px',
+                                                    fontWeight: '700',
+                                                    color: '#4169e1',
+                                                    marginBottom: '6px',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.5px'
+                                                }}>
+                                                    {blog.category || 'FOOTBALL'} • {formatDate(blog.published_at || blog.createdAt)}
+                                                </div>
+                                                <h3 style={{
+                                                    fontSize: '13px',
+                                                    fontWeight: '400',
+                                                    color: '#1a1a1a',
+                                                    margin: 0,
+                                                    lineHeight: '1.5',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 3,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden'
+                                                }}>
+                                                    {blog.title}
+                                                </h3>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </aside>
                     </div>
                 </article>
             </div>

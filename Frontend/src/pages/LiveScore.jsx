@@ -467,7 +467,24 @@ function LiveScore() {
                         ) : (
                             Object.values(groupedMatches)
                                 .sort((a, b) => {
-                                    // Sort by country and league name
+                                    // Create a map of league IDs to their priority order
+                                    // Convert to strings for comparison since IDs might be strings or numbers
+                                    const topLeagueIds = topLeagues.map(l => String(l.id));
+                                    const aIndex = topLeagueIds.indexOf(String(a.leagueId));
+                                    const bIndex = topLeagueIds.indexOf(String(b.leagueId));
+
+                                    // If both are top leagues, sort by their defined order
+                                    if (aIndex !== -1 && bIndex !== -1) {
+                                        return aIndex - bIndex;
+                                    }
+
+                                    // If only a is a top league, it comes first
+                                    if (aIndex !== -1) return -1;
+
+                                    // If only b is a top league, it comes first
+                                    if (bIndex !== -1) return 1;
+
+                                    // Neither are top leagues - sort alphabetically by country then league
                                     const countryCompare = a.country.localeCompare(b.country);
                                     if (countryCompare !== 0) return countryCompare;
                                     return a.league.localeCompare(b.league);

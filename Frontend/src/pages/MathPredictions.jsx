@@ -37,6 +37,15 @@ function MathPredictions() {
 
     // Prediction type tabs
     const predictionTabs = [
+        { label: 'Math', value: 'Math' },
+        { label: '1x2', value: '1x2' },
+        { label: 'Goals', value: 'Goals' },
+        { label: 'BTTS', value: 'BTTS' },
+        { label: 'HT/FT', value: 'HT/FT' },
+        { label: 'Asian Handicap', value: 'Asian Handicap' },
+        { label: 'Double chance', value: 'Double chance' },
+        { label: 'Corners', value: 'Corners' },
+        { label: 'Cards', value: 'Cards' }
     ];
 
     // Fetch predictions from API
@@ -77,14 +86,30 @@ function MathPredictions() {
 
             // Helper function to parse probability string to number
             const parseProb = (value) => {
-                const num = parseFloat(value);
-                return isNaN(num) ? 0 : parseFloat(num.toFixed(2));
+                if (!value) return 0;
+                let num = parseFloat(value);
+                if (isNaN(num)) return 0;
+
+                // API returns probabilities in decimal format (0.59 for 59%)
+                // Convert to percentage for consistency
+                if (num > 0 && num <= 1) {
+                    num = num * 100;
+                }
+
+                return parseFloat(num.toFixed(2));
             };
 
             // Helper function to calculate odds from probability
+            // Ratingbet.com uses a margin factor to account for bookmaker overround
             const calcOdds = (probability) => {
                 if (!probability || probability <= 0) return '-';
-                const odds = 100 / probability;
+                // Convert to decimal if percentage (59 -> 0.59)
+                const prob = probability > 1 ? probability / 100 : probability;
+                // Calculate fair odds
+                const fairOdds = 1 / prob;
+                // Apply bookmaker margin (~6% vig)
+                const marginFactor = 0.94;
+                const odds = fairOdds * marginFactor;
                 return odds.toFixed(2);
             };
 
@@ -262,7 +287,7 @@ function MathPredictions() {
         switch (type) {
             case '1x2':
                 return {
-                    template: '55px 200px 1fr',
+                    template: '80px 1fr 1fr',
                     show1x2: true,
                     showGoals: false,
                     showBTTS: false,
@@ -270,7 +295,7 @@ function MathPredictions() {
                 };
             case 'Goals':
                 return {
-                    template: '55px 200px 1fr',
+                    template: '80px 1fr 1fr',
                     show1x2: false,
                     showGoals: true,
                     showBTTS: false,
@@ -278,7 +303,7 @@ function MathPredictions() {
                 };
             case 'BTTS':
                 return {
-                    template: '55px 200px 1fr',
+                    template: '80px 1fr 1fr',
                     show1x2: false,
                     showGoals: false,
                     showBTTS: true,
@@ -287,7 +312,7 @@ function MathPredictions() {
             case 'Math':
             default:
                 return {
-                    template: '55px 200px 180px 120px 110px 1fr',
+                    template: '70px 240px 1fr 1fr 1fr 180px',
                     show1x2: true,
                     showGoals: true,
                     showBTTS: true,
@@ -471,16 +496,23 @@ function MathPredictions() {
 
 
 
+
                         {/* Table Header */}
                         <div
                             className="predictions-table-header"
                             style={{ gridTemplateColumns: columnConfig.template }}
                         >
                             <div>Time</div>
-                            <div>Game</div>
-                            {columnConfig.show1x2 && <div>1x2</div>}
-                            {columnConfig.showGoals && <div>Goals</div>}
-                            {columnConfig.showBTTS && <div>BTTS</div>}
+                            <div>Games</div>
+                            {columnConfig.show1x2 && <div className="header-with-subs">
+                                <div className="main-header">1x2</div>
+                            </div>}
+                            {columnConfig.showGoals && <div className="header-with-subs">
+                                <div className="main-header">Goals</div>
+                            </div>}
+                            {columnConfig.showBTTS && <div className="header-with-subs">
+                                <div className="main-header">BTTS</div>
+                            </div>}
                             {columnConfig.showBest && <div>Best Tip</div>}
                         </div>
 
@@ -503,8 +535,6 @@ function MathPredictions() {
                                                     transition: 'all 0.2s'
                                                 }}
                                                 onClick={() => handleMatchClick(match.id)}
-                                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.01)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                                             >
                                                 {/* Live Indicator */}
                                                 {match.isLive && (
@@ -574,7 +604,7 @@ function MathPredictions() {
                                                     </div>
                                                 </div>
 
-                                                {/* 1x2 Predictions */}
+                                                {/* 1x2 Predictions - Show all three */}
                                                 {columnConfig.show1x2 && (
                                                     <div className="prediction-boxes">
                                                         {match.predictions?.['1x2'] && (() => {
@@ -585,17 +615,7 @@ function MathPredictions() {
                                                                     <div className={`pred-box ${w1.prob === maxProb ? 'highlighted' : ''}`}>
                                                                         <div className="pred-label">W1</div>
                                                                         <div className="pred-odds">{formatOdds(w1.odds)}</div>
-                                                                        <div className="pred-prob">{w1.prob}%</div>
-                                                                    </div>
-                                                                    <div className={`pred-box ${draw.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                        <div className="pred-label">X</div>
-                                                                        <div className="pred-odds">{formatOdds(draw.odds)}</div>
-                                                                        <div className="pred-prob">{draw.prob}%</div>
-                                                                    </div>
-                                                                    <div className={`pred-box ${w2.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                        <div className="pred-label">W2</div>
-                                                                        <div className="pred-odds">{formatOdds(w2.odds)}</div>
-                                                                        <div className="pred-prob">{w2.prob}%</div>
+                                                                        <div className="pred-prob">{Math.round(w1.prob)}%</div>
                                                                     </div>
                                                                 </>
                                                             );
@@ -603,7 +623,7 @@ function MathPredictions() {
                                                     </div>
                                                 )}
 
-                                                {/* Goals */}
+                                                {/* Goals - Show all three */}
                                                 {columnConfig.showGoals && (
                                                     <div className="prediction-boxes">
                                                         {match.predictions?.goals && (() => {
@@ -611,15 +631,10 @@ function MathPredictions() {
                                                             const maxProb = Math.max(over.prob, under.prob);
                                                             return (
                                                                 <>
-                                                                    <div className={`pred-box ${under.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                        <div className="pred-label">U 2.5</div>
-                                                                        <div className="pred-odds">{formatOdds(under.odds)}</div>
-                                                                        <div className="pred-prob">{under.prob}%</div>
-                                                                    </div>
                                                                     <div className={`pred-box ${over.prob === maxProb ? 'highlighted' : ''}`}>
                                                                         <div className="pred-label">O 2.5</div>
                                                                         <div className="pred-odds">{formatOdds(over.odds)}</div>
-                                                                        <div className="pred-prob">{over.prob}%</div>
+                                                                        <div className="pred-prob">{Math.round(over.prob)}%</div>
                                                                     </div>
                                                                 </>
                                                             );
@@ -627,7 +642,7 @@ function MathPredictions() {
                                                     </div>
                                                 )}
 
-                                                {/* BTTS */}
+                                                {/* BTTS - Show all three */}
                                                 {columnConfig.showBTTS && (
                                                     <div className="prediction-boxes">
                                                         {match.predictions?.btts && (() => {
@@ -635,16 +650,19 @@ function MathPredictions() {
                                                             const maxProb = Math.max(yes.prob, no.prob);
                                                             return (
                                                                 <>
-                                                                    <div className={`pred-box ${yes.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                        <div className="pred-label">Yes</div>
-                                                                        <div className="pred-odds">{formatOdds(yes.odds)}</div>
-                                                                        <div className="pred-prob">{yes.prob}%</div>
-                                                                    </div>
-                                                                    <div className={`pred-box ${no.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                        <div className="pred-label">No</div>
-                                                                        <div className="pred-odds">{formatOdds(no.odds)}</div>
-                                                                        <div className="pred-prob">{no.prob}%</div>
-                                                                    </div>
+                                                                    {yes.prob ? (
+                                                                        <div className={`pred-box ${yes.prob === maxProb ? 'highlighted' : ''}`}>
+                                                                            <div className="pred-label">Yes</div>
+                                                                            <div className="pred-odds">{formatOdds(yes.odds)}</div>
+                                                                            <div className="pred-prob">{Math.round(yes.prob)}%</div>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className={`pred-box ${no.prob === maxProb ? 'highlighted' : ''}`}>
+                                                                            <div className="pred-label">No</div>
+                                                                            <div className="pred-odds">{formatOdds(no.odds)}</div>
+                                                                            <div className="pred-prob">{Math.round(no.prob)}%</div>
+                                                                        </div>
+                                                                    )}
                                                                 </>
                                                             );
                                                         })()}
@@ -654,18 +672,53 @@ function MathPredictions() {
                                                 {/* Best Tip */}
                                                 {columnConfig.showBest && (
                                                     <div className="td-best">
-                                                        {match.predictions?.bestTip && (
-                                                            <div className="best-tip-card">
-                                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                                    <div><div className="best-tip-type">{match.predictions.bestTip.type}</div>
+                                                        {match.predictions?.bestTip && (() => {
+                                                            const { type, probability, odds } = match.predictions.bestTip;
+                                                            // Parse the type to get category and value
+                                                            let category = '';
+                                                            let value = '';
+                                                            let valueColor = '#ef4444'; // red for goals
+
+                                                            if (type.includes('Home Win')) {
+                                                                category = '1X2 :';
+                                                                value = 'W1';
+                                                                valueColor = '#4db8a4'; // teal
+                                                            } else if (type.includes('Away Win')) {
+                                                                category = '1X2 :';
+                                                                value = 'W2';
+                                                                valueColor = '#4db8a4'; // teal
+                                                            } else if (type.includes('Draw')) {
+                                                                category = '1X2 :';
+                                                                value = 'X';
+                                                                valueColor = '#4db8a4'; // teal
+                                                            } else if (type.includes('Over')) {
+                                                                category = 'Goals :';
+                                                                value = 'O2.5';
+                                                                valueColor = '#ef4444'; // red
+                                                            } else if (type.includes('Under')) {
+                                                                category = 'Goals :';
+                                                                value = 'U 2.5';
+                                                                valueColor = '#ef4444'; // red
+                                                            } else if (type.includes('BTTS')) {
+                                                                category = 'BTTS :';
+                                                                value = 'Yes';
+                                                                valueColor = '#8b5cf6'; // purple
+                                                            }
+
+                                                            return (
+                                                                <div className="best-tip-card">
+                                                                    <div>
+                                                                        <div className="best-tip-type">
+                                                                            {category} <span style={{ color: valueColor }}>{value}</span>
+                                                                        </div>
                                                                         <div className="best-tip-probability">
-                                                                            <span>Win Rate:</span>
-                                                                            <span>{match.predictions.bestTip.probability}%</span>
-                                                                        </div></div>
-                                                                    <div className="best-tip-odds">{formatOdds(match.predictions.bestTip.odds)}</div>
+                                                                            Probability {Math.round(probability)}%
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="best-tip-odds">{formatOdds(odds)}</div>
                                                                 </div>
-                                                            </div>
-                                                        )}
+                                                            );
+                                                        })()}
                                                     </div>
                                                 )}
                                             </div>

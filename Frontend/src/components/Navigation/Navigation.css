@@ -321,6 +321,17 @@
     .header-logo-desktop {
         display: block !important;
     }
+
+    .desktop-nav-buttons {
+        display: flex !important;
+    }
+}
+
+/* Hide desktop nav buttons on mobile */
+@media screen and (max-width: 1074px) {
+    .desktop-nav-buttons {
+        display: none !important;
+    }
 }
 
 /* Very small mobile screens */
@@ -412,30 +423,17 @@ body.mobile-menu-open {
 
 /* Trigger Button */
 .custom-translate-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     background: rgba(255, 255, 255, 0.08);
     /* Dark glass effect */
     border: 1px solid rgba(255, 255, 255, 0.15);
     color: #fff;
-    padding: 8px;
-    border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-    min-width: 130px;
-    /* Consistent width */
-    justify-content: space-evenly;
 }
 
-.custom-translate-btn:hover,
-.custom-translate-btn.active {
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-}
+
 
 .lang-flag {
     font-size: 16px;
@@ -541,7 +539,7 @@ body.mobile-menu-open {
 
     .custom-translate-btn {
         width: 100%;
-        padding: 8px 16px;
+        /* padding: 8px 16px; */
         background: rgba(255, 255, 255, 0.05);
         /* Slightly darker on mobile menu */
     }

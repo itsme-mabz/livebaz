@@ -18,6 +18,41 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
     Password: "",
     confirmPassword: "",
   });
+  const [validationErrors, setValidationErrors] = useState({
+    Name: "",
+    Email: "",
+    Password: "",
+    confirmPassword: "",
+  });
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    minLength: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSpecial: false,
+  });
+
+  // Validation functions
+  const validatePassword = (password) => {
+    const requirements = {
+      minLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
+    setPasswordRequirements(requirements);
+    return Object.values(requirements).every(Boolean);
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateUsername = (name) => {
+    return /^[a-zA-Z0-9]+$/.test(name);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,9 +60,91 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
       ...prevData,
       [name]: value,
     }));
-    // Clear errors when user types
+
+    // Clear global errors when user types
     setError("");
     setSuccess("");
+
+    // Real-time validation for registration mode
+    if (mode === "signup") {
+      const errors = { ...validationErrors };
+
+      switch (name) {
+        case "Name":
+          if (!value) {
+            errors.Name = "Username is required";
+          } else if (!validateUsername(value)) {
+            errors.Name = "Username must be alphanumeric only";
+          } else {
+            errors.Name = "";
+          }
+          break;
+
+        case "Email":
+          if (!value) {
+            errors.Email = "Email is required";
+          } else if (!validateEmail(value)) {
+            errors.Email = "Invalid email format";
+          } else {
+            errors.Email = "";
+          }
+          break;
+
+        case "Password":
+          validatePassword(value);
+          if (!value) {
+            errors.Password = "Password is required";
+          } else if (!validatePassword(value)) {
+            errors.Password = "Password does not meet requirements";
+          } else {
+            errors.Password = "";
+          }
+          // Also check confirm password match if it exists
+          if (formData.confirmPassword) {
+            if (value !== formData.confirmPassword) {
+              errors.confirmPassword = "Passwords do not match";
+            } else {
+              errors.confirmPassword = "";
+            }
+          }
+          break;
+
+        case "confirmPassword":
+          if (!value) {
+            errors.confirmPassword = "Please confirm your password";
+          } else if (value !== formData.Password) {
+            errors.confirmPassword = "Passwords do not match";
+          } else {
+            errors.confirmPassword = "";
+          }
+          break;
+
+        default:
+          break;
+      }
+
+      setValidationErrors(errors);
+    }
+  };
+
+  // Check if registration form is valid
+  const isRegistrationFormValid = () => {
+    return (
+      formData.Name &&
+      formData.Email &&
+      formData.Password &&
+      formData.confirmPassword &&
+      !validationErrors.Name &&
+      !validationErrors.Email &&
+      !validationErrors.Password &&
+      !validationErrors.confirmPassword &&
+      passwordRequirements.minLength &&
+      passwordRequirements.hasUppercase &&
+      passwordRequirements.hasLowercase &&
+      passwordRequirements.hasNumber &&
+      passwordRequirements.hasSpecial &&
+      formData.Password === formData.confirmPassword
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -35,19 +152,9 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
     setError("");
     setSuccess("");
 
-    // Validation
-    if (!formData.Name || !formData.Email || !formData.Password || !formData.confirmPassword) {
-      setError("All fields are required");
-      return;
-    }
-
-    if (formData.Password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    if (formData.Password.length < 6) {
-      setError("Password must be at least 6 characters");
+    // Final validation check
+    if (!isRegistrationFormValid()) {
+      setError("Please fix all validation errors before submitting");
       return;
     }
 
@@ -180,6 +287,19 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
       Password: "",
       confirmPassword: "",
     });
+    setValidationErrors({
+      Name: "",
+      Email: "",
+      Password: "",
+      confirmPassword: "",
+    });
+    setPasswordRequirements({
+      minLength: false,
+      hasUppercase: false,
+      hasLowercase: false,
+      hasNumber: false,
+      hasSpecial: false,
+    });
   };
 
   const switchToLogin = () => {
@@ -191,6 +311,19 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
       Email: "",
       Password: "",
       confirmPassword: "",
+    });
+    setValidationErrors({
+      Name: "",
+      Email: "",
+      Password: "",
+      confirmPassword: "",
+    });
+    setPasswordRequirements({
+      minLength: false,
+      hasUppercase: false,
+      hasLowercase: false,
+      hasNumber: false,
+      hasSpecial: false,
     });
   };
 
@@ -373,6 +506,11 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   disabled={loading}
                 />
               </div>
+              {validationErrors.Name && (
+                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                  {validationErrors.Name}
+                </div>
+              )}
             </div>
 
             <div className="auth-input-group">
@@ -406,6 +544,11 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   disabled={loading}
                 />
               </div>
+              {validationErrors.Email && (
+                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                  {validationErrors.Email}
+                </div>
+              )}
             </div>
 
             <div className="auth-input-group">
@@ -468,6 +611,30 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   )}
                 </button>
               </div>
+              {formData.Password && (
+                <div style={{ marginTop: '8px', fontSize: '11px' }}>
+                  <div style={{ marginBottom: '4px', color: '#6b7280', fontWeight: '500' }}>
+                    Password must contain:
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ color: passwordRequirements.minLength ? '#10b981' : '#9ca3af' }}>
+                      {passwordRequirements.minLength ? '✓' : '○'} At least 8 characters
+                    </div>
+                    <div style={{ color: passwordRequirements.hasUppercase ? '#10b981' : '#9ca3af' }}>
+                      {passwordRequirements.hasUppercase ? '✓' : '○'} One uppercase letter
+                    </div>
+                    <div style={{ color: passwordRequirements.hasLowercase ? '#10b981' : '#9ca3af' }}>
+                      {passwordRequirements.hasLowercase ? '✓' : '○'} One lowercase letter
+                    </div>
+                    <div style={{ color: passwordRequirements.hasNumber ? '#10b981' : '#9ca3af' }}>
+                      {passwordRequirements.hasNumber ? '✓' : '○'} One number
+                    </div>
+                    <div style={{ color: passwordRequirements.hasSpecial ? '#10b981' : '#9ca3af' }}>
+                      {passwordRequirements.hasSpecial ? '✓' : '○'} One special character
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="auth-input-group">
@@ -530,12 +697,21 @@ function AuthModal({ isOpen, onClose, initialMode = "login" }) {
                   )}
                 </button>
               </div>
+              {validationErrors.confirmPassword && (
+                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                  {validationErrors.confirmPassword}
+                </div>
+              )}
             </div>
 
             <button
               className="auth-submit-btn"
               onClick={handleSubmit}
-              disabled={loading}
+              disabled={loading || !isRegistrationFormValid()}
+              style={{
+                opacity: loading || !isRegistrationFormValid() ? 0.6 : 1,
+                cursor: loading || !isRegistrationFormValid() ? 'not-allowed' : 'pointer'
+              }}
             >
               {loading ? <LoadingSpinner size="small" /> : "Sign up"}
             </button>

@@ -340,7 +340,9 @@
     justify-content: center;
     gap: 10px;
     border-radius: 0px 0px 30px 30px;
-    width: 60%;
+    width: fit-content;
+    min-width: 60%;
+    max-width: 95%;
     margin: 0 auto 30px auto;
     margin-top: -20px;
     position: sticky;
@@ -557,11 +559,17 @@
     position: relative;
     width: 100%;
     min-height: 600px;
-    background: linear-gradient(180deg, #1e8449 0%, #27ae60 50%, #1e8449 100%);
+    background:
+        repeating-linear-gradient(90deg,
+            #2d9a5a 0px,
+            #2d9a5a 50px,
+            #34a862 50px,
+            #34a862 100px);
     border-radius: 12px;
     overflow: hidden;
     display: flex;
     box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
+    border: 4px solid #fff;
 }
 
 .field-half {
@@ -572,6 +580,51 @@
 
 .home-half {
     border-right: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Goal areas */
+.home-half::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 30%;
+    width: 60px;
+    height: 40%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-left: none;
+}
+
+.home-half::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 40%;
+    width: 30px;
+    height: 20%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-left: none;
+}
+
+.away-half::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 30%;
+    width: 60px;
+    height: 40%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-right: none;
+}
+
+.away-half::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 40%;
+    width: 30px;
+    height: 20%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-right: none;
 }
 
 /* Field Markings */
@@ -613,42 +666,21 @@
     z-index: 20;
 }
 
-/* Positioning by role */
-.goalkeeper {
-    left: 10%;
+/* Positioning by role - positions are now set inline via JavaScript */
+.goalkeeper .player-avatar {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
 }
 
-.defender {
-    left: 25%;
+.defender .player-avatar {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
 }
 
-.midfielder {
-    left: 50%;
+.midfielder .player-avatar {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
 }
 
-.forward {
-    left: 75%;
-}
-
-/* Away team mirrored positions */
-.away-half .goalkeeper {
-    left: auto;
-    right: 10%;
-}
-
-.away-half .defender {
-    left: auto;
-    right: 25%;
-}
-
-.away-half .midfielder {
-    left: auto;
-    right: 50%;
-}
-
-.away-half .forward {
-    left: auto;
-    right: 75%;
+.forward .player-avatar {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
 }
 
 /* Player Avatar */
@@ -663,6 +695,14 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     border: 3px solid white;
     position: relative;
+    overflow: hidden;
+}
+
+.player-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .player-jersey-number {
@@ -670,6 +710,11 @@
     font-weight: 900;
     color: white;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
 }
 
 .player-field-name {
@@ -765,10 +810,12 @@
 .predictions-section {
     background: white;
     border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
     scroll-margin-top: 100px;
+}
+
+.predictions-section.match-detail {
+    padding: 20px;
 }
 
 .odds-section {
@@ -1506,5 +1553,665 @@ td {
     .stat-val {
         width: 35px;
         font-size: 11px;
+    }
+}
+
+/* Timeline Section - New Interactive Design */
+.timeline-section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    scroll-margin-top: 100px;
+}
+
+/* Timeline Button in Navigation */
+.timeline-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.timeline-btn svg {
+    flex-shrink: 0;
+}
+
+/* Timeline Modal Popup */
+.timeline-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.timeline-modal {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.timeline-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 30px;
+    background: #f8f9fa;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.timeline-modal-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #121212;
+    margin: 0;
+}
+
+.timeline-close-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    background-color: #121212e3;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.timeline-modal-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 0 0 16px 16px;
+}
+
+/* Custom Scrollbar for Modal */
+.timeline-modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.timeline-modal-content::-webkit-scrollbar-track {
+    background: #f5f5f5;
+}
+
+.timeline-modal-content::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.timeline-modal-content::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+.timeline-container-new {
+    position: relative;
+    padding: 30px 0;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, #4169e1 0%, #e0e0e0 50%, #4169e1 100%);
+    transform: translateX(-50%);
+    border-radius: 10px;
+}
+
+.timeline-event-new {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    position: relative;
+    gap: 20px;
+}
+
+.timeline-event-new.home {
+    justify-content: flex-end;
+}
+
+.timeline-event-new.away {
+    justify-content: flex-start;
+}
+
+.event-time-badge {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #4169e1;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+    box-shadow: 0 2px 8px rgba(65, 105, 225, 0.3);
+    z-index: 3;
+    white-space: nowrap;
+}
+
+.event-content-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: 45%;
+    width: 100%;
+}
+
+.timeline-event-new.home .event-content-wrapper {
+    flex-direction: row-reverse;
+}
+
+.event-icon-new {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 2;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.timeline-event-new:hover .event-icon-new {
+    transform: scale(1.1);
+    border-color: #4169e1;
+    box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
+}
+
+.event-icon-new svg {
+    color: #121212;
+}
+
+.event-details-new {
+    flex: 1;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.timeline-event-new:hover .event-details-new {
+    background: #ffffff;
+    border-color: #4169e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.event-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.event-team-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.event-type-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.event-score {
+    font-weight: 800;
+    color: #e53935;
+    font-size: 16px;
+    margin-left: auto;
+}
+
+.event-player-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.player-name-new {
+    font-size: 15px;
+    font-weight: 700;
+    color: #121212;
+}
+
+.assist-info {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Substitution Styles */
+.sub-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sub-player {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    padding: 6px 0;
+}
+
+.sub-player.out {
+    color: #e53935;
+}
+
+.sub-player.in {
+    color: #00bfa5;
+}
+
+.sub-player span {
+    color: #121212;
+    font-weight: 600;
+}
+
+.sub-player svg {
+    flex-shrink: 0;
+}
+
+/* Floating Commentary Chat Box (LinkedIn Style) */
+.commentary-chatbox {
+    position: fixed;
+    bottom: 0px;
+    right: 20px;
+    width: 360px;
+    max-width: calc(100vw - 40px);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #e0e0e0;
+}
+
+.commentary-chatbox:not(.open) {
+    height: 56px;
+}
+
+.commentary-chatbox.open {
+    height: 500px;
+    max-height: calc(100vh - 100px);
+}
+
+.chatbox-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: #212121;
+    border-radius: 12px 12px 0 0;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+}
+
+.chatbox-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.chatbox-title svg {
+    flex-shrink: 0;
+}
+
+.comment-count {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: center;
+}
+
+.chatbox-toggle {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.chatbox-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.chatbox-content {
+    height: calc(100% - 56px);
+    overflow-y: auto;
+    padding: 0;
+    background: #f8f9fa;
+}
+
+/* Custom Scrollbar for Chat Box */
+.chatbox-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chatbox-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.chatbox-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.chatbox-content::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.commentary-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+}
+
+.commentary-message {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border-left: 3px solid #4169e1;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.commentary-message:hover {
+    transform: translateX(2px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.message-time {
+    font-weight: 700;
+    color: #4169e1;
+    font-size: 13px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.message-time::before {
+    content: '⚽';
+    font-size: 12px;
+}
+
+.message-text {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+}
+
+.no-commentary {
+    padding: 40px 20px;
+    text-align: center;
+    color: #999;
+    font-size: 14px;
+}
+
+/* Match Info Extra */
+.match-info-extra {
+    margin-bottom: 20px;
+}
+
+.info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 30px;
+    display: flex;
+    gap: 40px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-item .label {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.info-item .value {
+    font-size: 15px;
+    color: #333;
+    font-weight: 700;
+}
+
+/* Player Stats Table */
+.player-stats-table {
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.player-stats-table th {
+    background: #f8f9fa;
+    padding: 12px;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.player-stats-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: center;
+    font-size: 14px;
+}
+
+.team-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.team-indicator.home {
+    background: #000;
+}
+
+.team-indicator.away {
+    background: #4169e1;
+}
+
+.rating-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    color: white;
+    font-size: 12px;
+}
+
+.rating-badge.high {
+    background: #00bfa5;
+}
+
+.rating-badge.mid {
+    background: #fdd835;
+    color: #000;
+}
+
+.rating-badge.low {
+    background: #e53935;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .match-tabs-nav {
+        width: 100%;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 10px;
+    }
+
+    .nav-tab {
+        padding: 8px 16px;
+        white-space: nowrap;
+    }
+
+    /* New Timeline - Mobile */
+    .timeline-line {
+        left: 30px;
+    }
+
+    .event-time-badge {
+        left: 30px;
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    .timeline-event-new.home,
+    .timeline-event-new.away {
+        justify-content: flex-start;
+    }
+
+    .timeline-event-new.home .event-content-wrapper {
+        flex-direction: row;
+    }
+
+    .event-content-wrapper {
+        max-width: 100%;
+        padding-left: 70px;
+    }
+
+    .event-details-new {
+        padding: 12px;
+    }
+
+    .event-team-logo {
+        width: 20px;
+        height: 20px;
+    }
+
+    .event-type-label {
+        font-size: 11px;
+    }
+
+    .player-name-new {
+        font-size: 14px;
+    }
+
+    .assist-info {
+        font-size: 12px;
+    }
+
+
+    /* Timeline Modal - Mobile */
+    .timeline-modal {
+        max-width: 100%;
+        max-height: 95vh;
+        margin: 10px;
+    }
+
+    .timeline-modal-header {
+        padding: 16px 20px;
+    }
+
+    .timeline-modal-header h2 {
+        font-size: 18px;
+    }
+
+    .timeline-modal-content {
+        padding: 20px;
+    }
+
+    /* Floating Commentary Chat Box - Mobile */
+    .commentary-chatbox {
+        bottom: 10px;
+        right: 10px;
+        width: calc(100vw - 20px);
+        max-width: calc(100vw - 20px);
+    }
+
+    .commentary-chatbox.open {
+        height: 450px;
+        max-height: calc(100vh - 80px);
+    }
+
+    .chatbox-header {
+        padding: 14px 16px;
+    }
+
+    .chatbox-title {
+        font-size: 14px;
+    }
+
+    .chatbox-title svg {
+        width: 18px;
+        height: 18px;
     }
 }

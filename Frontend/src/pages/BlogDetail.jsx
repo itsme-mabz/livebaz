@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { fetchBlogBySlug, fetchTrendingBlogs } from '../Service/BlogService';
+import { fetchBlogBySlug, fetchTrendingBlogs, fetchComments, postComment, deleteComment } from '../Service/BlogService';
+import AuthModal from '../components/AuthModal/AuthModal';
 
 function BlogDetail() {
   const { slug } = useParams();
@@ -9,6 +10,12 @@ function BlogDetail() {
   const [latestBlogs, setLatestBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
 
   // Icon components
   const EyeIcon = ({ size = 16 }) => (
@@ -26,7 +33,37 @@ function BlogDetail() {
 
   useEffect(() => {
     loadBlogData();
+    loadUser();
   }, [slug]);
+
+  const loadUser = () => {
+    // Check if user is logged in
+    const token = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('user');
+    if (token && userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (e) {
+        setUser(null);
+      }
+    }
+  };
+
+  const openLoginModal = () => {
+    setAuthMode('login');
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+    // Reload user data after modal closes (in case they logged in)
+    setTimeout(() => {
+      loadUser();
+      if (blog?.id) {
+        fetchComments(blog.id).then(setComments);
+      }
+    }, 500);
+  };
 
   const loadBlogData = async () => {
     try {
@@ -40,11 +77,59 @@ function BlogDetail() {
       // Fetch latest blogs for sidebar
       const latest = await fetchTrendingBlogs(8);
       setLatestBlogs(latest);
+
+      // Fetch comments
+      if (blogData.id) {
+        const commentsData = await fetchComments(blogData.id);
+        setComments(commentsData);
+      }
     } catch (err) {
       console.error('Error loading blog:', err);
       setError('Failed to load blog. It may have been removed or the URL is incorrect.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!user) {
+      openLoginModal();
+      return;
+    }
+
+    if (!commentText.trim()) {
+      alert('Please enter a comment');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const token = localStorage.getItem('authToken');
+      const newComment = await postComment(blog.id, { content: commentText }, token);
+      setComments([newComment, ...comments]);
+      setCommentText('');
+    } catch (err) {
+      console.error('Error posting comment:', err);
+      alert(err.message || 'Failed to post comment. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!confirm('Are you sure you want to delete this comment?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('authToken');
+      await deleteComment(blog.id, commentId, token);
+      setComments(comments.filter(c => c.id !== commentId));
+    } catch (err) {
+      console.error('Error deleting comment:', err);
+      alert('Failed to delete comment. Please try again.');
     }
   };
 
@@ -400,6 +485,189 @@ function BlogDetail() {
               </div>
             </div>
           )}
+
+          {/* Comments Section */}
+          <div style={{
+            background: '#fff',
+            padding: '30px',
+            borderRadius: '12px',
+            marginBottom: '20px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+          }}>
+            <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#1a1a1a', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #ffc107' }}>
+              Comments ({comments.length})
+            </h3>
+
+            {/* Comment Form */}
+            {user ? (
+              <form onSubmit={handleCommentSubmit} style={{ marginBottom: '30px' }}>
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                  <div style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '50%',
+                    background: '#ffc107',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#000',
+                    fontWeight: '700',
+                    fontSize: '18px',
+                    flexShrink: 0
+                  }}>
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <textarea
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Share your thoughts..."
+                      disabled={submitting}
+                      style={{
+                        width: '100%',
+                        minHeight: '100px',
+                        padding: '12px 16px',
+                        border: '2px solid #e0e0e0',
+                        borderRadius: '8px',
+                        fontSize: '15px',
+                        color: '#333',
+                        resize: 'vertical',
+                        fontFamily: 'inherit',
+                        transition: 'border-color 0.2s'
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = '#ffc107'}
+                      onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+                      <button
+                        type="submit"
+                        disabled={submitting || !commentText.trim()}
+                        style={{
+                          padding: '10px 24px',
+                          background: submitting || !commentText.trim() ? '#ccc' : '#ffc107',
+                          border: 'none',
+                          borderRadius: '6px',
+                          color: '#000',
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          cursor: submitting || !commentText.trim() ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {submitting ? 'Posting...' : 'Post Comment'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <div style={{
+                padding: '20px',
+                background: '#f8f9fa',
+                borderRadius: '8px',
+                marginBottom: '30px',
+                textAlign: 'center',
+                border: '1px dashed #e0e0e0'
+              }}>
+                <p style={{ color: '#666', marginBottom: '12px' }}>Please log in to leave a comment</p>
+                <button
+                  onClick={openLoginModal}
+                  style={{
+                    padding: '10px 24px',
+                    background: '#ffc107',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#000',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Log In
+                </button>
+              </div>
+            )}
+
+            {/* Comments List */}
+            {comments.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ margin: '0 auto 16px' }}>
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <p style={{ fontSize: '16px' }}>No comments yet. Be the first to share your thoughts!</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {comments.map((comment) => (
+                  <div key={comment.id} style={{
+                    padding: '16px',
+                    background: '#f8f9fa',
+                    borderRadius: '8px',
+                    border: '1px solid #e8e8e8'
+                  }}>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <div style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '50%',
+                        background: '#ffc107',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#000',
+                        fontWeight: '700',
+                        fontSize: '18px',
+                        flexShrink: 0
+                      }}>
+                        {(comment.user_name || comment.user?.name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                          <div>
+                            <div style={{ fontWeight: '600', color: '#1a1a1a', marginBottom: '2px' }}>
+                              {comment.user_name || comment.user?.name || 'Anonymous'}
+                            </div>
+                            <div style={{ fontSize: '13px', color: '#999' }}>
+                              {formatDate(comment.created_at || comment.createdAt)}
+                            </div>
+                          </div>
+                          {user && (user.id === comment.user_id || user.role === 'admin') && (
+                            <button
+                              onClick={() => handleDeleteComment(comment.id)}
+                              style={{
+                                padding: '4px 10px',
+                                background: 'transparent',
+                                border: '1px solid #ef4444',
+                                borderRadius: '4px',
+                                color: '#ef4444',
+                                fontSize: '12px',
+                                cursor: 'pointer',
+                                fontWeight: '600',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.background = '#ef4444';
+                                e.target.style.color = '#fff';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.background = 'transparent';
+                                e.target.style.color = '#ef4444';
+                              }}
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                        <p style={{ color: '#333', lineHeight: '1.6', margin: 0, fontSize: '15px' }}>
+                          {comment.content}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Sidebar - Latest Predictions */}
@@ -501,6 +769,12 @@ function BlogDetail() {
           }
         }
       `}</style>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        initialMode={authMode}
+      />
     </div>
   );
 }

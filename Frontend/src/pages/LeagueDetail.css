@@ -141,7 +141,6 @@
     background: white;
     border-radius: 12px;
     padding: 30px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .section-title {
@@ -389,7 +388,7 @@
 .pred-value {
     padding: 10px 12px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     color: #666;
     border: 2px solid #e0e0e0;

@@ -202,6 +202,70 @@ export const fetchAllBlogsAdmin = async (filters = {}, token) => {
   }
 };
 
+// Fetch comments for a blog
+export const fetchComments = async (blogId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/blogs/${blogId}/comments`);
+    const data = await response.json();
+
+    if (data.success) {
+      return data.data;
+    }
+    throw new Error(data.message || 'Failed to fetch comments');
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    return [];
+  }
+};
+
+// Post a comment
+export const postComment = async (blogId, commentData, token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/blogs/${blogId}/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include',
+      body: JSON.stringify(commentData)
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      return data.data;
+    }
+    throw new Error(data.message || 'Failed to post comment');
+  } catch (error) {
+    console.error('Error posting comment:', error);
+    throw error;
+  }
+};
+
+// Delete a comment
+export const deleteComment = async (blogId, commentId, token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/blogs/${blogId}/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      return data;
+    }
+    throw new Error(data.message || 'Failed to delete comment');
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    throw error;
+  }
+};
+
 export default {
   fetchBlogs,
   fetchBlogBySlug,
@@ -211,5 +275,8 @@ export default {
   createBlog,
   updateBlog,
   deleteBlog,
-  fetchAllBlogsAdmin
+  fetchAllBlogsAdmin,
+  fetchComments,
+  postComment,
+  deleteComment
 };
