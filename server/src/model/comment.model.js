@@ -13,7 +13,7 @@ const Comment = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Blogs',
+        model: 'blogs',
         key: 'id'
       },
       onDelete: 'CASCADE'
