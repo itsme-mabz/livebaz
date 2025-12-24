@@ -43,13 +43,13 @@ app.use("/api/v1/match", matchRoutes);
 
 app.use("/api/v1/predictions", predictionsRoutes);
 
+app.use("/api/v1/admin", blogAdminRoutes); // Priority (Blog Admin)
+
 app.use("/api/v1/admin", adminRoutes);
 
 app.use("/api/v1/public", publicRoutes);
 
 app.use("/api/v1", blogRoutes);
-
-app.use("/api/v1/admin", blogAdminRoutes);
 
 // Error Middleware (must be last)
 const errorMiddleware = require("./middleware/error.middleware");
