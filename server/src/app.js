@@ -3,6 +3,13 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 
+// DEBUG: Log all requests - moved to top
+app.use((req, res, next) => {
+  console.log(`[DEBUG_LOG] ${req.method} ${req.url}`);
+  next();
+});
+
+
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -15,11 +22,7 @@ app.use(
 app.use(express.json({ limit: "50mb" })); // parse JSON with size limit
 app.use(express.urlencoded({ extended: true, limit: "50mb" })); // parse URL-encoded data
 
-// DEBUG: Log all requests
-app.use((req, res, next) => {
-  console.log(`[DEBUG_LOG] ${req.method} ${req.url}`);
-  next();
-});
+
 
 // Import Routes
 
