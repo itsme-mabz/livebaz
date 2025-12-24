@@ -58,4 +58,9 @@ app.use("/api/v1", blogRoutes);
 const errorMiddleware = require("./middleware/error.middleware");
 app.use(errorMiddleware);
 
+// Custom 404 Handler for Debugging
+app.use((req, res) => {
+  res.status(404).send(`MY_CUSTOM_404: Route ${req.originalUrl || req.url} not found on server port ${process.env.PORT}`);
+});
+
 module.exports = app;
