@@ -345,7 +345,7 @@ function LiveScore() {
                 <span>Live Score</span>
             </div>
 
-            <div className="livescore-container wrap">
+            <div className="livescore-container wrap" style={{ direction: 'ltr' }}>
                 {/* Sidebar */}
                 <aside className="livescore-sidebar">
                     <div className="sidebar-header">

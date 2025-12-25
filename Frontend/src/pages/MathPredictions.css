@@ -47,6 +47,11 @@
     display: grid;
     grid-template-columns: 240px 1fr;
     gap: 20px;
+    direction: ltr !important;
+}
+
+.content-grid>* {
+    direction: initial !important;
 }
 
 /* Filters Sidebar */
@@ -56,6 +61,7 @@
     padding: 18px;
     height: fit-content;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    grid-column: 1 !important;
 }
 
 .filters-header {
@@ -212,6 +218,7 @@
     border-radius: 6px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     overflow: hidden;
+    grid-column: 2 !important;
 }
 
 /* Page Header */

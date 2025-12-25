@@ -365,7 +365,7 @@ function BlogDetail() {
           </div>
 
           {/* Tags */}
-          {blog.tags && blog.tags.length > 0 && (
+          {blog.tags && (Array.isArray(blog.tags) ? blog.tags.length > 0 : typeof blog.tags === 'string' && blog.tags.length > 0) && (
             <div style={{
               background: '#fff',
               padding: '20px',
@@ -375,9 +375,13 @@ function BlogDetail() {
             }}>
               <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1a1a', marginBottom: '12px' }}>Tags:</h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {blog.tags.map((tag, index) => (
+                {(Array.isArray(blog.tags)
+                  ? blog.tags
+                  : (typeof blog.tags === 'string' ? blog.tags.split(',').map(t => t.trim()) : [])
+                ).map((tag, index) => (
                   <span
                     key={index}
+                    onClick={() => navigate(`/blogs?tag=${tag}`)}
                     style={{
                       padding: '6px 14px',
                       background: '#f8f9fa',
@@ -385,7 +389,18 @@ function BlogDetail() {
                       borderRadius: '20px',
                       fontSize: '14px',
                       color: '#555',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#ffc107';
+                      e.target.style.color = '#000';
+                      e.target.style.borderColor = '#ffc107';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = '#f8f9fa';
+                      e.target.style.color = '#555';
+                      e.target.style.borderColor = '#e0e0e0';
                     }}
                   >
                     {tag}

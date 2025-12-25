@@ -93,7 +93,7 @@ function BlogAdmin() {
       excerpt: blog.excerpt || '',
       category: blog.category || '',
       featured_image: blog.featured_image || '',
-      tags: blog.tags ? blog.tags.join(', ') : '',
+      tags: blog.tags ? (Array.isArray(blog.tags) ? blog.tags.join(', ') : blog.tags) : '',
       is_published: blog.is_published,
       priority: blog.priority || 0
     });

@@ -66,7 +66,7 @@ function Leagues() {
                         </span>
                     </div>
                     <article>
-                        <div className="container container_70x30">
+                        <div className="container container_70x30" style={{ direction: 'ltr' }}>
                             <div className="container-main">
                                 <section className="leagues">
                                     <h1 className=" page-titleleagues">Football Competitions</h1>

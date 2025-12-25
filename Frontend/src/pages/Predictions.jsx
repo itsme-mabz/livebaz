@@ -218,7 +218,7 @@ function Predictions() {
                     </span>
                 </div>
                 <article>
-                    <div className="container container_70x30">
+                    <div className="container container_70x30" style={{ direction: 'ltr' }}>
                         <div className="container-main">
                             <section className="forecasts forecast-small">
                                 <h1 className="page-title">All Sports Predictions for Today</h1>

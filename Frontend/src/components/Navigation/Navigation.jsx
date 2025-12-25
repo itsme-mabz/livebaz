@@ -155,7 +155,7 @@ function Navigation() {
     return (
         <>
             <div className="header fl_c w-full mb-8 mb-m-0" style={{ minHeight: '64px' }}>
-                <div className="wrap fl_c_sb" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
+                <div className="wrap fl_c_sb" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%', direction: 'ltr' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '100%' }}>
 
                         <span className='header-logo' style={{

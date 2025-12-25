@@ -13,6 +13,72 @@ body * {
     font-family: 'Geom', monospace !important;
 }
 
+/* ============================================================ 
+   RTL LAYOUT PROTECTION
+   Ensures sidebars and navigation stay on the left/right 
+   slots even when translated to Arabic or Persian.
+   ============================================================ */
+
+/* Force structural containers to stay LTR (Left-to-Right) */
+html[dir="rtl"] .livescore-container,
+html[dir="rtl"] .content-grid,
+html[dir="rtl"] .container_70x30,
+html[dir="rtl"] .container_60x40,
+html[dir="rtl"] .header .wrap,
+body.translated-rtl .livescore-container,
+body.translated-rtl .content-grid,
+body.translated-rtl .container_70x30,
+body.translated-rtl .container_60x40,
+body.translated-rtl .header .wrap {
+    direction: ltr !important;
+}
+
+/* Specific Grid containers need to maintain their grid structure but in LTR mode */
+html[dir="rtl"] .livescore-container,
+html[dir="rtl"] .content-grid,
+html[dir="rtl"] .container_70x30,
+html[dir="rtl"] .container_60x40,
+body.translated-rtl .livescore-container,
+body.translated-rtl .content-grid,
+body.translated-rtl .container_70x30,
+body.translated-rtl .container_60x40 {
+    display: grid !important;
+}
+
+/* Allow the actual content inside these blocks to be RTL (Right-to-Left) */
+html[dir="rtl"] .livescore-container>*,
+html[dir="rtl"] .content-grid>*,
+html[dir="rtl"] .container_70x30>*,
+html[dir="rtl"] .container_60x40>*,
+html[dir="rtl"] .header .wrap>*,
+body.translated-rtl .livescore-container>*,
+body.translated-rtl .content-grid>*,
+body.translated-rtl .container_70x30>*,
+body.translated-rtl .container_60x40>*,
+body.translated-rtl .header .wrap>* {
+    direction: rtl !important;
+}
+
+/* Explicitly bind children to columns in RTL structured containers */
+html[dir="rtl"] .container-main,
+body.translated-rtl .container-main {
+    grid-column: 1 !important;
+}
+
+html[dir="rtl"] .container-sidebar,
+body.translated-rtl .container-sidebar {
+    grid-column: 2 !important;
+}
+
+/* Ensure Logo stays on left by forcing its container */
+html[dir="rtl"] .header .wrap,
+body.translated-rtl .header .wrap {
+    justify-content: space-between !important;
+    flex-direction: row !important;
+}
+
+
+
 body ::-webkit-scrollbar {
     display: none
 }

@@ -12,6 +12,11 @@
     grid-template-columns: 280px 1fr;
     min-height: 100vh;
     gap: 0;
+    direction: ltr !important;
+}
+
+.livescore-container>* {
+    direction: initial !important;
 }
 
 /* Sidebar Styles */
@@ -28,6 +33,18 @@
     position: sticky;
     top: 0;
     align-self: start;
+    grid-column: 1 !important;
+}
+
+.livescore-main {
+    grid-column: 2 !important;
+    direction: ltr !important;
+    /* Force internal layout to stay consistent structurally */
+}
+
+.livescore-main>* {
+    direction: initial !important;
+    /* Allow actual text content to be RTL */
 }
 
 .sidebar-header {
