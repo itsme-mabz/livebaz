@@ -3,6 +3,7 @@ const User = require("../model/user.model");
 const Comment = require("../model/comment.model");
 const AsyncHandler = require("express-async-handler");
 const ErrorHandler = require("../utils/Errorhandler");
+const { uploadToCloudinary } = require("../utils/cloudinary");
 
 // Get all published blogs (public)
 exports.getAllBlogs = AsyncHandler(async (req, res, next) => {
@@ -183,6 +184,15 @@ exports.createBlog = AsyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("Blog with this slug already exists", 400));
   }
 
+  let imageUrl = featured_image;
+  if (featured_image && featured_image.startsWith("data:image/")) {
+    try {
+      imageUrl = await uploadToCloudinary(featured_image, "blogs");
+    } catch (error) {
+      return next(new ErrorHandler("Error uploading image to Cloudinary", 500));
+    }
+  }
+
   const blogData = {
     title,
     slug,
@@ -191,7 +201,7 @@ exports.createBlog = AsyncHandler(async (req, res, next) => {
     category: category || 'General',
     author_id: userId,
     author_name: userName,
-    featured_image,
+    featured_image: imageUrl,
     tags: tags || [],
     metadata: metadata || {},
     is_published: is_published || false,
@@ -222,6 +232,15 @@ exports.updateBlog = AsyncHandler(async (req, res, next) => {
   // If publishing for first time, set published_at
   if (updateData.is_published && !blog.is_published) {
     updateData.published_at = new Date();
+  }
+
+  // Handle image upload if it's base64
+  if (updateData.featured_image && updateData.featured_image.startsWith("data:image/")) {
+    try {
+      updateData.featured_image = await uploadToCloudinary(updateData.featured_image, "blogs");
+    } catch (error) {
+      return next(new ErrorHandler("Error uploading image to Cloudinary", 500));
+    }
   }
 
   await blog.update(updateData);

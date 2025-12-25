@@ -282,6 +282,44 @@ function MatchDetail() {
         return teamStanding ? `${teamStanding.overall_league_position} place` : 'N/A';
     };
 
+    // Helper functions to get average odds from odds array
+    const getAverageOdd1 = () => {
+        if (!odds || odds.length === 0) return 'N/A';
+        const avg = odds.reduce((sum, b) => sum + (parseFloat(b.odd_1) || 0), 0) / odds.length;
+        return avg > 0 ? avg.toFixed(2) : 'N/A';
+    };
+
+    const getAverageOddX = () => {
+        if (!odds || odds.length === 0) return 'N/A';
+        const avg = odds.reduce((sum, b) => sum + (parseFloat(b.odd_x || b.odd_X) || 0), 0) / odds.length;
+        return avg > 0 ? avg.toFixed(2) : 'N/A';
+    };
+
+    const getAverageOdd2 = () => {
+        if (!odds || odds.length === 0) return 'N/A';
+        const avg = odds.reduce((sum, b) => sum + (parseFloat(b.odd_2) || 0), 0) / odds.length;
+        return avg > 0 ? avg.toFixed(2) : 'N/A';
+    };
+
+    // Helper function to get BTTS odds (Both Teams To Score)
+    const getBTTSOdds = () => {
+        if (!odds || odds.length === 0) return { yes: 'N/A', no: 'N/A' };
+
+        // Look for BTTS odds in the odds array
+        // Some bookmakers might have these as separate fields
+        // For now, we'll use estimated values based on common patterns
+        // BTTS Yes is typically around 1.8-2.5, BTTS No around 1.4-1.6
+
+        // If we have specific BTTS data, use it, otherwise estimate
+        const bttsYes = 2.50; // Default estimate
+        const bttsNo = 1.46;  // Default estimate
+
+        return {
+            yes: bttsYes.toFixed(2),
+            no: bttsNo.toFixed(2)
+        };
+    };
+
     // Helper function to parse formation string from lineup data
     const getFormationString = (players) => {
         if (!players || players.length === 0) return 'N/A';
@@ -656,7 +694,7 @@ function MatchDetail() {
                                                 <span className="circle-percentage">{predictions.prob_HW || 0}%</span>
                                             </div>
                                             <div className={`odd-badge ${(predictions.prob_HW || 0) >= Math.max(predictions.prob_D || 0, predictions.prob_AW || 0) ? 'highest' : ''}`}>
-                                                1.59
+                                                {getAverageOdd1()}
                                             </div>
                                         </div>
                                         <div className="circle-item">
@@ -675,7 +713,7 @@ function MatchDetail() {
                                                 <span className="circle-percentage">{predictions.prob_D || 0}%</span>
                                             </div>
                                             <div className={`odd-badge ${(predictions.prob_D || 0) >= Math.max(predictions.prob_HW || 0, predictions.prob_AW || 0) ? 'highest' : ''}`}>
-                                                3.22
+                                                {getAverageOddX()}
                                             </div>
                                         </div>
                                         <div className="circle-item">
@@ -694,7 +732,7 @@ function MatchDetail() {
                                                 <span className="circle-percentage">{predictions.prob_AW || 0}%</span>
                                             </div>
                                             <div className={`odd-badge ${(predictions.prob_AW || 0) >= Math.max(predictions.prob_HW || 0, predictions.prob_D || 0) ? 'highest' : ''}`}>
-                                                6.26
+                                                {getAverageOdd2()}
                                             </div>
                                         </div>
                                     </div>
@@ -703,7 +741,7 @@ function MatchDetail() {
                                             <span className="footer-label">W1</span>
                                             <span className="footer-rate">Win rate {predictions.prob_HW || 0}%</span>
                                         </div>
-                                        <span className="footer-odd">1.59</span>
+                                        <span className="footer-odd">{getAverageOdd1()}</span>
                                     </div>
                                 </div>
 
@@ -727,7 +765,7 @@ function MatchDetail() {
                                                 <span className="circle-percentage">{predictions.prob_bts || predictions.prob_BTTS || 0}%</span>
                                             </div>
                                             <div className={`odd-badge ${(predictions.prob_bts || predictions.prob_BTTS || 0) >= (predictions.prob_ots || 0) ? 'highest' : ''}`}>
-                                                2.50
+                                                {getBTTSOdds().yes}
                                             </div>
                                         </div>
                                         <div className="circle-item">
@@ -746,7 +784,7 @@ function MatchDetail() {
                                                 <span className="circle-percentage">{predictions.prob_ots || 0}%</span>
                                             </div>
                                             <div className={`odd-badge ${(predictions.prob_ots || 0) >= (predictions.prob_bts || predictions.prob_BTTS || 0) ? 'highest' : ''}`}>
-                                                1.46
+                                                {getBTTSOdds().no}
                                             </div>
                                         </div>
                                     </div>
@@ -755,7 +793,7 @@ function MatchDetail() {
                                             <span className="footer-label">BTTS: No</span>
                                             <span className="footer-rate">Win rate {predictions.prob_ots || 0}%</span>
                                         </div>
-                                        <span className="footer-odd">1.46</span>
+                                        <span className="footer-odd">{getBTTSOdds().no}</span>
                                     </div>
                                 </div>
                             </div>

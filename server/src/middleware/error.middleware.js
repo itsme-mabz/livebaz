@@ -28,7 +28,7 @@ module.exports = (err, req, res, next) => {
 
   // Sequelize Database Error
   if (err.name === "SequelizeDatabaseError") {
-    const message = "Database error occurred";
+    const message = `Database error: ${err.message}`;
     error = new ErrorHandler(message, 400);
   }
 

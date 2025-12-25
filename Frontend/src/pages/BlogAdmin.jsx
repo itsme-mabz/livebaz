@@ -20,6 +20,9 @@ function BlogAdmin() {
     is_published: false,
     priority: 0
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     loadBlogs();
@@ -94,6 +97,8 @@ function BlogAdmin() {
       is_published: blog.is_published,
       priority: blog.priority || 0
     });
+    setImagePreview(blog.featured_image || '');
+    setImageFile(null);
     setShowForm(true);
   };
 
@@ -122,6 +127,41 @@ function BlogAdmin() {
       is_published: false,
       priority: 0
     });
+    setImageFile(null);
+    setImagePreview('');
+  };
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+
+      setImageFile(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+        setFormData({ ...formData, featured_image: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setFormData({ ...formData, featured_image: '' });
   };
 
   const generateSlug = (title) => {
@@ -351,24 +391,125 @@ function BlogAdmin() {
 
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#333', marginBottom: '6px' }}>
-                  Featured Image URL
+                  Featured Image
                 </label>
-                <input
-                  type="text"
-                  value={formData.featured_image}
-                  onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    fontSize: '14px',
-                    border: '1px solid #d0d0d0',
+
+                {/* Image Preview */}
+                {(imagePreview || formData.featured_image) && (
+                  <div style={{
+                    marginBottom: '12px',
+                    position: 'relative',
+                    border: '1px solid #e0e0e0',
                     borderRadius: '6px',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#ffc107'}
-                  onBlur={(e) => e.target.style.borderColor = '#d0d0d0'}
-                />
+                    overflow: 'hidden'
+                  }}>
+                    <img
+                      src={imagePreview || formData.featured_image}
+                      alt="Preview"
+                      style={{
+                        width: '100%',
+                        height: '120px',
+                        objectFit: 'cover',
+                        display: 'block'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        background: 'rgba(0,0,0,0.6)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '6px 10px',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        fontWeight: '500'
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+
+                {/* Upload Button */}
+                {!imagePreview && !formData.featured_image && (
+                  <div style={{ marginBottom: '8px' }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      style={{ display: 'none' }}
+                      id="image-upload"
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      style={{
+                        display: 'inline-block',
+                        padding: '10px 16px',
+                        background: '#f8f8f8',
+                        border: '1px dashed #d0d0d0',
+                        borderRadius: '6px',
+                        color: '#666',
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        textAlign: 'center',
+                        width: '100%',
+                        boxSizing: 'border-box'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = '#f0f0f0';
+                        e.target.style.borderColor = '#ffc107';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = '#f8f8f8';
+                        e.target.style.borderColor = '#d0d0d0';
+                      }}
+                    >
+                      📁 Upload Image
+                    </label>
+                  </div>
+                )}
+
+                {/* OR Divider */}
+                {!imagePreview && !formData.featured_image && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    margin: '8px 0'
+                  }}>
+                    <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }}></div>
+                    <span style={{ fontSize: '12px', color: '#999', fontWeight: '500' }}>OR</span>
+                    <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }}></div>
+                  </div>
+                )}
+
+                {/* URL Input */}
+                {!imagePreview && !formData.featured_image && (
+                  <input
+                    type="text"
+                    value={formData.featured_image}
+                    onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
+                    placeholder="Or paste image URL"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      fontSize: '14px',
+                      border: '1px solid #d0d0d0',
+                      borderRadius: '6px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#ffc107'}
+                    onBlur={(e) => e.target.style.borderColor = '#d0d0d0'}
+                  />
+                )}
               </div>
             </div>
 

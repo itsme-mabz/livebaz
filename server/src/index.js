@@ -19,7 +19,7 @@ connectDB().catch((err) => {
 
 // SYNC MODELS
 sequelize
-  .sync({ force: false }) // force: false keeps existing tables
+  .sync({ alter: true }) // alter: true updates existing tables to match the models
   .then(() => console.log("Database synced successfully"))
   .catch((err) => {
     console.error("DB Sync Error (continuing without MySQL):", err.message);

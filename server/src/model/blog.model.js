@@ -43,7 +43,7 @@ const Blog = sequelize.define('Blog', {
     allowNull: true
   },
   featured_image: {
-    type: DataTypes.STRING(500),
+    type: DataTypes.TEXT('long'),
     allowNull: true
   },
   tags: {
