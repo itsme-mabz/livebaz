@@ -306,17 +306,35 @@ function MatchDetail() {
         if (!odds || odds.length === 0) return { yes: 'N/A', no: 'N/A' };
 
         // Look for BTTS odds in the odds array
-        // Some bookmakers might have these as separate fields
-        // For now, we'll use estimated values based on common patterns
-        // BTTS Yes is typically around 1.8-2.5, BTTS No around 1.4-1.6
+        let bttsYesSum = 0;
+        let bttsNoSum = 0;
+        let bttsYesCount = 0;
+        let bttsNoCount = 0;
 
-        // If we have specific BTTS data, use it, otherwise estimate
-        const bttsYes = 2.50; // Default estimate
-        const bttsNo = 1.46;  // Default estimate
+        odds.forEach(bookie => {
+            // Check for BTTS markets in the odds response
+            // The API uses 'bts_yes' and 'bts_no'
+            if (bookie.bts_yes) {
+                bttsYesSum += parseFloat(bookie.bts_yes);
+                bttsYesCount++;
+            }
+            if (bookie.bts_no) {
+                bttsNoSum += parseFloat(bookie.bts_no);
+                bttsNoCount++;
+            }
+        });
 
+        if (bttsYesCount > 0 && bttsNoCount > 0) {
+            return {
+                yes: (bttsYesSum / bttsYesCount).toFixed(2),
+                no: (bttsNoSum / bttsNoCount).toFixed(2)
+            };
+        }
+
+        // Return N/A if no specific BTTS odds found
         return {
-            yes: bttsYes.toFixed(2),
-            no: bttsNo.toFixed(2)
+            yes: 'N/A',
+            no: 'N/A'
         };
     };
 
@@ -790,10 +808,10 @@ function MatchDetail() {
                                     </div>
                                     <div className="prediction-footer">
                                         <div className="footer-info">
-                                            <span className="footer-label">BTTS: No</span>
-                                            <span className="footer-rate">Win rate {predictions.prob_ots || 0}%</span>
+                                            <span className="footer-label">BTTS: {(predictions.prob_bts || predictions.prob_BTTS || 0) >= (predictions.prob_ots || 0) ? 'Yes' : 'No'}</span>
+                                            <span className="footer-rate">Win rate {Math.max(predictions.prob_bts || predictions.prob_BTTS || 0, predictions.prob_ots || 0)}%</span>
                                         </div>
-                                        <span className="footer-odd">{getBTTSOdds().no}</span>
+                                        <span className="footer-odd">{(predictions.prob_bts || predictions.prob_BTTS || 0) >= (predictions.prob_ots || 0) ? getBTTSOdds().yes : getBTTSOdds().no}</span>
                                     </div>
                                 </div>
                             </div>

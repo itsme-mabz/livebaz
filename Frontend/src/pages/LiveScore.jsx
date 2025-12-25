@@ -15,8 +15,15 @@ function LiveScore() {
     const [leaguesByCountry, setLeaguesByCountry] = useState({});
     const [topLeagues, setTopLeagues] = useState([]);
     const [expandedCountries, setExpandedCountries] = useState(new Set());
-    const [selectedStatus, setSelectedStatus] = useState('live'); // 'live', 'upcoming', 'finished'
+    const [selectedStatus, setSelectedStatus] = useState('all'); // 'yesterday', 'all', 'live', 'upcoming', 'finished', 'tomorrow'
+    const [counts, setCounts] = useState({ yesterday: 0, all: 0, live: 0, upcoming: 0, finished: 0, tomorrow: 0 });
     const [standingsData, setStandingsData] = useState(null);
+    const [visibleCount, setVisibleCount] = useState(40);
+
+    // Reset visible count when switching tabs or leagues
+    useEffect(() => {
+        setVisibleCount(40);
+    }, [selectedStatus, selectedLeagues]);
     const [showStandingsModal, setShowStandingsModal] = useState(false);
     const [loadingStandings, setLoadingStandings] = useState(false);
 
@@ -46,17 +53,11 @@ function LiveScore() {
         probBTTS: match.prob_BTTS || null
     });
 
-    // Format percentage value - handle both decimal (0-1) and percentage (0-100) formats
+    // Format percentage value
     const formatPercentage = (value) => {
         if (!value || value === '0' || value === 0) return '-';
         let num = parseFloat(value);
-
-        // If value is between 0 and 1, it's a decimal format - convert to percentage
-        if (num > 0 && num < 1) {
-            num = num * 100;
-        }
-
-        // Remove unnecessary decimals
+        if (num > 0 && num < 1) num = num * 100;
         return num % 1 === 0 ? `${Math.round(num)}%` : `${num.toFixed(1)}%`;
     };
 
@@ -64,65 +65,52 @@ function LiveScore() {
     const calculateOdds = (value) => {
         if (!value || value === '0' || value === 0) return '-';
         let num = parseFloat(value);
-
-        // Check if num is valid
         if (isNaN(num) || num <= 0) return '-';
-
-        // If value is between 0 and 1, it's already a decimal probability
-        if (num > 0 && num < 1) {
-            num = num * 100;
-        }
-
-        // If probability is too small (less than 0.01%), odds would be too high
+        if (num > 0 && num < 1) num = num * 100;
         if (num < 0.01) return '-';
-
-        // Odds = 100 / probability
         const odds = 100 / num;
-
-        // Check if odds is a valid number and not infinity
         if (!isFinite(odds)) return '-';
-
         return odds.toFixed(2);
     };
 
-    // Format both odds and percentage together
-    const formatOddsAndPercentage = (value) => {
-        if (!value || value === '0' || value === 0) return '-';
-        const odds = calculateOdds(value);
-        const percentage = formatPercentage(value);
-        return { odds, percentage };
+    // Get date strings
+    const getDates = () => {
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+
+        return {
+            today: today.toISOString().split('T')[0],
+            yesterday: yesterday.toISOString().split('T')[0],
+            tomorrow: tomorrow.toISOString().split('T')[0]
+        };
     };
 
-
-    // Fetch matches for today
+    // Fetch matches for specific date/status
     const fetchMatches = useCallback(async () => {
         setLoading(true);
         try {
-            const today = new Date();
-            const dateStr = today.toISOString().split('T')[0];
-            let matchUrl = `${BASE_URL}/?action=get_events&from=${dateStr}&to=${dateStr}&APIkey=${API_KEY}`;
+            const { today, yesterday, tomorrow } = getDates();
+            let fetchDate = today;
 
+            if (selectedStatus === 'yesterday') fetchDate = yesterday;
+            else if (selectedStatus === 'tomorrow') fetchDate = tomorrow;
+
+            let matchUrl = `${BASE_URL}/?action=get_events&from=${fetchDate}&to=${fetchDate}&APIkey=${API_KEY}`;
             if (selectedLeagues.size > 0) {
                 matchUrl += `&league_id=${Array.from(selectedLeagues).join(',')}`;
             }
 
-            // Fetch both matches and predictions in parallel
+            // Fetch matches and predictions
             const [matchResponse, predictionResponse] = await Promise.all([
                 axios.get(matchUrl),
-                axios.get(`${BASE_URL}/?action=get_predictions&from=${dateStr}&to=${dateStr}&APIkey=${API_KEY}`)
+                axios.get(`${BASE_URL}/?action=get_predictions&from=${fetchDate}&to=${fetchDate}&APIkey=${API_KEY}`)
             ]);
 
             if (matchResponse.data && Array.isArray(matchResponse.data)) {
-                console.log('=== MATCH DATA DEBUG ===');
-                console.log('Total matches fetched:', matchResponse.data.length);
-                const liveMatches = matchResponse.data.filter(m => m.match_live === '1');
-                console.log('Live matches:', liveMatches.length);
-                liveMatches.forEach(m => {
-                    console.log(`Live: ${m.match_hometeam_name} vs ${m.match_awayteam_name} - Status: ${m.match_status}`);
-                });
-                console.log('======================');
-
-                // Create a map of predictions by match_id for quick lookup
+                // Predictions map
                 const predictionsMap = {};
                 if (predictionResponse.data && Array.isArray(predictionResponse.data)) {
                     predictionResponse.data.forEach(pred => {
@@ -130,32 +118,28 @@ function LiveScore() {
                     });
                 }
 
-                // Merge match data with predictions
-                const matchesWithPredictions = matchResponse.data.map(match => {
+                // Merge and transform
+                const transformed = matchResponse.data.map(match => {
                     const prediction = predictionsMap[match.match_id] || {};
-                    return {
+                    const merged = {
                         ...match,
                         prob_HW: prediction.prob_HW,
                         prob_D: prediction.prob_D,
                         prob_AW: prediction.prob_AW,
                         prob_O: prediction.prob_O,
                         prob_U: prediction.prob_U,
-                        // BTTS is returned as prob_bts (lowercase) in the API
                         prob_BTTS: prediction.prob_bts
                     };
+                    return transformMatch(merged);
                 });
 
-                const transformed = matchesWithPredictions.map(transformMatch);
                 setAllMatches(transformed);
 
-                // Group leagues by country
+                // Update leagues for sidebar (only if today is selected, or keep it consistent)
                 const leaguesMap = {};
                 matchResponse.data.forEach(match => {
-                    if (!leaguesMap[match.country_name]) {
-                        leaguesMap[match.country_name] = [];
-                    }
-                    const exists = leaguesMap[match.country_name].find(l => l.id === match.league_id);
-                    if (!exists) {
+                    if (!leaguesMap[match.country_name]) leaguesMap[match.country_name] = [];
+                    if (!leaguesMap[match.country_name].find(l => l.id === match.league_id)) {
                         leaguesMap[match.country_name].push({
                             id: match.league_id,
                             name: match.league_name,
@@ -163,19 +147,51 @@ function LiveScore() {
                         });
                     }
                 });
-
-                Object.keys(leaguesMap).forEach(country => {
-                    leaguesMap[country].sort((a, b) => a.name.localeCompare(b.name));
-                });
-
                 setLeaguesByCountry(leaguesMap);
+
+                // If we fetched TODAY, we can update All/Live/Upcoming/Finished counts
+                if (fetchDate === today) {
+                    const countsObj = {
+                        all: transformed.length,
+                        live: transformed.filter(m => getMatchStatus(m) === 'live').length,
+                        upcoming: transformed.filter(m => getMatchStatus(m) === 'upcoming').length,
+                        finished: transformed.filter(m => getMatchStatus(m) === 'finished').length
+                    };
+                    setCounts(prev => ({ ...prev, ...countsObj }));
+                } else if (fetchDate === yesterday) {
+                    setCounts(prev => ({ ...prev, yesterday: transformed.length }));
+                } else if (fetchDate === tomorrow) {
+                    setCounts(prev => ({ ...prev, tomorrow: transformed.length }));
+                }
             }
         } catch (error) {
             console.error('Error fetching matches:', error);
         } finally {
             setLoading(false);
         }
-    }, [selectedLeagues]);
+    }, [selectedStatus, selectedLeagues]);
+
+    // Initial fetch for counts of other days
+    useEffect(() => {
+        const fetchOtherCounts = async () => {
+            const { yesterday, tomorrow } = getDates();
+            try {
+                const [yResp, tResp] = await Promise.all([
+                    axios.get(`${BASE_URL}/?action=get_events&from=${yesterday}&to=${yesterday}&APIkey=${API_KEY}`),
+                    axios.get(`${BASE_URL}/?action=get_events&from=${tomorrow}&to=${tomorrow}&APIkey=${API_KEY}`)
+                ]);
+
+                setCounts(prev => ({
+                    ...prev,
+                    yesterday: Array.isArray(yResp.data) ? yResp.data.length : 0,
+                    tomorrow: Array.isArray(tResp.data) ? tResp.data.length : 0
+                }));
+            } catch (e) {
+                console.error("Error fetching other counts", e);
+            }
+        };
+        fetchOtherCounts();
+    }, []);
 
     // Helper function to determine match status
     const getMatchStatus = (match) => {
@@ -203,16 +219,10 @@ function LiveScore() {
 
     // Filter matches based on selected status
     const filteredMatches = allMatches.filter(match => {
+        if (selectedStatus === 'yesterday' || selectedStatus === 'tomorrow' || selectedStatus === 'all') return true;
         const matchStatus = getMatchStatus(match);
         return selectedStatus === matchStatus;
     });
-
-    // Count matches by status
-    const matchCounts = {
-        live: allMatches.filter(m => getMatchStatus(m) === 'live').length,
-        upcoming: allMatches.filter(m => getMatchStatus(m) === 'upcoming').length,
-        finished: allMatches.filter(m => getMatchStatus(m) === 'finished').length
-    };
 
     // Group matches by league
     const groupedMatches = filteredMatches.reduce((acc, match) => {
@@ -316,14 +326,14 @@ function LiveScore() {
 
     // Auto-switch to upcoming if no live matches on initial load
     useEffect(() => {
-        if (allMatches.length > 0 && matchCounts.live === 0 && selectedStatus === 'live') {
-            if (matchCounts.upcoming > 0) {
+        if (allMatches.length > 0 && counts.live === 0 && selectedStatus === 'live') {
+            if (counts.upcoming > 0) {
                 setSelectedStatus('upcoming');
-            } else if (matchCounts.finished > 0) {
+            } else if (counts.finished > 0) {
                 setSelectedStatus('finished');
             }
         }
-    }, [allMatches, matchCounts, selectedStatus]);
+    }, [allMatches, counts, selectedStatus]);
 
 
     return (
@@ -412,7 +422,7 @@ function LiveScore() {
                     <div className="livescore-header">
                         <h1 className="livescore-title" style={{ display: 'flex', alignItems: 'center' }}>
                             Live Football Games
-                            {matchCounts.live > 0 && (
+                            {counts.live > 0 && (
                                 <span className="live-indicator" style={{
                                     width: '12px',
                                     height: '12px',
@@ -430,6 +440,12 @@ function LiveScore() {
                         </h1>
                         <div className="livescore-date-pills">
                             <button
+                                className={`livescore-date-pill ${selectedStatus === 'all' ? 'active' : ''}`}
+                                onClick={() => setSelectedStatus('all')}
+                            >
+                                All {counts.all}
+                            </button>
+                            <button
                                 className={`livescore-date-pill ${selectedStatus === 'live' ? 'active' : ''}`}
                                 onClick={() => setSelectedStatus('live')}
                             >
@@ -441,19 +457,31 @@ function LiveScore() {
                                     display: 'inline-block',
                                     marginRight: '6px'
                                 }}></span>
-                                Live {matchCounts.live}
+                                Live {counts.live}
                             </button>
                             <button
                                 className={`livescore-date-pill ${selectedStatus === 'upcoming' ? 'active' : ''}`}
                                 onClick={() => setSelectedStatus('upcoming')}
                             >
-                                Upcoming {matchCounts.upcoming}
+                                Upcoming {counts.upcoming}
                             </button>
                             <button
                                 className={`livescore-date-pill ${selectedStatus === 'finished' ? 'active' : ''}`}
                                 onClick={() => setSelectedStatus('finished')}
                             >
-                                Finished {matchCounts.finished}
+                                Finished {counts.finished}
+                            </button>
+                            <button
+                                className={`livescore-date-pill ${selectedStatus === 'tomorrow' ? 'active' : ''}`}
+                                onClick={() => setSelectedStatus('tomorrow')}
+                            >
+                                Tomorrow {counts.tomorrow}
+                            </button>
+                            <button
+                                className={`livescore-date-pill ${selectedStatus === 'yesterday' ? 'active' : ''}`}
+                                onClick={() => setSelectedStatus('yesterday')}
+                            >
+                                Yesterday {counts.yesterday}
                             </button>
                         </div>
                     </div>
@@ -462,150 +490,173 @@ function LiveScore() {
                     <div className="livescore-content">
                         {loading ? (
                             <div className="loading-state">Loading matches...</div>
-                        ) : Object.keys(groupedMatches).length === 0 ? (
+                        ) : filteredMatches.length === 0 ? (
                             <div className="empty-state">No {selectedStatus} matches found</div>
                         ) : (
-                            Object.values(groupedMatches)
-                                .sort((a, b) => {
-                                    // Create a map of league IDs to their priority order
-                                    // Convert to strings for comparison since IDs might be strings or numbers
-                                    const topLeagueIds = topLeagues.map(l => String(l.id));
-                                    const aIndex = topLeagueIds.indexOf(String(a.leagueId));
-                                    const bIndex = topLeagueIds.indexOf(String(b.leagueId));
+                            <>
+                                {(() => {
+                                    let matchCounter = 0;
+                                    return Object.values(groupedMatches)
+                                        .sort((a, b) => {
+                                            const topLeagueIds = topLeagues.map(l => String(l.id));
+                                            const aIndex = topLeagueIds.indexOf(String(a.leagueId));
+                                            const bIndex = topLeagueIds.indexOf(String(b.leagueId));
+                                            if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+                                            if (aIndex !== -1) return -1;
+                                            if (bIndex !== -1) return 1;
+                                            const countryCompare = a.country.localeCompare(b.country);
+                                            if (countryCompare !== 0) return countryCompare;
+                                            return a.league.localeCompare(b.league);
+                                        })
+                                        .map((group, idx) => {
+                                            // Handle pagination
+                                            if (matchCounter >= visibleCount) return null;
+                                            const remainingCapacity = visibleCount - matchCounter;
+                                            const matchesToShow = group.matches.slice(0, remainingCapacity);
 
-                                    // If both are top leagues, sort by their defined order
-                                    if (aIndex !== -1 && bIndex !== -1) {
-                                        return aIndex - bIndex;
-                                    }
+                                            if (matchesToShow.length === 0) return null;
+                                            matchCounter += matchesToShow.length;
 
-                                    // If only a is a top league, it comes first
-                                    if (aIndex !== -1) return -1;
+                                            return (
+                                                <div key={idx} className="league-card">
+                                                    <div className="league-card-header">
+                                                        <div className="league-card-title-wrapper">
+                                                            {group.leagueLogo && (
+                                                                <img src={group.leagueLogo} alt="" className="league-card-logo" />
+                                                            )}
+                                                            <h3 className="league-card-title">
+                                                                {group.country.toUpperCase()}: {group.league.toUpperCase()}
+                                                            </h3>
+                                                        </div>
+                                                        <button
+                                                            className="standings-link"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                fetchStandings(group.leagueId, group.league);
+                                                            }}
+                                                        >
+                                                            Standings
+                                                        </button>
+                                                    </div>
 
-                                    // If only b is a top league, it comes first
-                                    if (bIndex !== -1) return 1;
+                                                    <div className="matches-list">
+                                                        <div className="matches-header-stats">
+                                                            <div className="col-time-stat">Time</div>
+                                                            <div className="col-match-stat">Match</div>
+                                                            <div className="col-score-stat">Score</div>
+                                                            <div className="col-1-stat">1</div>
+                                                            <div className="col-x-stat">X</div>
+                                                            <div className="col-2-stat">2</div>
+                                                        </div>
 
-                                    // Neither are top leagues - sort alphabetically by country then league
-                                    const countryCompare = a.country.localeCompare(b.country);
-                                    if (countryCompare !== 0) return countryCompare;
-                                    return a.league.localeCompare(b.league);
-                                })
-                                .map((group, idx) => (
-                                    <div key={idx} className="league-card">
-                                        <div className="league-card-header">
-                                            <div className="league-card-title-wrapper">
-                                                {group.leagueLogo && (
-                                                    <img src={group.leagueLogo} alt="" className="league-card-logo" />
-                                                )}
-                                                <h3 className="league-card-title">
-                                                    {group.country.toUpperCase()}: {group.league.toUpperCase()}
-                                                </h3>
-                                            </div>
-                                            <button
-                                                className="standings-link"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    fetchStandings(group.leagueId, group.league);
-                                                }}
-                                            >
-                                                Standings
-                                            </button>
-                                        </div>
+                                                        {matchesToShow.map((match) => (
+                                                            <div
+                                                                key={match.id}
+                                                                className={`match-row-stats`}
+                                                                onClick={() => navigate(`/match/${match.id}`)}
+                                                            >
+                                                                <div className="col-time-stat">
+                                                                    {match.isLive ? (
+                                                                        <div className="live-badge-new">
+                                                                            <span className="live-text">Live</span>
+                                                                            <span className="live-minute">{match.status}'</span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="match-time-new">{match.time}</div>
+                                                                    )}
+                                                                </div>
 
-                                        <div className="matches-list">
-                                            <div className="matches-header-stats">
-                                                <div className="col-time-stat">Time</div>
-                                                <div className="col-match-stat">Match</div>
-                                                <div className="col-score-stat">Score</div>
-                                                <div className="col-1-stat">1</div>
-                                                <div className="col-x-stat">X</div>
-                                                <div className="col-2-stat">2</div>
-                                            </div>
+                                                                <div className="col-match-stat">
+                                                                    <div className="team-row-new">
+                                                                        {match.homeLogo && <img src={match.homeLogo} alt="" className="team-logo" />}
+                                                                        <span className="team-name-new">{match.homeTeam}</span>
+                                                                    </div>
+                                                                    <div className="team-row-new">
+                                                                        {match.awayLogo && <img src={match.awayLogo} alt="" className="team-logo" />}
+                                                                        <span className="team-name-new">{match.awayTeam}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-score-stat">
+                                                                    <div className="score-display">
+                                                                        <span className={`score-number score-home ${match.isLive ? 'live' : ''}`}>
+                                                                            {match.homeScore}
+                                                                        </span>
+                                                                        <div className="score-divider"></div>
+                                                                        <span className={`score-number score-away ${match.isLive ? 'live' : ''}`}>
+                                                                            {match.awayScore}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
 
-                                            {group.matches.map((match) => (
-                                                <div
-                                                    key={match.id}
-                                                    className={`match-row-stats`}
-                                                    onClick={() => navigate(`/match/${match.id}`)}
-                                                >
-                                                    <div className="col-time-stat">
-                                                        {match.isLive ? (
-                                                            <div className="live-badge-new">
-                                                                <span className="live-text">Live</span>
-                                                                <span className="live-minute">{match.status}'</span>
+                                                                <div className="col-1-stat">
+                                                                    <div className="prob-item-new">
+                                                                        <span className="prob-value">
+                                                                            {match.probHome ? (
+                                                                                <>
+                                                                                    <span className="prob-odds">{calculateOdds(match.probHome)}</span>
+                                                                                    <span className="prob-percent">{formatPercentage(match.probHome)}</span>
+                                                                                </>
+                                                                            ) : '-'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-x-stat">
+                                                                    <div className="prob-item-new">
+                                                                        <span className="prob-value">
+                                                                            {match.probDraw ? (
+                                                                                <>
+                                                                                    <span className="prob-odds">{calculateOdds(match.probDraw)}</span>
+                                                                                    <span className="prob-percent">{formatPercentage(match.probDraw)}</span>
+                                                                                </>
+                                                                            ) : '-'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-2-stat">
+                                                                    <div className="prob-item-new">
+                                                                        <span className="prob-value">
+                                                                            {match.probAway ? (
+                                                                                <>
+                                                                                    <span className="prob-odds">{calculateOdds(match.probAway)}</span>
+                                                                                    <span className="prob-percent">{formatPercentage(match.probAway)}</span>
+                                                                                </>
+                                                                            ) : '-'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        ) : (
-                                                            <div className="match-time-new">{match.time}</div>
-                                                        )}
+                                                        ))}
                                                     </div>
-
-                                                    <div className="col-match-stat">
-                                                        <div className="team-row-new">
-                                                            {match.homeLogo && <img src={match.homeLogo} alt="" className="team-logo" />}
-                                                            <span className="team-name-new">{match.homeTeam}</span>
-                                                        </div>
-                                                        <div className="team-row-new">
-                                                            {match.awayLogo && <img src={match.awayLogo} alt="" className="team-logo" />}
-                                                            <span className="team-name-new">{match.awayTeam}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-score-stat">
-                                                        <div className="score-display">
-                                                            <span className={`score-number score-home ${match.isLive ? 'live' : ''}`}>
-                                                                {match.homeScore}
-                                                            </span>
-                                                            <div className="score-divider"></div>
-                                                            <span className={`score-number score-away ${match.isLive ? 'live' : ''}`}>
-                                                                {match.awayScore}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="col-1-stat">
-                                                        <div className="prob-item-new">
-                                                            <span className="prob-value">
-                                                                {match.probHome ? (
-                                                                    <>
-                                                                        <span className="prob-odds">{calculateOdds(match.probHome)}</span>
-                                                                        <span className="prob-percent">{formatPercentage(match.probHome)}</span>
-                                                                    </>
-                                                                ) : '-'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-x-stat">
-                                                        <div className="prob-item-new">
-                                                            <span className="prob-value">
-                                                                {match.probDraw ? (
-                                                                    <>
-                                                                        <span className="prob-odds">{calculateOdds(match.probDraw)}</span>
-                                                                        <span className="prob-percent">{formatPercentage(match.probDraw)}</span>
-                                                                    </>
-                                                                ) : '-'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-2-stat">
-                                                        <div className="prob-item-new">
-                                                            <span className="prob-value">
-                                                                {match.probAway ? (
-                                                                    <>
-                                                                        <span className="prob-odds">{calculateOdds(match.probAway)}</span>
-                                                                        <span className="prob-percent">{formatPercentage(match.probAway)}</span>
-                                                                    </>
-                                                                ) : '-'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-
-
-
-
                                                 </div>
-                                            ))}
-                                        </div>
+                                            );
+                                        });
+                                })()}
+
+                                {filteredMatches.length > visibleCount && (
+                                    <div className="load-more-container" style={{ textAlign: 'center', margin: '40px 0 20px' }}>
+                                        <button
+                                            className="load-more-btn"
+                                            onClick={() => setVisibleCount(prev => prev + 40)}
+                                            style={{
+                                                backgroundColor: '#000',
+                                                color: '#fff',
+                                                padding: '12px 40px',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                fontSize: '15px',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
+                                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                            }}
+                                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#222'}
+                                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#000'}
+                                        >
+                                            Load More
+                                        </button>
                                     </div>
-                                ))
+                                )}
+                            </>
                         )}
                     </div>
                 </main>
