@@ -22,6 +22,21 @@ function MathPredictions() {
     const [leaguesByCountry, setLeaguesByCountry] = useState({});
     const [expandedCountries, setExpandedCountries] = useState(new Set());
     const [visibleCount, setVisibleCount] = useState(30);
+    const [isRTL, setIsRTL] = useState(false);
+
+    // Detect Arabic or Persian language
+    useEffect(() => {
+        const checkLanguage = () => {
+            const select = document.querySelector('.goog-te-combo');
+            if (select) {
+                setIsRTL(select.value === 'ar' || select.value === 'fa');
+            }
+        };
+
+        checkLanguage();
+        const interval = setInterval(checkLanguage, 500);
+        return () => clearInterval(interval);
+    }, []);
 
     // Handle match row click to navigate to detail page
     const handleMatchClick = (matchId) => {
@@ -334,7 +349,7 @@ function MathPredictions() {
                 </div>
 
                 {/* Main Grid Layout */}
-                <div className="content-grid">
+                <div className="content-grid" style={{ direction: isRTL ? 'rtl' : 'ltr', gap: '20px' }}>
                     {/* Filters Sidebar */}
                     <aside className="filters-sidebar">
                         <div className="filters-header">

@@ -4,9 +4,12 @@
 
 /* Ensure hamburger menu button is clickable */
 .header-menu {
-    position: relative;
-    z-index: 1000;
-    display: flex;
+    position: fixed !important;
+    top: 12px !important;
+    right: 16px !important;
+    left: auto !important;
+    z-index: 9998 !important;
+    display: none;
     align-items: center;
     justify-content: center;
     height: 40px;
@@ -299,12 +302,14 @@
         position: relative;
         z-index: auto;
         padding: 0 16px;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
     }
 
-    /* Make sure hamburger is visible and clickable */
+    /* Make sure hamburger is visible and clickable on the right */
     .header-menu {
-        display: block !important;
-        flex-shrink: 0;
+        display: flex !important;
     }
 }
 

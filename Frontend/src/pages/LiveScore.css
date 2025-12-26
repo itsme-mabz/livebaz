@@ -8,15 +8,9 @@
 
 /* Main Container */
 .livescore-container {
-    display: grid;
-    grid-template-columns: 280px 1fr;
+    display: flex;
     min-height: 100vh;
     gap: 0;
-    direction: ltr !important;
-}
-
-.livescore-container>* {
-    direction: initial !important;
 }
 
 /* Sidebar Styles */
@@ -33,18 +27,12 @@
     position: sticky;
     top: 0;
     align-self: start;
-    grid-column: 1 !important;
+    width: 280px;
+    flex-shrink: 0;
 }
 
 .livescore-main {
-    grid-column: 2 !important;
-    direction: ltr !important;
-    /* Force internal layout to stay consistent structurally */
-}
-
-.livescore-main>* {
-    direction: initial !important;
-    /* Allow actual text content to be RTL */
+    flex: 1;
 }
 
 .sidebar-header {
@@ -469,7 +457,7 @@
 
 /* Probability Display */
 .prob-row {
-    display: flex;
+    display: none; /* Hidden on desktop */
     gap: 6px;
     justify-content: flex-start;
 }
@@ -690,11 +678,12 @@
     }
 
     .livescore-container {
-        grid-template-columns: 260px 1fr;
+        flex-direction: row;
         gap: 0;
     }
 
     .livescore-sidebar {
+        width: 260px;
         margin-right: 16px;
     }
 
@@ -734,10 +723,11 @@
     }
 
     .livescore-container {
-        grid-template-columns: 240px 1fr;
+        flex-direction: row;
     }
 
     .livescore-sidebar {
+        width: 240px;
         margin-right: 12px;
     }
 
@@ -778,10 +768,11 @@
     }
 
     .livescore-container {
-        grid-template-columns: 220px 1fr;
+        flex-direction: row;
     }
 
     .livescore-sidebar {
+        width: 220px;
         font-size: 12px;
         padding: 16px 0;
         margin-right: 10px;
@@ -879,7 +870,7 @@
     }
 
     .livescore-container {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         gap: 0;
     }
 

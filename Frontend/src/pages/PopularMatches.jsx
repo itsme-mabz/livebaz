@@ -1,23 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { fetchPopularLeagues } from '../Service/FootballService';
 import './LiveScore.css';
 
-const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
-const BASE_URL = 'https://apiv3.apifootball.com';
-
-function LiveScore() {
+function PopularMatches() {
     const navigate = useNavigate();
     const [allMatches, setAllMatches] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [selectedLeagues, setSelectedLeagues] = useState(new Set());
-    const [leaguesByCountry, setLeaguesByCountry] = useState({});
-    const [topLeagues, setTopLeagues] = useState([]);
-    const [expandedCountries, setExpandedCountries] = useState(new Set());
-    const [selectedStatus, setSelectedStatus] = useState('all'); // 'yesterday', 'all', 'live', 'upcoming', 'finished', 'tomorrow'
-    const [counts, setCounts] = useState({ yesterday: 0, all: 0, live: 0, upcoming: 0, finished: 0, tomorrow: 0 });
-    const [standingsData, setStandingsData] = useState(null);
+    const [selectedStatus, setSelectedStatus] = useState('all');
+    const [counts, setCounts] = useState({ all: 0, live: 0, upcoming: 0, finished: 0 });
     const [visibleCount, setVisibleCount] = useState(40);
     const [isArabic, setIsArabic] = useState(false);
 
@@ -26,7 +17,7 @@ function LiveScore() {
         const checkLanguage = () => {
             const select = document.querySelector('.goog-te-combo');
             if (select) {
-                setIsArabic(select.value === 'ar' || select.value === 'fa');    
+                setIsArabic(select.value === 'ar' || select.value === 'fa');
             }
         };
 
@@ -35,14 +26,10 @@ function LiveScore() {
         return () => clearInterval(interval);
     }, []);
 
-    // Reset visible count when switching tabs or leagues
     useEffect(() => {
         setVisibleCount(40);
-    }, [selectedStatus, selectedLeagues]);
-    const [showStandingsModal, setShowStandingsModal] = useState(false);
-    const [loadingStandings, setLoadingStandings] = useState(false);
+    }, [selectedStatus]);
 
-    // Transform match data
     const transformMatch = (match) => ({
         id: match.match_id,
         time: match.match_time,
@@ -59,7 +46,6 @@ function LiveScore() {
         isLive: match.match_live === '1',
         status: match.match_status,
         date: match.match_date,
-        // Prediction data
         probHome: match.prob_HW || null,
         probDraw: match.prob_D || null,
         probAway: match.prob_AW || null,
@@ -68,7 +54,6 @@ function LiveScore() {
         probBTTS: match.prob_BTTS || null
     });
 
-    // Format percentage value
     const formatPercentage = (value) => {
         if (!value || value === '0' || value === 0) return '-';
         let num = parseFloat(value);
@@ -76,7 +61,6 @@ function LiveScore() {
         return num % 1 === 0 ? `${Math.round(num)}%` : `${num.toFixed(1)}%`;
     };
 
-    // Calculate odds from probability
     const calculateOdds = (value) => {
         if (!value || value === '0' || value === 0) return '-';
         let num = parseFloat(value);
@@ -88,95 +72,62 @@ function LiveScore() {
         return odds.toFixed(2);
     };
 
-    // Get date strings
-    const getDates = () => {
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-
-        return {
-            today: today.toISOString().split('T')[0],
-            yesterday: yesterday.toISOString().split('T')[0],
-            tomorrow: tomorrow.toISOString().split('T')[0]
-        };
-    };
-
-    // Fetch matches for specific date/status
     const fetchMatches = useCallback(async () => {
         setLoading(true);
         try {
-            const { today, yesterday, tomorrow } = getDates();
-            let fetchDate = today;
+            const popularResponse = await axios.get('/api/v1/public/popular-items?type=match');
 
-            if (selectedStatus === 'yesterday') fetchDate = yesterday;
-            else if (selectedStatus === 'tomorrow') fetchDate = tomorrow;
+            if (popularResponse.data && popularResponse.data.success) {
+                const popularMatches = popularResponse.data.data;
+                const matchIds = popularMatches.map(item => item.item_id);
 
-            let matchUrl = `${BASE_URL}/?action=get_events&from=${fetchDate}&to=${fetchDate}&APIkey=${API_KEY}`;
-            if (selectedLeagues.size > 0) {
-                matchUrl += `&league_id=${Array.from(selectedLeagues).join(',')}`;
-            }
+                if (matchIds.length > 0) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
-            // Fetch matches and predictions
-            const [matchResponse, predictionResponse] = await Promise.all([
-                axios.get(matchUrl),
-                axios.get(`${BASE_URL}/?action=get_predictions&from=${fetchDate}&to=${fetchDate}&APIkey=${API_KEY}`)
-            ]);
+                    const [matchesResponse, todayPreds, yesterdayPreds, tomorrowPreds] = await Promise.all([
+                        axios.get(`/api/v1/public/matches-by-ids?match_ids=${matchIds.join(',')}`),
+                        axios.get(`/api/v1/predictions?from=${today}&to=${today}`).catch(() => ({ data: { success: false, data: [] } })),
+                        axios.get(`/api/v1/predictions?from=${yesterday}&to=${yesterday}`).catch(() => ({ data: { success: false, data: [] } })),
+                        axios.get(`/api/v1/predictions?from=${tomorrow}&to=${tomorrow}`).catch(() => ({ data: { success: false, data: [] } }))
+                    ]);
 
-            if (matchResponse.data && Array.isArray(matchResponse.data)) {
-                // Predictions map
-                const predictionsMap = {};
-                if (predictionResponse.data && Array.isArray(predictionResponse.data)) {
-                    predictionResponse.data.forEach(pred => {
-                        predictionsMap[pred.match_id] = pred;
-                    });
-                }
+                    if (matchesResponse.data && matchesResponse.data.success) {
+                        const allPredictions = [
+                            ...(todayPreds.data?.data || []),
+                            ...(yesterdayPreds.data?.data || []),
+                            ...(tomorrowPreds.data?.data || [])
+                        ];
 
-                // Merge and transform
-                const transformed = matchResponse.data.map(match => {
-                    const prediction = predictionsMap[match.match_id] || {};
-                    const merged = {
-                        ...match,
-                        prob_HW: prediction.prob_HW,
-                        prob_D: prediction.prob_D,
-                        prob_AW: prediction.prob_AW,
-                        prob_O: prediction.prob_O,
-                        prob_U: prediction.prob_U,
-                        prob_BTTS: prediction.prob_bts
-                    };
-                    return transformMatch(merged);
-                });
-
-                setAllMatches(transformed);
-
-                // Update leagues for sidebar (only if today is selected, or keep it consistent)
-                const leaguesMap = {};
-                matchResponse.data.forEach(match => {
-                    if (!leaguesMap[match.country_name]) leaguesMap[match.country_name] = [];
-                    if (!leaguesMap[match.country_name].find(l => l.id === match.league_id)) {
-                        leaguesMap[match.country_name].push({
-                            id: match.league_id,
-                            name: match.league_name,
-                            logo: match.league_logo
+                        const predictionsMap = {};
+                        allPredictions.forEach(pred => {
+                            predictionsMap[pred.id] = pred.predictions;
                         });
-                    }
-                });
-                setLeaguesByCountry(leaguesMap);
 
-                // If we fetched TODAY, we can update All/Live/Upcoming/Finished counts
-                if (fetchDate === today) {
-                    const countsObj = {
-                        all: transformed.length,
-                        live: transformed.filter(m => getMatchStatus(m) === 'live').length,
-                        upcoming: transformed.filter(m => getMatchStatus(m) === 'upcoming').length,
-                        finished: transformed.filter(m => getMatchStatus(m) === 'finished').length
-                    };
-                    setCounts(prev => ({ ...prev, ...countsObj }));
-                } else if (fetchDate === yesterday) {
-                    setCounts(prev => ({ ...prev, yesterday: transformed.length }));
-                } else if (fetchDate === tomorrow) {
-                    setCounts(prev => ({ ...prev, tomorrow: transformed.length }));
+                        const transformed = matchesResponse.data.data.map(match => {
+                            const prediction = predictionsMap[match.match_id];
+                            return transformMatch({
+                                ...match,
+                                prob_HW: prediction?.['1x2']?.w1?.prob,
+                                prob_D: prediction?.['1x2']?.draw?.prob,
+                                prob_AW: prediction?.['1x2']?.w2?.prob,
+                                prob_O: prediction?.goals?.over?.prob,
+                                prob_U: prediction?.goals?.under?.prob,
+                                prob_BTTS: prediction?.btts?.yes?.prob
+                            });
+                        });
+
+                        setAllMatches(transformed);
+
+                        const countsObj = {
+                            all: transformed.length,
+                            live: transformed.filter(m => getMatchStatus(m) === 'live').length,
+                            upcoming: transformed.filter(m => getMatchStatus(m) === 'upcoming').length,
+                            finished: transformed.filter(m => getMatchStatus(m) === 'finished').length
+                        };
+                        setCounts(countsObj);
+                    }
                 }
             }
         } catch (error) {
@@ -184,40 +135,13 @@ function LiveScore() {
         } finally {
             setLoading(false);
         }
-    }, [selectedStatus, selectedLeagues]);
-
-    // Initial fetch for counts of other days
-    useEffect(() => {
-        const fetchOtherCounts = async () => {
-            const { yesterday, tomorrow } = getDates();
-            try {
-                const [yResp, tResp] = await Promise.all([
-                    axios.get(`${BASE_URL}/?action=get_events&from=${yesterday}&to=${yesterday}&APIkey=${API_KEY}`),
-                    axios.get(`${BASE_URL}/?action=get_events&from=${tomorrow}&to=${tomorrow}&APIkey=${API_KEY}`)
-                ]);
-
-                setCounts(prev => ({
-                    ...prev,
-                    yesterday: Array.isArray(yResp.data) ? yResp.data.length : 0,
-                    tomorrow: Array.isArray(tResp.data) ? tResp.data.length : 0
-                }));
-            } catch (e) {
-                console.error("Error fetching other counts", e);
-            }
-        };
-        fetchOtherCounts();
     }, []);
 
-    // Helper function to determine match status
     const getMatchStatus = (match) => {
         if (match.isLive) return 'live';
-
-        // Check if match is finished (has score and not live)
         if (match.homeScore !== '-' && match.awayScore !== '-' && !match.isLive) {
             return 'finished';
         }
-
-        // Check status string for finished matches
         if (match.status && (
             match.status === '' ||
             match.status === 'Match Finished' ||
@@ -228,18 +152,15 @@ function LiveScore() {
         )) {
             return 'finished';
         }
-
         return 'upcoming';
     };
 
-    // Filter matches based on selected status
     const filteredMatches = allMatches.filter(match => {
-        if (selectedStatus === 'yesterday' || selectedStatus === 'tomorrow' || selectedStatus === 'all') return true;
+        if (selectedStatus === 'all') return true;
         const matchStatus = getMatchStatus(match);
         return selectedStatus === matchStatus;
     });
 
-    // Group matches by league
     const groupedMatches = filteredMatches.reduce((acc, match) => {
         const key = `${match.country}-${match.leagueId}`;
         if (!acc[key]) {
@@ -255,188 +176,27 @@ function LiveScore() {
         return acc;
     }, {});
 
-    // Sort matches within each league group by time
     Object.values(groupedMatches).forEach(group => {
         group.matches.sort((a, b) => a.time.localeCompare(b.time));
     });
-
-    const toggleCountry = (country) => {
-        setExpandedCountries(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(country)) {
-                newSet.delete(country);
-            } else {
-                newSet.add(country);
-            }
-            return newSet;
-        });
-    };
-
-    const toggleLeague = (leagueId) => {
-        setSelectedLeagues(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(leagueId)) {
-                newSet.delete(leagueId);
-            } else {
-                newSet.add(leagueId);
-            }
-            return newSet;
-        });
-    };
-
-    const clearFilters = () => {
-        setSelectedLeagues(new Set());
-    };
-
-    // Fetch top leagues from backend
-    const fetchTopLeagues = useCallback(async () => {
-        try {
-            const popularData = await fetchPopularLeagues();
-            if (Array.isArray(popularData)) {
-                // Map to format expected by LiveScore component
-                const formatted = popularData.map(l => ({
-                    id: l.league_id,
-                    name: l.league_name,
-                    logo: l.league_logo
-                }));
-                // Only show if we have data, otherwise sidebar section won't render
-                if (formatted.length > 0) {
-                    setTopLeagues(formatted);
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching top leagues:', error);
-        }
-    }, []);
-
-    // Fetch standings for a specific league
-    const fetchStandings = async (leagueId, leagueName) => {
-        setLoadingStandings(true);
-        setShowStandingsModal(true);
-        try {
-            const url = `${BASE_URL}/?action=get_standings&league_id=${leagueId}&APIkey=${API_KEY}`;
-            const response = await axios.get(url);
-
-            if (response.data && Array.isArray(response.data)) {
-                setStandingsData({
-                    leagueName: leagueName,
-                    standings: response.data
-                });
-            }
-        } catch (error) {
-            console.error('Error fetching standings:', error);
-            setStandingsData(null);
-        } finally {
-            setLoadingStandings(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchTopLeagues();
-    }, [fetchTopLeagues]);
 
     useEffect(() => {
         fetchMatches();
     }, [fetchMatches]);
 
-    // Auto-switch to upcoming if no live matches on initial load
-    useEffect(() => {
-        if (allMatches.length > 0 && counts.live === 0 && selectedStatus === 'live') {
-            if (counts.upcoming > 0) {
-                setSelectedStatus('upcoming');
-            } else if (counts.finished > 0) {
-                setSelectedStatus('finished');
-            }
-        }
-    }, [allMatches, counts, selectedStatus]);
-
-
     return (
-        <div className="livescore-page wrap " style={{ paddingTop: '8px' }}>
-            {/* Breadcrumbs */}
+        <div className="livescore-page wrap" style={{ paddingTop: '8px' }}>
             <div className="breadcrumbs">
                 <a href="/">Livebaz</a>
                 <span>/</span>
-                <span>Live Score</span>
+                <span>Popular Matches</span>
             </div>
 
-            <div className="livescore-container wrap" style={{ direction: isArabic ? 'rtl' : 'ltr', gap: isArabic ? '20px' : '0' }}>
-                {/* Sidebar */}
-                <aside className="livescore-sidebar">
-                    <div className="sidebar-header">
-                        <h3 className="sidebar-title">TOP LEAGUES</h3>
-                        <button
-                            className="clear-filters-btn"
-                            onClick={clearFilters}
-                            style={{ opacity: selectedLeagues.size > 0 ? 1 : 0.5, cursor: selectedLeagues.size > 0 ? 'pointer' : 'not-allowed' }}
-                            disabled={selectedLeagues.size === 0}
-                        >
-                            Clear All
-                        </button>
-                    </div>
-
-
-                    {topLeagues.length > 0 && (
-                        <div className="sidebar-section">
-                            <h4 className="sidebar-section-title">Popular Today</h4>
-                            {topLeagues.map(league => (
-                                <div
-                                    key={league.id}
-                                    className="sidebar-league-item"
-                                    onClick={() => toggleLeague(league.id)}
-                                >
-                                    {league.logo ? (
-                                        <img src={league.logo} alt="" className="league-icon-img" />
-                                    ) : (
-                                        <span className="league-icon">⚽</span>
-                                    )}
-                                    <span className="league-name">{league.name}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {Object.entries(leaguesByCountry)
-                        .sort(([countryA], [countryB]) => countryA.localeCompare(countryB))
-                        .map(([country, leagues]) => (
-                            <div key={country} className="sidebar-section">
-                                <h4
-                                    className="sidebar-section-title clickable"
-                                    onClick={() => toggleCountry(country)}
-                                >
-                                    {country}
-                                    <span className="expand-arrow">
-                                        {expandedCountries.has(country) ? '▼' : '▶'}
-                                    </span>
-                                </h4>
-                                {expandedCountries.has(country) && (
-                                    <div className="sidebar-leagues">
-                                        {leagues.map(league => (
-                                            <div
-                                                key={league.id}
-                                                className="sidebar-league-item"
-                                                onClick={() => toggleLeague(league.id)}
-                                            >
-                                                {league.logo ? (
-                                                    <img src={league.logo} alt="" className="league-icon-img" />
-                                                ) : (
-                                                    <span className="league-icon">⚽</span>
-                                                )}
-                                                <span className="league-name">{league.name}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                </aside>
-
-                {/* Main Content */}
-                <main className="livescore-main">
-                    {/* Header */}
+            <div style={{ direction: isArabic ? 'rtl' : 'ltr', maxWidth: '1200px', margin: '0 auto' }}>
+                <main className="livescore-main" style={{ width: '100%' }}>
                     <div className="livescore-header">
                         <h1 className="livescore-title" style={{ display: 'flex', alignItems: 'center' }}>
-                            Live Football Games
+                            Popular Matches
                             {counts.live > 0 && (
                                 <span className="live-indicator" style={{
                                     width: '12px',
@@ -486,22 +246,9 @@ function LiveScore() {
                             >
                                 Finished {counts.finished}
                             </button>
-                            <button
-                                className={`livescore-date-pill ${selectedStatus === 'tomorrow' ? 'active' : ''}`}
-                                onClick={() => setSelectedStatus('tomorrow')}
-                            >
-                                Tomorrow {counts.tomorrow}
-                            </button>
-                            <button
-                                className={`livescore-date-pill ${selectedStatus === 'yesterday' ? 'active' : ''}`}
-                                onClick={() => setSelectedStatus('yesterday')}
-                            >
-                                Yesterday {counts.yesterday}
-                            </button>
                         </div>
                     </div>
 
-                    {/* Matches */}
                     <div className="livescore-content">
                         {loading ? (
                             <div className="loading-state">Loading matches...</div>
@@ -513,18 +260,15 @@ function LiveScore() {
                                     let matchCounter = 0;
                                     return Object.values(groupedMatches)
                                         .sort((a, b) => {
-                                            const topLeagueIds = topLeagues.map(l => String(l.id));
-                                            const aIndex = topLeagueIds.indexOf(String(a.leagueId));
-                                            const bIndex = topLeagueIds.indexOf(String(b.leagueId));
-                                            if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-                                            if (aIndex !== -1) return -1;
-                                            if (bIndex !== -1) return 1;
-                                            const countryCompare = a.country.localeCompare(b.country);
+                                            const countryA = a.country || '';
+                                            const countryB = b.country || '';
+                                            const countryCompare = countryA.localeCompare(countryB);
                                             if (countryCompare !== 0) return countryCompare;
-                                            return a.league.localeCompare(b.league);
+                                            const leagueA = a.league || '';
+                                            const leagueB = b.league || '';
+                                            return leagueA.localeCompare(leagueB);
                                         })
                                         .map((group, idx) => {
-                                            // Handle pagination
                                             if (matchCounter >= visibleCount) return null;
                                             const remainingCapacity = visibleCount - matchCounter;
                                             const matchesToShow = group.matches.slice(0, remainingCapacity);
@@ -533,7 +277,7 @@ function LiveScore() {
                                             matchCounter += matchesToShow.length;
 
                                             return (
-                                                <div key={idx} className="league-card">
+                                                <div key={`league-${idx}-${group.leagueId}`} className="league-card">
                                                     <div className="league-card-header">
                                                         <div className="league-card-title-wrapper">
                                                             {group.leagueLogo && (
@@ -543,15 +287,6 @@ function LiveScore() {
                                                                 {group.country.toUpperCase()}: {group.league.toUpperCase()}
                                                             </h3>
                                                         </div>
-                                                        <button
-                                                            className="standings-link"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                fetchStandings(group.leagueId, group.league);
-                                                            }}
-                                                        >
-                                                            Standings
-                                                        </button>
                                                     </div>
 
                                                     <div className="matches-list">
@@ -640,7 +375,6 @@ function LiveScore() {
                                                                     </div>
                                                                 </div>
 
-                                                                {/* Mobile Stats Row */}
                                                                 <div className="prob-row">
                                                                     <div className="prob-item">
                                                                         <span className="prob-label">1</span>
@@ -734,69 +468,9 @@ function LiveScore() {
                         )}
                     </div>
                 </main>
-                
             </div>
-
-            {/* Standings Modal */}
-            {showStandingsModal && (
-                <div className="standings-modal-overlay" onClick={() => setShowStandingsModal(false)}>
-                    <div className="standings-modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="standings-modal-header">
-                            <h2>{standingsData?.leagueName} - Standings</h2>
-                            <button className="standings-modal-close" onClick={() => setShowStandingsModal(false)}>
-                                ✕
-                            </button>
-                        </div>
-                        <div className="standings-modal-content">
-                            {loadingStandings ? (
-                                <div className="standings-loading">Loading standings...</div>
-                            ) : standingsData?.standings ? (
-                                <table className="standings-table">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Team</th>
-                                            <th>P</th>
-                                            <th>W</th>
-                                            <th>D</th>
-                                            <th>L</th>
-                                            <th>GF</th>
-                                            <th>GA</th>
-                                            <th>GD</th>
-                                            <th>Pts</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {standingsData.standings.map((team, idx) => (
-                                            <tr key={idx}>
-                                                <td>{team.overall_league_position}</td>
-                                                <td className="standings-team-cell">
-                                                    {team.team_badge && (
-                                                        <img src={team.team_badge} alt="" className="standings-team-logo" />
-                                                    )}
-                                                    <span>{team.team_name}</span>
-                                                </td>
-                                                <td>{team.overall_league_payed}</td>
-                                                <td>{team.overall_league_W}</td>
-                                                <td>{team.overall_league_D}</td>
-                                                <td>{team.overall_league_L}</td>
-                                                <td>{team.overall_league_GF}</td>
-                                                <td>{team.overall_league_GA}</td>
-                                                <td>{parseInt(team.overall_league_GF) - parseInt(team.overall_league_GA)}</td>
-                                                <td><strong>{team.overall_league_PTS}</strong></td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <div className="standings-error">Failed to load standings</div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
 
-export default LiveScore;
+export default PopularMatches;

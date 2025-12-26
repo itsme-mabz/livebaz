@@ -15,6 +15,7 @@ import Basketball from './pages/basketball';
 import Tennis from './pages/Tennis';
 import BestBettingapp from './pages/bestBettingapps';
 import PopularLeagues from './pages/PopularLeagues';
+import PopularMatches from './pages/PopularMatches';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import BlogList from './pages/BlogList';
@@ -39,6 +40,7 @@ function App() {
         }>
           <Route path="/" element={<LiveScore />} />
           <Route path="/predictions" element={<Predictions />} />
+          <Route path="/popular-matches" element={<PopularMatches />} />
           <Route path="/bookmakers" element={<Bookmakers />} />
           <Route path="/competitions/" element={<Leagues />} />
           <Route path="/math-predictions" element={<MathPredictions />} />
@@ -48,7 +50,9 @@ function App() {
           <Route path="/predictions/tennis" element={<Tennis />} />
           <Route path="/ar/bookmakers" element={<BestBettingapp />} />
           <Route path="/prediction/:matchId" element={<PredictionDetail />} />
+
           <Route path="/league/:leagueId" element={<LeagueDetail />} />
+          
           <Route path="/match/:matchId" element={<MatchDetail />} />
           <Route path="/league/:leagueId/old" element={<PopularLeagues />} />
           <Route path="/blogs" element={<BlogList />} />

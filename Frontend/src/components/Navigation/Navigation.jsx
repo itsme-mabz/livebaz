@@ -157,7 +157,6 @@ function Navigation() {
             <div className="header fl_c w-full mb-8 mb-m-0" style={{ minHeight: '64px' }}>
                 <div className="wrap fl_c_sb" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%', direction: 'ltr' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', height: '100%' }}>
-
                         <span className='header-logo' style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -176,65 +175,6 @@ function Navigation() {
                             </a>
                         </span>
                     </div>
-
-                    {/* Mobile Login Button - visible only on mobile */}
-                    {user ? (
-                        <button
-                            className="mobile-header-login"
-                            onClick={() => setShowUserDropdown(!showUserDropdown)}
-                            style={{
-                                display: 'none',
-                                padding: '8px 16px',
-                                backgroundColor: '#f5f5f5',
-                                color: '#121212',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontSize: '14px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                height: '40px',
-                                gap: '8px',
-                                alignItems: 'center'
-                            }}
-                        >
-                            <div style={{
-                                width: '24px',
-                                height: '24px',
-                                borderRadius: '50%',
-                                backgroundColor: '#fbbf24',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontWeight: 'bold',
-                                color: '#1f2937',
-                                fontSize: '12px'
-                            }}>
-                                {user.Name ? user.Name.charAt(0).toUpperCase() : 'U'}
-                            </div>
-                            <span>{user.Name}</span>
-                        </button>
-                    ) : (
-                        <button
-                            className="mobile-header-login"
-                            onClick={openLoginModal}
-                            style={{
-                                display: 'none',
-                                padding: '10px 20px',
-                                backgroundColor: '#f5f5f5',
-                                color: '#121212',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontSize: '14px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                height: '40px'
-                            }}
-                        >
-                            Log in
-                        </button>
-                    )}
 
                     <div className="header-center fl_c_sb w-full">
                         <span className='header-logo-desktop'>
@@ -303,6 +243,9 @@ function Navigation() {
                             </li>
                             <li>
                                 <a href='/math-predictions/' className='header-nav__link fl_c'>Math predictions</a>
+                            </li>
+                            <li>
+                                <a href='/popular-matches/' className='header-nav__link fl_c'>Popular Matches</a>
                             </li>
                             <li>
                                 <a href='/blogs/' className='header-nav__link fl_c'>Insights</a>
@@ -474,6 +417,21 @@ function Navigation() {
                     </div>
 
                 </div>
+            </div>
+
+            {/* Hamburger Menu Button - Fixed Position on Mobile */}
+            <div className="header-menu">
+                <button
+                    className="header-menu__button"
+                    onClick={toggleMobileMenu}
+                    aria-label="Toggle menu"
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
             </div>
 
             {/* Mobile Menu Sidebar */}
@@ -648,6 +606,10 @@ function Navigation() {
                             Math Predictions
                         </a>
 
+                        <a href='/popular-matches/' className='mobile-menu__link' onClick={toggleMobileMenu}>
+                            Popular Matches
+                        </a>
+
                         {/* <div className='mobile-menu__section'>
                             <div className='mobile-menu__section-title'>Football Tips</div>
                             <a href='#' className='mobile-menu__sublink disabled' onClick={(e) => e.preventDefault()}>
@@ -667,6 +629,81 @@ function Navigation() {
                         <a href='/livescore/' className='mobile-menu__link' onClick={toggleMobileMenu}>
                             Scores
                         </a>
+
+                        <a href='/blogs/' className='mobile-menu__link' onClick={toggleMobileMenu}>
+                            Insights
+                        </a>
+
+                        {/* Login/User Section in Mobile Menu */}
+                        <div style={{ marginTop: 'auto', padding: '16px 24px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                            {user ? (
+                                <div>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '12px',
+                                        padding: '12px 0',
+                                        color: '#f5f5f5'
+                                    }}>
+                                        <div style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            borderRadius: '50%',
+                                            backgroundColor: '#fbbf24',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontWeight: 'bold',
+                                            color: '#1f2937',
+                                            fontSize: '16px'
+                                        }}>
+                                            {user.Name ? user.Name.charAt(0).toUpperCase() : 'U'}
+                                        </div>
+                                        <div>
+                                            <div style={{ fontWeight: '600', fontSize: '15px' }}>{user.Name}</div>
+                                            <div style={{ fontSize: '13px', color: '#999', marginTop: '2px' }}>{user.Email}</div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleLogout}
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px',
+                                            backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                                            color: '#f87171',
+                                            border: '1px solid rgba(248, 113, 113, 0.3)',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer',
+                                            marginTop: '12px'
+                                        }}
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        openLoginModal();
+                                        toggleMobileMenu();
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '14px',
+                                        backgroundColor: '#f5f5f5',
+                                        color: '#121212',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '15px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Log in
+                                </button>
+                            )}
+                        </div>
                     </nav>
                 </div>
             </div>
