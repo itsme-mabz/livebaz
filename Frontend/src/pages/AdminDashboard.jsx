@@ -133,13 +133,20 @@ function AdminDashboard({ initialTab = 'matches' }) {
   const addPopularItem = async (item) => {
     try {
       const token = localStorage.getItem('token');
+      
+      // Ensure logo is properly included in item_data
+      let itemData = { ...item };
+      if (activeTab === 'leagues' && item.logo) {
+        itemData.league_logo = item.logo; // Add both fields for compatibility
+      }
+      
       const payload = {
         type: activeTab === 'matches' ? 'match' : 'league',
         item_id: activeTab === 'matches' ? item.match_id : item.league_id,
         item_name: activeTab === 'matches'
           ? `${item.home_team} vs ${item.away_team}`
           : item.league_name,
-        item_data: item,
+        item_data: itemData,
         priority: 0
       };
 
@@ -336,8 +343,18 @@ function AdminDashboard({ initialTab = 'matches' }) {
                       </div>
                     ) : (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
-                        {item.item_data?.logo && (
-                          <img src={item.item_data.logo} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                        {item.item_data?.logo || item.item_data?.league_logo ? (
+                          <img 
+                            src={item.item_data.logo || item.item_data.league_logo} 
+                            alt="" 
+                            style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              console.error('Failed to load logo:', item.item_data.logo || item.item_data.league_logo);
+                            }}
+                          />
+                        ) : (
+                          <span style={{ fontSize: '10px', color: '#f44336' }}>❌ No logo</span>
                         )}
                         {item.item_name}
                       </div>

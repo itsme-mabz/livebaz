@@ -38,13 +38,31 @@ export const fetchPopularLeagues = async () => {
     const response = await fetch('/api/v1/public/popular-items?type=league');
     const data = await response.json();
 
+    console.log('🔍 Raw API response:', data);
+
     if (data.success && Array.isArray(data.data)) {
-      return data.data.map(item => ({
-        league_id: item.item_id,
-        league_name: item.item_name,
-        league_logo: item.item_data?.logo || '',
-        // Preserve other fields if needed, but these are the main ones for display
-      }));
+      const leagues = data.data.map(item => {
+        // Parse item_data if it's a string
+        let leagueData = item.item_data;
+        if (typeof leagueData === 'string') {
+          try {
+            leagueData = JSON.parse(leagueData);
+          } catch (e) {
+            console.error('Failed to parse item_data:', e);
+            leagueData = {};
+          }
+        }
+        
+        const league = {
+          league_id: item.item_id,
+          league_name: item.item_name,
+          league_logo: leagueData.logo || leagueData.league_logo || '',
+          country: leagueData.country || '',
+        };
+        console.log(`📊 League: ${league.league_name}, Logo: ${league.league_logo}`);
+        return league;
+      });
+      return leagues;
     }
     return [];
   } catch (error) {

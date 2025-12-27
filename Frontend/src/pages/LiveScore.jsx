@@ -20,6 +20,7 @@ function LiveScore() {
     const [standingsData, setStandingsData] = useState(null);
     const [visibleCount, setVisibleCount] = useState(40);
     const [isArabic, setIsArabic] = useState(false);
+    const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
 
     // Detect Arabic or Persian language
     useEffect(() => {
@@ -360,6 +361,78 @@ function LiveScore() {
                 <span>Live Score</span>
             </div>
 
+            {/* Mobile League Dropdown */}
+            <div className="mobile-league-dropdown">
+                <div className="mobile-dropdown-header" onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}>
+                    <span>Filter by League {selectedLeagues.size > 0 && `(${selectedLeagues.size})`}</span>
+                    <span>{mobileDropdownOpen ? '▼' : '▶'}</span>
+                </div>
+                {mobileDropdownOpen && (
+                    <div className="mobile-dropdown-content">
+                        {selectedLeagues.size > 0 && (
+                            <button
+                                onClick={clearFilters}
+                                style={{
+                                    width: 'calc(100% - 32px)',
+                                    margin: '8px 16px',
+                                    padding: '8px 16px',
+                                    backgroundColor: '#ff4444',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Reset Filters
+                            </button>
+                        )}
+                        {topLeagues.length > 0 && (
+                            <>
+                                <div className="mobile-dropdown-section-title">Popular Leagues</div>
+                                {topLeagues.map(league => (
+                                    <div
+                                        key={league.id}
+                                        className={`mobile-league-item ${selectedLeagues.has(league.id) ? 'selected' : ''}`}
+                                        onClick={() => toggleLeague(league.id)}
+                                    >
+                                        <span className="league-name-mobile">{league.name}</span>
+                                        <div className="league-logo-wrapper">
+                                            {league.logo ? (
+                                                <img src={league.logo} alt="" className="league-icon-img" />
+                                            ) : (
+                                                <div className="league-logo-placeholder"></div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
+                        )}
+                        <div className="mobile-dropdown-section-title">All Leagues</div>
+                        {Object.entries(leaguesByCountry)
+                            .sort(([countryA], [countryB]) => countryA.localeCompare(countryB))
+                            .map(([country, leagues]) => leagues.map(league => (
+                                <div
+                                    key={league.id}
+                                    className={`mobile-league-item ${selectedLeagues.has(league.id) ? 'selected' : ''}`}
+                                    onClick={() => toggleLeague(league.id)}
+                                >
+                                    <span className="league-name-mobile">{league.name}</span>
+                                    <div className="league-logo-wrapper">
+                                        {league.logo ? (
+                                            <img src={league.logo} alt="" className="league-icon-img" />
+                                        ) : (
+                                            <div className="league-logo-placeholder"></div>
+                                        )}
+                                    </div>
+                                </div>
+                            )))
+                        }
+                    </div>
+                )}
+            </div>
+
             <div className="livescore-container wrap" style={{ direction: isArabic ? 'rtl' : 'ltr', gap: isArabic ? '20px' : '0' }}>
                 {/* Sidebar */}
                 <aside className="livescore-sidebar">
@@ -437,21 +510,7 @@ function LiveScore() {
                     <div className="livescore-header">
                         <h1 className="livescore-title" style={{ display: 'flex', alignItems: 'center' }}>
                             Live Football Games
-                            {counts.live > 0 && (
-                                <span className="live-indicator" style={{
-                                    width: '12px',
-                                    height: '12px',
-                                    minWidth: '12px',
-                                    minHeight: '12px',
-                                    borderRadius: '50%',
-                                    backgroundColor: '#00c853',
-                                    display: 'block',
-                                    marginLeft: '15px',
-                                    animation: 'pulse 2s infinite',
-                                    boxShadow: '0 0 8px rgba(0, 200, 83, 0.8)',
-                                    flexShrink: '0'
-                                }}></span>
-                            )}
+                           
                         </h1>
                         <div className="livescore-date-pills">
                             <button

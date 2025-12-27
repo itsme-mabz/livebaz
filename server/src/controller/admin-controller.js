@@ -255,7 +255,7 @@ exports.searchLeagues = async (req, res) => {
       league_id: league.league_id,
       league_name: league.league_name,
       country: league.country_name,
-      logo: league.league_logo
+      logo: league.league_logo || league.logo || '' // Try both field names
     }));
 
     // Sort leagues alphabetically by country then league name

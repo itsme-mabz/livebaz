@@ -129,17 +129,24 @@ function Navigation() {
     const LeagueItem = ({ league }) => (
         <span className="dropdown-submenu__item fl_c">
             <span className="icon-wrapper fl_c_c">
-                <img
-                    srcSet={`${league.league_logo} 100w`}
-                    decoding="async"
-                    data-srcset={`${league.league_logo} 30w`}
-                    data-sizes="auto"
-                    width="24"
-                    height="24"
-                    alt={league.league_name}
-                    src={league.league_logo}
-                    className="lazyload"
-                />
+                {league.league_logo ? (
+                    <img
+                        srcSet={`${league.league_logo} 100w`}
+                        decoding="async"
+                        data-srcset={`${league.league_logo} 30w`}
+                        data-sizes="auto"
+                        width="24"
+                        height="24"
+                        alt={league.league_name}
+                        src={league.league_logo}
+                        className="lazyload"
+                        onError={(e) => {
+                            e.target.style.display = 'none';
+                        }}
+                    />
+                ) : (
+                    <div style={{ width: '24px', height: '24px', background: '#f0f0f0', borderRadius: '50%' }} />
+                )}
             </span>
             <span className="ml-8 overflow-elipsis">
                 <Link to={`/league/${league.league_id}`}>{league.league_name}</Link>
@@ -568,6 +575,16 @@ function Navigation() {
                                     >
                                         All Leagues
                                     </a>
+                                    <div style={{
+                                        padding: '8px 24px 4px',
+                                        color: '#5b89ff',
+                                        fontSize: '11px',
+                                        fontWeight: '700',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.5px'
+                                    }}>
+                                        Popular Leagues
+                                    </div>
                                     {loading ? (
                                         <div style={{ padding: '12px 24px', color: '#999' }}>Loading leagues...</div>
                                     ) : (
@@ -580,21 +597,35 @@ function Navigation() {
                                                 style={{
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    gap: '12px'
+                                                    justifyContent: 'space-between'
                                                 }}
                                             >
-                                                {league.league_logo && (
-                                                    <img
-                                                        src={league.league_logo}
-                                                        alt=""
-                                                        style={{
-                                                            width: '20px',
-                                                            height: '20px',
-                                                            objectFit: 'contain'
-                                                        }}
-                                                    />
-                                                )}
                                                 <span>{league.league_name}</span>
+                                                <div style={{
+                                                    width: '20px',
+                                                    height: '20px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    flexShrink: 0
+                                                }}>
+                                                    {league.league_logo ? (
+                                                        <img
+                                                            src={league.league_logo}
+                                                            alt=""
+                                                            style={{
+                                                                width: '20px',
+                                                                height: '20px',
+                                                                objectFit: 'contain'
+                                                            }}
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div style={{ width: '20px', height: '20px' }}></div>
+                                                    )}
+                                                </div>
                                             </a>
                                         ))
                                     )}
@@ -634,54 +665,25 @@ function Navigation() {
                             Insights
                         </a>
 
-                        {/* Login/User Section in Mobile Menu */}
-                        <div style={{ marginTop: 'auto', padding: '16px 24px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                        {/* Login/Logout Section */}
+                        <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '60px' }}>
                             {user ? (
-                                <div>
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '12px',
-                                        padding: '12px 0',
-                                        color: '#f5f5f5'
-                                    }}>
-                                        <div style={{
-                                            width: '40px',
-                                            height: '40px',
-                                            borderRadius: '50%',
-                                            backgroundColor: '#fbbf24',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontWeight: 'bold',
-                                            color: '#1f2937',
-                                            fontSize: '16px'
-                                        }}>
-                                            {user.Name ? user.Name.charAt(0).toUpperCase() : 'U'}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: '600', fontSize: '15px' }}>{user.Name}</div>
-                                            <div style={{ fontSize: '13px', color: '#999', marginTop: '2px' }}>{user.Email}</div>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={handleLogout}
-                                        style={{
-                                            width: '100%',
-                                            padding: '12px',
-                                            backgroundColor: 'rgba(248, 113, 113, 0.1)',
-                                            color: '#f87171',
-                                            border: '1px solid rgba(248, 113, 113, 0.3)',
-                                            borderRadius: '8px',
-                                            fontSize: '14px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer',
-                                            marginTop: '12px'
-                                        }}
-                                    >
-                                        Logout
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                                        color: '#f87171',
+                                        border: '1px solid rgba(248, 113, 113, 0.3)',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Logout
+                                </button>
                             ) : (
                                 <button
                                     onClick={() => {

@@ -1,7 +1,7 @@
 /* Page Wrapper */
 .livescore-page {
     width: 100%;
-    max-width: 1400px;
+    max-width: 100%;
     margin: 0 auto;
     padding: 20px;
 }
@@ -11,6 +11,7 @@
     display: flex;
     min-height: 100vh;
     gap: 0;
+    
 }
 
 /* Sidebar Styles */
@@ -143,6 +144,90 @@
     margin-bottom: 20px;
     font-size: 13px;
     color: #666;
+}
+
+/* Mobile League Dropdown */
+.mobile-league-dropdown {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-league-dropdown {
+        display: block;
+        width: calc(100vw - 16px);
+        margin: 12px 8px 12px 8px;
+        background: #121212;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .mobile-dropdown-header {
+        padding: 12px 16px;
+        background: #1a1a1a;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .mobile-dropdown-content {
+        max-height: 300px;
+        overflow-y: auto;
+        background: #121212;
+    }
+
+    .mobile-dropdown-section-title {
+        padding: 12px 16px;
+        background: #1a1a1a;
+        color: #5b89ff;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #2a2a2a;
+    }
+
+    .mobile-league-item {
+        padding: 10px 16px;
+        color: #fff;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #2a2a2a;
+        cursor: pointer;
+    }
+
+    .mobile-league-item:hover {
+        background: #1a1a1a;
+    }
+
+    .mobile-league-item.selected {
+        background: #2a2a2a;
+    }
+
+    .league-name-mobile {
+        flex: 1;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .league-logo-wrapper {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .league-logo-placeholder {
+        width: 20px;
+        height: 20px;
+    }
 }
 
 /* Main Content */
@@ -866,21 +951,61 @@
 
 @media (max-width: 768px) {
     .livescore-page {
-        padding: 8px;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .livescore-container {
         flex-direction: column;
         gap: 0;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
     }
 
     .livescore-sidebar {
         display: none;
     }
 
+    .livescore-main {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        overflow-x: visible;
+        margin: 0;
+        padding: 8px;
+        box-sizing: border-box;
+        position: relative;
+        left: 0;
+        right: 0;
+    }
+
     .livescore-header {
+        width: calc(100% - 16px) !important;
+        max-width: calc(100% - 16px) !important;
         padding: 16px 12px;
         border-radius: 6px;
+        margin: 0 8px;
+        box-sizing: border-box;
+    }
+
+    .league-card {
+        width: calc(100% - 16px) !important;
+        max-width: calc(100% - 16px) !important;
+        margin: 0 8px 12px 8px;
+        padding: 0;
+        overflow-x: visible;
+        border-radius: 8px;
+        box-sizing: border-box;
     }
 
     .livescore-title {
@@ -913,6 +1038,7 @@
     .league-card {
         margin-bottom: 12px;
         border-radius: 8px;
+        overflow-x: auto;
     }
 
     .league-card-header {
@@ -961,98 +1087,237 @@
 
     /* Mobile: Compact card layout for match stats */
     .match-row-stats {
-        display: block;
-        padding: 12px;
+        display: grid;
+        grid-template-columns: 35px 90px 28px 42px 42px 42px;
+        gap: 2px;
+        padding: 6px 3px;
         min-height: auto;
-    }
-
-    .match-row-stats .col-time-stat,
-    .match-row-stats .col-match-stat,
-    .match-row-stats .col-score-stat {
-        border-right: none;
-        padding: 0;
-        margin-bottom: 10px;
+        align-items: center;
     }
 
     .match-row-stats .col-time-stat {
+        grid-column: 1;
+        grid-row: 2 / 4;
+        border-right: 1px solid #e8e8e8;
+        padding: 0;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: 8px;
+        justify-content: center;
+        font-size: 9px;
+    }
+
+    .match-row-stats .col-time-stat::before {
+        content: 'Time';
+        position: absolute;
+        top: 8px;
+        font-size: 7px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
     }
 
     .match-row-stats .col-match-stat {
-        margin-bottom: 8px;
+        grid-column: 2;
+        grid-row: 2 / 4;
+        border-right: 1px solid #e8e8e8;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .match-row-stats .col-match-stat::before {
+        content: 'Match';
+        position: absolute;
+        top: 8px;
+        font-size: 7px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
     }
 
     .match-row-stats .col-score-stat {
+        grid-column: 3;
+        grid-row: 2 / 4;
+        border-right: 1px solid #e8e8e8;
+        padding: 0;
         display: flex;
+        flex-direction: column;
+        align-items: center;
         justify-content: center;
-        margin-bottom: 12px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .match-row-stats .col-score-stat::before {
+        content: 'Score';
+        position: absolute;
+        top: 8px;
+        font-size: 7px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
     }
 
     .match-row-stats .col-score-stat .score-display {
-        flex-direction: row;
-        gap: 8px;
-        align-items: center;
+        flex-direction: column;
+        gap: 1px;
     }
 
     .match-row-stats .col-score-stat .score-divider {
-        width: 1px;
-        height: 20px;
-        margin: 0 4px;
+        width: 100%;
+        height: 1px;
+        margin: 1px 0;
     }
 
-    /* Hide individual stat columns and show only probability row */
-    .match-row-stats .col-1-stat,
-    .match-row-stats .col-x-stat,
-    .match-row-stats .col-2-stat,
+    .match-row-stats .col-1-stat {
+        grid-column: 4;
+        grid-row: 2 / 4;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid #e8e8e8;
+        padding: 0;
+    }
+
+    .match-row-stats .col-1-stat::before {
+        content: '1';
+        position: absolute;
+        top: 8px;
+        font-size: 7px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+    }
+
+    .match-row-stats .col-x-stat {
+        grid-column: 5;
+        grid-row: 2 / 4;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid #e8e8e8;
+        padding: 0;
+    }
+
+    .match-row-stats .col-x-stat::before {
+        content: 'X';
+        position: absolute;
+        top: 8px;
+        font-size: 7px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+    }
+
+    .match-row-stats .col-2-stat {
+        grid-column: 6;
+        grid-row: 2 / 4;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        border-right: none;
+        padding: 0;
+    }
+
+    .match-row-stats .col-2-stat::before {
+        content: '2';
+        position: absolute;
+        top: 8px;
+        font-size: 7px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+    }
+
     .match-row-stats .col-btts-stat,
     .match-row-stats .col-result-stat,
     .match-row-stats .col-goals-stat {
         display: none;
     }
 
-    /* Show only prob-row on mobile */
     .match-row-stats .prob-row {
-        display: flex !important;
-        justify-content: space-between;
-        flex-wrap: nowrap;
-        gap: 6px;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid #f0f0f0;
+        display: none !important;
+    }
+
+    .match-row-stats {
+        position: relative;
+        padding-top: 20px;
+    }
+
+    .prob-item-new {
+        padding: 2px 1px;
+        min-width: 30px;
+        background-color: #f8f8f8;
+    }
+
+    .prob-odds {
+        font-size: 8px;
+    }
+
+    .prob-percent {
+        font-size: 6px;
+    }
+
+    .team-row-new {
+        gap: 4px;
+        padding: 1px 0;
+    }
+
+    .team-logo {
+        width: 10px;
+        height: 10px;
+    }
+
+    .team-name-new {
+        font-size: 8px;
+    }
+
+    .score-number {
+        font-size: 9px;
+        padding: 2px 4px;
+        min-width: 16px;
+        line-height: 1.1;
+    }
+
+    .match-time-new {
+        font-size: 8px;
+    }
+
+    .live-text {
+        font-size: 6px;
+        padding: 2px 3px;
+    }
+
+    .live-minute {
+        font-size: 8px;
     }
 
     .prob-row {
         justify-content: space-between;
         flex-wrap: nowrap;
-        gap: 6px;
+        gap: 4px;
     }
 
     .prob-item {
         flex: 1;
         min-width: 0;
-        padding: 8px 4px;
+        padding: 6px 3px;
         background-color: #f8f8f8;
         border-radius: 6px;
     }
 
     .prob-label {
-        font-size: 9px;
+        font-size: 8px;
         margin-bottom: 2px;
         white-space: nowrap;
     }
 
     .prob-odds {
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 700;
     }
 
     .prob-percent {
-        font-size: 10px;
+        font-size: 9px;
     }
 
     .team-row-new {
@@ -1171,9 +1436,9 @@
     }
 
     .score-number {
-        font-size: 16px;
-        padding: 3px 12px;
-        min-width: 32px;
+        font-size: 10px;
+        padding: 2px 5px;
+        min-width: 18px;
     }
 
     .prob-item {

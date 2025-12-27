@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Popular Leagues Debug</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .league { border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
+        .logo { width: 30px; height: 30px; margin-right: 10px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Popular Leagues Debug</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/public/popular-items?type=league');
+                const data = await response.json();
+                
+                console.log('API Response:', data);
+                
+                let html = '<h2>API Response:</h2>';
+                html += `<p class="success">✅ Success: ${data.success}</p>`;
+                html += `<p>Total leagues: ${data.count}</p>`;
+                
+                if (data.data && data.data.length > 0) {
+                    html += '<h3>Leagues:</h3>';
+                    data.data.forEach(item => {
+                        const logo = item.item_data?.logo || item.item_data?.league_logo || '';
+                        html += `<div class="league">`;
+                        html += `<strong>${item.item_name}</strong><br>`;
+                        html += `ID: ${item.item_id}<br>`;
+                        html += `Logo URL: ${logo || '<span class="error">❌ MISSING</span>'}<br>`;
+                        
+                        if (logo) {
+                            html += `<img src="${logo}" class="logo" onerror="this.style.border='2px solid red'" onload="this.style.border='2px solid green'"><br>`;
+                            html += `<small>If image has red border, URL is broken. Green = working.</small>`;
+                        }
+                        
+                        html += `<details><summary>Full item_data</summary><pre>${JSON.stringify(item.item_data, null, 2)}</pre></details>`;
+                        html += `</div>`;
+                    });
+                } else {
+                    html += '<p class="error">❌ No leagues found. Add some from admin dashboard.</p>';
+                }
+                
+                results.innerHTML = html;
+                
+            } catch (error) {
+                results.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+                console.error('Error:', error);
+            }
+        }
+        
+        // Auto-run on load
+        window.onload = testAPI;
+    </script>
+</body>
+</html>
