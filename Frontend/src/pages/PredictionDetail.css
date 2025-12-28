@@ -155,9 +155,12 @@
 }
 
 @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0px);
     }
+
     50% {
         transform: translateY(-10px);
     }
@@ -616,26 +619,84 @@
     }
 
     .hero-background {
-        height: 250px;
-        padding: 20px 30px;
+        height: 180px;
+        padding: 15px 10px;
     }
 
     .team-badge-hero {
-        width: 100px;
-        height: 100px;
+        width: 60px;
+        height: 60px;
     }
 
     .vs-divider {
-        font-size: 48px;
+        font-size: 24px;
+        letter-spacing: 2px;
     }
 
+    /* Prediction Table - Restore Grid Layout */
     .prediction-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: 90px 25px 1fr 70px !important;
+        gap: 4px;
+        padding: 10px 8px;
+    }
+
+    .prediction-row.away-row {
+        grid-template-columns: 90px 25px !important;
+    }
+
+    .team-cell {
+        gap: 6px;
+    }
+
+    .team-cell img {
+        width: 18px;
+        height: 18px;
+    }
+
+    .team-cell span {
+        font-size: 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60px;
+    }
+
+    .odds-cell {
+        font-size: 10px;
     }
 
     .prediction-columns {
-        justify-content: flex-start;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .pred-column {
+        min-width: 35px;
+    }
+
+    .pred-header {
+        font-size: 9px;
+        margin-bottom: 2px;
+    }
+
+    .pred-odds {
+        font-size: 12px;
+    }
+
+    .pred-prob {
+        font-size: 9px;
+    }
+
+    .pred-odds.highlighted {
+        padding: 2px 6px;
+    }
+
+    .best-pick {
+        padding: 4px 6px;
+        font-size: 9px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .match-info-cards {

@@ -198,6 +198,14 @@
     color: #4169e1;
 }
 
+.prediction-type-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
 /* Round Selector */
 .round-selector {
     display: flex;
@@ -572,11 +580,40 @@
     }
 
     .league-tabs {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .league-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .league-tab {
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .prediction-filters {
         flex-wrap: wrap;
+    }
+
+    .prediction-type-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .prediction-type-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .prediction-type-tabs>* {
+        flex-shrink: 0;
     }
 
     .matches-header {
@@ -630,99 +667,190 @@
 
 @media (max-width: 640px) {
     .league-detail-container {
-        padding: 0 10px;
+        padding: 0 4px;
+        /* Minimal padding */
     }
 
     .league-header {
-        padding: 20px 15px;
+        padding: 15px 10px;
     }
 
     .league-content {
-        padding: 20px 15px;
+        padding: 15px 5px;
+        /* Maximize width */
     }
 
     .league-meta-divider {
         display: none;
     }
 
+    /* Restore Header Grid */
     .matches-header {
-        display: none;
+        display: grid !important;
+        /* Time | Match | Preds */
+        grid-template-columns: 60px 1fr 135px !important;
+        /* Increased Time width */
+        gap: 4px;
+        padding: 8px 4px;
+        font-size: 9px;
+        /* Tiny font for header */
     }
 
+    /* Hide specific sub-headers if needed or just let them shrink */
+    .matches-header>div {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-right: 0 !important;
+        border-right: none !important;
+    }
+
+    /* Restore Match Row Grid */
     .league-detail-page .match-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 15px;
+        grid-template-columns: 60px 1fr 135px !important;
+        /* Increased Time width */
+        gap: 4px;
+        padding: 8px 0;
+        /* Tight padding */
     }
 
+    .league-detail-page .match-row>div:not(:last-child) {
+        border-right: none !important;
+        /* Remove borders to save space */
+        padding-right: 0 !important;
+    }
+
+    /* Time Column */
     .match-time {
-        font-size: 12px;
-        text-align: left;
+        font-size: 10px;
+        text-align: center;
+        width: 100%;
     }
 
+    .match-date {
+        font-size: 10px;
+    }
+
+    .match-hour {
+        font-size: 9px;
+        color: #888;
+    }
+
+    /* Match Teams & Score */
     .league-detail-page .match-teams {
-        flex-direction: column;
-        gap: 10px;
-        align-items: stretch;
+        /* On mobile, stack teams vertically to save width */
+        flex-direction: column !important;
+        gap: 4px !important;
+        align-items: flex-start !important;
+        padding-left: 8px !important;
+        /* Added padding */
     }
 
-    .league-detail-page .home-team,
-    .league-detail-page .away-team {
-        justify-content: flex-start;
-        text-align: left;
-    }
-
-    .league-detail-page .home-team span {
-        order: 0;
-    }
-
+    /* Override inline styles for team rows if possible, mostly targets spans/imgs */
     .league-detail-page .match-score {
-        justify-content: center;
-        font-size: 14px;
+        width: 100%;
     }
 
+    .league-detail-page .match-score>div {
+        /* Target the flex containers for each team */
+        margin-bottom: 2px;
+    }
+
+    .league-detail-page .match-score img {
+        width: 14px !important;
+        height: 14px !important;
+        margin-right: 4px !important;
+    }
+
+    .league-detail-page .match-score span {
+        font-size: 10px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 90px;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    /* Predictions Column */
     .match-predictions {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
+        /* Controlled by grid parent, but internal gap needs reduction */
+        gap: 3px !important;
     }
 
     .pred-value {
-        padding: 8px 4px;
-        font-size: 11px;
+        padding: 2px 0 !important;
+        font-size: 10px !important;
+        min-height: 28px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Double Chance / HT specific adjustments */
+    .match-predictions[style*="repeat(4"] .pred-value {
+        font-size: 9px !important;
     }
 
     .round-selector {
         padding: 10px;
-        gap: 15px;
+        gap: 10px;
+        flex-wrap: wrap;
+        /* Allow wrapping */
     }
 
     .current-round {
         font-size: 14px;
     }
 
+    /* Scorers & Teams Mobile Adjustments */
     .scorers-header,
     .scorer-row {
-        grid-template-columns: 30px 1fr 100px 40px 40px 40px;
-        font-size: 12px;
-        gap: 8px;
+        grid-template-columns: 25px 1fr 30px 30px 30px !important;
+        /* Rank | Player | Goals | Assists | Pens */
+        gap: 5px;
+        font-size: 11px;
+    }
+
+    /* Hide Team column on mobile, show the rest */
+    .scorer-row .team,
+    .scorer-header .team {
+        display: none !important;
+        /* Keep Team hidden to save space */
+    }
+
+    /* Ensure Assists and Penalties are visible */
+    .scorer-row .assists,
+    .scorer-row .penalties,
+    .scorers-header .assists,
+    .scorers-header .penalties {
+        display: block !important;
+        text-align: center;
+    }
+
+    .scorers-header span,
+    .scorer-row span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .teams-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
     }
 
     .team-card {
-        padding: 15px;
+        padding: 10px;
     }
 
     .team-card-logo {
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: 40px;
     }
 
     .team-card-name {
-        font-size: 14px;
+        font-size: 12px;
     }
 }
 

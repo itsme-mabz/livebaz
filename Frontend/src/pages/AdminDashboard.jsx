@@ -133,13 +133,13 @@ function AdminDashboard({ initialTab = 'matches' }) {
   const addPopularItem = async (item) => {
     try {
       const token = localStorage.getItem('token');
-      
+
       // Ensure logo is properly included in item_data
       let itemData = { ...item };
       if (activeTab === 'leagues' && item.logo) {
         itemData.league_logo = item.logo; // Add both fields for compatibility
       }
-      
+
       const payload = {
         type: activeTab === 'matches' ? 'match' : 'league',
         item_id: activeTab === 'matches' ? item.match_id : item.league_id,
@@ -337,16 +337,22 @@ function AdminDashboard({ initialTab = 'matches' }) {
                   <div style={{ flex: 1 }}>
                     {activeTab === 'matches' && item.item_data ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500' }}>
-                        <span style={{ color: '#333' }}>{item.item_data.home_team}</span>
-                        <span style={{ color: '#999', fontSize: '12px' }}>vs</span>
-                        <span style={{ color: '#333' }}>{item.item_data.away_team}</span>
+                        {(item.item_data.home_team || item.item_data.match_hometeam_name) ? (
+                          <>
+                            <span style={{ color: '#333' }}>{item.item_data.home_team || item.item_data.match_hometeam_name}</span>
+                            <span style={{ color: '#999', fontSize: '12px' }}>vs</span>
+                            <span style={{ color: '#333' }}>{item.item_data.away_team || item.item_data.match_awayteam_name}</span>
+                          </>
+                        ) : (
+                          <span style={{ color: '#333' }}>{item.item_name}</span>
+                        )}
                       </div>
                     ) : (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
                         {item.item_data?.logo || item.item_data?.league_logo ? (
-                          <img 
-                            src={item.item_data.logo || item.item_data.league_logo} 
-                            alt="" 
+                          <img
+                            src={item.item_data.logo || item.item_data.league_logo}
+                            alt=""
                             style={{ width: '20px', height: '20px', objectFit: 'contain' }}
                             onError={(e) => {
                               e.target.style.display = 'none';

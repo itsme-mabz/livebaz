@@ -8,6 +8,7 @@ import '../CSS/PopularLeague/popularLeague2.css'
 
 
 function PopularLeagues() {
+
   const { leagueId } = useParams()
 
   const getLeagueTitle = (id) => {

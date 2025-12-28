@@ -122,6 +122,68 @@ function LeagueDetail() {
         return num % 1 === 0 ? `${Math.round(num)}%` : `${num.toFixed(1)}%`;
     };
 
+    const getExpectedScore = (homeId, awayId) => {
+        if (!standings || standings.length === 0) return '-';
+        const homeTeam = standings.find(s => String(s.team_id) === String(homeId));
+        const awayTeam = standings.find(s => String(s.team_id) === String(awayId));
+
+        if (!homeTeam || !awayTeam || !homeTeam.overall_league_payed || homeTeam.overall_league_payed === '0' || !awayTeam.overall_league_payed || awayTeam.overall_league_payed === '0') return '-';
+
+        const hPayed = parseInt(homeTeam.overall_league_payed);
+        const aPayed = parseInt(awayTeam.overall_league_payed);
+
+        const hScoredAvg = parseInt(homeTeam.overall_league_GF) / hPayed;
+        const hConcededAvg = parseInt(homeTeam.overall_league_GA) / hPayed;
+        const aScoredAvg = parseInt(awayTeam.overall_league_GF) / aPayed;
+        const aConcededAvg = parseInt(awayTeam.overall_league_GA) / aPayed;
+
+        const hExp = (hScoredAvg + aConcededAvg) / 2;
+        const aExp = (aScoredAvg + hConcededAvg) / 2;
+
+        return { hExp, aExp, score: `${Math.round(hExp)}-${Math.round(aExp)}` };
+    };
+
+    const poisson = (k, lambda) => {
+        const factorial = (n) => {
+            let res = 1;
+            for (let i = 2; i <= n; i++) res *= i;
+            return res;
+        };
+        return (Math.pow(lambda, k) * Math.exp(-lambda)) / factorial(k);
+    };
+
+    const renderPredValue = (value, isHighest, isActual = false) => {
+        if (typeof value === 'string' && value.includes('-') && value !== '-') {
+            return (
+                <div className={`pred-value ${isHighest ? 'highest' : ''}`} style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '2px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '4px 12px',
+                    minHeight: '44px'
+                }}>
+                    <span style={{ fontSize: '13px', color: isActual ? '#2563eb' : 'inherit', fontWeight: isActual ? '700' : 'inherit' }}>{value.split('-')[0]}</span>
+                    <div style={{ height: '1px', width: '100%', backgroundColor: 'rgba(0,0,0,0.05)' }}></div>
+                    <span style={{ fontSize: '13px', color: isActual ? '#2563eb' : 'inherit', fontWeight: isActual ? '700' : 'inherit' }}>{value.split('-')[1]}</span>
+                </div>
+            );
+        }
+        return (
+            <span className={`pred-value ${isHighest ? 'highest' : ''}`} style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                color: isActual && value !== '-' ? '#2563eb' : undefined,
+                fontWeight: isActual && value !== '-' ? '700' : undefined
+            }}>
+                {value}
+            </span>
+        );
+    };
+
     const getPredictionData = (match, type) => {
         const prediction = predictions.find(p => p.match_id === match.match_id);
         if (!prediction) return { prob1: '-', probX: '-', prob2: '-' };
@@ -134,28 +196,106 @@ function LeagueDetail() {
                     prob2: formatPercentage(prediction.prob_AW)
                 };
             case 'goals':
+                const expG = getExpectedScore(match.match_hometeam_id, match.match_awayteam_id);
+                const scoreTextG = typeof expG === 'object' ? `${expG.hExp.toFixed(1)}-${expG.aExp.toFixed(1)}` : '-';
                 return {
                     prob1: formatPercentage(prediction.prob_O),
-                    probX: '-',
+                    probX: scoreTextG,
                     prob2: formatPercentage(prediction.prob_U)
                 };
             case 'btts':
+                const expB = getExpectedScore(match.match_hometeam_id, match.match_awayteam_id);
+                const scoreTextB = typeof expB === 'object' ? `${expB.hExp.toFixed(1)}-${expB.aExp.toFixed(1)}` : '-';
                 return {
                     prob1: formatPercentage(prediction.prob_bts),
-                    probX: '-',
+                    probX: scoreTextB,
                     prob2: formatPercentage(prediction.prob_ots)
+                };
+            case 'correct-score':
+                const expCS = getExpectedScore(match.match_hometeam_id, match.match_awayteam_id);
+                if (typeof expCS !== 'object') return { prob1: '-', probX: '-', prob2: '-' };
+
+                const hScore = Math.round(expCS.hExp);
+                const aScore = Math.round(expCS.aExp);
+                const prob = (poisson(hScore, expCS.hExp) * poisson(aScore, expCS.aExp) * 100).toFixed(1);
+                const actual = (match.match_hometeam_score !== null && match.match_hometeam_score !== '')
+                    ? `${match.match_hometeam_score}-${match.match_awayteam_score}`
+                    : '-';
+
+                return {
+                    prob1: expCS.score,
+                    probX: `${prob}%`,
+                    prob2: actual
+                };
+            case 'double-chance':
+                const expDC = getExpectedScore(match.match_hometeam_id, match.match_awayteam_id);
+                const scoreDC = typeof expDC === 'object' ? expDC.score : '-';
+                return {
+                    prob1: scoreDC,
+                    probX: formatPercentage(prediction.prob_HW_D),
+                    prob2: formatPercentage(prediction.prob_HW_AW),
+                    prob3: formatPercentage(prediction.prob_AW_D)
+                };
+            case '1x2-first-half':
+                const expHT = getExpectedScore(match.match_hometeam_id, match.match_awayteam_id);
+                if (typeof expHT !== 'object') return { prob1: '-', probX: '-', prob2: '-' };
+
+                // Scale expected goals to 1st half (approx 45% of total goals)
+                const hExpHT = expHT.hExp * 0.45;
+                const aExpHT = expHT.aExp * 0.45;
+
+                let hProbHT = 0, dProbHT = 0, aProbHT = 0;
+                // Sum Poisson probabilities for 1st half outcomes
+                for (let i = 0; i <= 5; i++) {
+                    for (let j = 0; j <= 5; j++) {
+                        const prob = poisson(i, hExpHT) * poisson(j, aExpHT);
+                        if (i > j) hProbHT += prob;
+                        else if (i === j) dProbHT += prob;
+                        else aProbHT += prob;
+                    }
+                }
+
+                const actualHT = (match.match_hometeam_halftime_score !== null && match.match_hometeam_halftime_score !== '')
+                    ? `${match.match_hometeam_halftime_score}-${match.match_awayteam_halftime_score}`
+                    : '-';
+
+                return {
+                    prob1: formatPercentage(hProbHT * 100),
+                    probX: formatPercentage(dProbHT * 100),
+                    prob2: formatPercentage(aProbHT * 100),
+                    actualHT: actualHT
                 };
             default:
                 return { prob1: '-', probX: '-', prob2: '-' };
         }
     };
 
-    const getHighestProb = (prob1, probX, prob2) => {
-        const p1 = parseFloat(prob1) || 0;
-        const pX = parseFloat(probX) || 0;
-        const p2 = parseFloat(prob2) || 0;
-        const max = Math.max(p1, pX, p2);
-        return { prob1: p1 === max, probX: pX === max, prob2: p2 === max };
+    const getHighestProb = (prob1, probX, prob2, prob3) => {
+        const p1 = prob1 !== '-' ? parseFloat(prob1) : 0;
+        const pX = probX !== '-' ? parseFloat(probX) : 0;
+        const p2 = prob2 !== '-' ? parseFloat(prob2) : 0;
+        const p3 = prob3 !== '-' ? parseFloat(prob3) : 0;
+
+        if (predictionType === 'double-chance') {
+            const max = Math.max(pX, p2, p3);
+            if (max === 0) return {};
+            return { probX: pX === max, prob2: p2 === max, prob3: p3 === max };
+        }
+
+        if (predictionType === 'correct-score') {
+            return { probX: true }; // Highlight the chance
+        }
+
+        if (predictionType === 'btts' || predictionType === 'goals') {
+            // Only compare prob1 and prob2 for these types (Yes/No or Over/Under)
+            if (p1 >= p2) return { prob1: true };
+            return { prob2: true };
+        }
+
+        // For 1x2 and 1x2 First Half, compare all three
+        if (p1 >= pX && p1 >= p2) return { prob1: true };
+        if (pX >= p1 && pX >= p2) return { probX: true };
+        return { prob2: true };
     };
 
     if (loading) {
@@ -261,14 +401,7 @@ function LeagueDetail() {
                             <h2 className="section-title mb-6">PREDICTIONS FOR {leagueInfo.league_name.toUpperCase()}</h2>
                             <br />
                             {/* Prediction Type Filters - Inline Style */}
-                            <div style={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '0',
-                                marginBottom: '24px',
-                                borderBottom: '1px solid #e5e7eb',
-
-                            }}>
+                            <div className="prediction-type-tabs">
                                 <button
                                     onClick={() => setPredictionType('1x2')}
                                     style={{
@@ -382,14 +515,14 @@ function LeagueDetail() {
                                             onChange={(e) => setCurrentRound(e.target.value)}
                                             style={{
                                                 padding: '12px 24px',
-                                                background: predictionType === 'double-chance' ? '#1f2937' : 'transparent',
-                                                color: predictionType === 'double-chance' ? '#fff' : '#4b5563',
+                                                background: 'transparent',
+                                                color: '#4b5563',
                                                 border: 'none',
                                                 fontWeight: '600',
                                                 fontSize: '14px',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.2s',
-                                                borderBottom: predictionType === 'double-chance' ? '3px solid #3b82f6' : '3px solid transparent',
+                                                borderBottom: '3px solid #e5e7eb',
                                                 borderRadius: '12px 12px 0 0'
                                             }}
                                             onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
@@ -414,17 +547,57 @@ function LeagueDetail() {
                                 <div className="matches-header">
                                     <div className="header-time">Time</div>
                                     <div className="header-match">Match</div>
-                                    <div className="header-predictions">
-                                        <span>1</span>
-                                        <span>X</span>
-                                        <span>2</span>
+                                    <div className="header-predictions" style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: (predictionType === 'double-chance' || predictionType === '1x2-first-half') ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
+                                        gap: '10px'
+                                    }}>
+                                        {predictionType === 'btts' ? (
+                                            <>
+                                                <span>YES</span>
+                                                <span>P. SCORE</span>
+                                                <span>NO</span>
+                                            </>
+                                        ) : predictionType === 'goals' ? (
+                                            <>
+                                                <span>OVER 2.5</span>
+                                                <span>P. SCORE</span>
+                                                <span>UNDER 2.5</span>
+                                            </>
+                                        ) : predictionType === 'correct-score' ? (
+                                            <>
+                                                <span>PRED.</span>
+                                                <span>CHANCE</span>
+                                                <span>ACTUAL</span>
+                                            </>
+                                        ) : predictionType === '1x2-first-half' ? (
+                                            <>
+                                                <span>1 HT</span>
+                                                <span>X HT</span>
+                                                <span>2 HT</span>
+                                                <span>ACTUAL HT</span>
+                                            </>
+                                        ) : predictionType === 'double-chance' ? (
+                                            <>
+                                                <span>P. SCORE</span>
+                                                <span>1/X</span>
+                                                <span>1/2</span>
+                                                <span>X/2</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>1</span>
+                                                <span>X</span>
+                                                <span>2</span>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
 
                                 {getCurrentRoundFixtures().map(match => {
                                     const predData = getPredictionData(match, predictionType);
-                                    const highest = getHighestProb(predData.prob1, predData.probX, predData.prob2);
-                                    console.log(match);
+                                    const highest = getHighestProb(predData.prob1, predData.probX, predData.prob2, predData.prob3);
+
                                     return (
                                         <Link to={`/match/${match.match_id}`} key={match.match_id} className="match-row" style={{ textDecoration: 'none', color: 'inherit' }}>
                                             {/* make this match time left aligned */}
@@ -445,10 +618,17 @@ function LeagueDetail() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="match-predictions">
-                                                <span className={`pred-value ${highest.prob1 ? 'highest' : ''}`}>{predData.prob1}</span>
-                                                {predData.probX !== '-' && <span className={`pred-value ${highest.probX ? 'highest' : ''}`}>{predData.probX}</span>}
-                                                <span className={`pred-value ${highest.prob2 ? 'highest' : ''}`}>{predData.prob2}</span>
+                                            <div className="match-predictions" style={{
+                                                alignItems: 'center',
+                                                display: 'grid',
+                                                gridTemplateColumns: (predictionType === 'double-chance' || predictionType === '1x2-first-half') ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
+                                                gap: '10px'
+                                            }}>
+                                                {renderPredValue(predData.prob1, highest.prob1)}
+                                                {renderPredValue(predData.probX, highest.probX)}
+                                                {renderPredValue(predData.prob2, highest.prob2, predictionType === 'correct-score')}
+                                                {predictionType === 'double-chance' && renderPredValue(predData.prob3, highest.prob3)}
+                                                {predictionType === '1x2-first-half' && renderPredValue(predData.actualHT, false, true)}
                                             </div>
                                         </Link>
                                     );

@@ -23,6 +23,19 @@ function MatchDetail() {
     const [statistics, setStatistics] = useState(null);
     const [commentaryOpen, setCommentaryOpen] = useState(false);
     const [timelineOpen, setTimelineOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+
+        // Initial check
+        handleResize();
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         fetchMatchData();
@@ -396,39 +409,83 @@ function MatchDetail() {
     };
 
 
+    // Mobile detection
+
+
+
+
     // Helper function to render lineup with proper formation
     const renderLineup = (players, side) => {
         if (!players || players.length === 0) return null;
 
         const groups = groupPlayersByPosition(players);
 
-        // Define vertical positions for each line (percentage from top)
-        // For home team (attacking right), GK on left
-        // For away team (attacking left), GK on right
-        const linePositions = side === 'home' ? {
-            goalkeeper: 12,      // Near the left edge
-            defenders: 30,       // Defensive third
-            midfielders: 55,     // Middle third
-            forwards: 80         // Attacking third
+        // Define positions based on orientation
+        // Desktop: Horizontal field (Left/Right)
+        // Mobile: Vertical field (Top/Bottom)
+
+        // Desktop Positions (X-axis %)
+        const desktopPositions = side === 'home' ? {
+            goalkeeper: 10,
+            defenders: 30,
+            midfielders: 55,
+            forwards: 80
         } : {
-            goalkeeper: 88,      // Near the right edge
-            defenders: 70,       // Defensive third (mirrored)
-            midfielders: 45,     // Middle third (mirrored)
-            forwards: 20         // Attacking third (mirrored)
+            goalkeeper: 90,
+            defenders: 70,
+            midfielders: 45,
+            forwards: 20
         };
 
-        const renderPlayerGroup = (playerList, lineType, linePosition) => {
+        // Mobile Positions (Y-axis %)
+        // Home plays Top -> Bottom
+        // Away plays Bottom -> Top
+        const mobilePositions = side === 'home' ? {
+            goalkeeper: 10,
+            defenders: 36,
+            midfielders: 60,
+            forwards: 82
+        } : {
+            goalkeeper: 90,
+            defenders: 64,
+            midfielders: 40,
+            forwards: 18
+        };
+
+        const renderPlayerGroup = (playerList, lineType, positionKey) => {
             const count = playerList.length;
             if (count === 0) return null;
 
-            // Calculate horizontal spacing for even distribution
-            const spacing = 80 / (count + 1); // Use 80% of height for spacing
+            // Spacing for distribution along the line (Transverse axis)
+            const spacing = 100 / (count + 1);
 
             return playerList.map((player, index) => {
-                // Position from top
-                const verticalPos = 10 + spacing * (index + 1); // Start at 10% from top
+                const distributionPos = spacing * (index + 1);
 
-                // Get player image from fetched data
+                // Determine coordinates based on mobile/desktop
+                let style = {};
+                if (isMobile) {
+                    // Vertical Setup
+                    // Top (Y) is the line position (depth)
+                    // Left (X) is the distribution (width)
+                    style = {
+                        top: `${mobilePositions[positionKey]}%`,
+                        left: `${distributionPos}%`,
+                        transform: 'translate(-50%, -50%)'
+                    };
+                } else {
+                    // Horizontal Setup
+                    // Left (X) is the line position (depth)
+                    // Top (Y) is the distribution (height) - constrained to 80% to avoid edges
+                    // Note: original code used 10 + 80/(n+1) logic
+                    const desktopDistribution = 10 + (80 / (count + 1)) * (index + 1);
+                    style = {
+                        left: `${desktopPositions[positionKey]}%`,
+                        top: `${desktopDistribution}%`,
+                        transform: 'translate(-50%, -50%)'
+                    };
+                }
+
                 const playerImageUrl = playerImages[player.player_key];
                 const hasImage = playerImageUrl && playerImageUrl !== '';
 
@@ -436,11 +493,7 @@ function MatchDetail() {
                     <div
                         key={player.lineup_number}
                         className={`field-player ${lineType}`}
-                        style={{
-                            top: `${verticalPos}%`,
-                            left: `${linePosition}%`,
-                            transform: 'translate(-50%, -50%)'
-                        }}
+                        style={style}
                     >
                         <div className="player-avatar">
                             {hasImage ? (
@@ -449,7 +502,6 @@ function MatchDetail() {
                                     alt={player.lineup_player}
                                     className="player-photo"
                                     onError={(e) => {
-                                        // Fallback to jersey number if image fails to load
                                         e.target.style.display = 'none';
                                         e.target.nextSibling.style.display = 'flex';
                                     }}
@@ -466,10 +518,10 @@ function MatchDetail() {
 
         return (
             <>
-                {renderPlayerGroup(groups.goalkeeper, 'goalkeeper', linePositions.goalkeeper)}
-                {renderPlayerGroup(groups.defenders, 'defender', linePositions.defenders)}
-                {renderPlayerGroup(groups.midfielders, 'midfielder', linePositions.midfielders)}
-                {renderPlayerGroup(groups.forwards, 'forward', linePositions.forwards)}
+                {renderPlayerGroup(groups.goalkeeper, 'goalkeeper', 'goalkeeper')}
+                {renderPlayerGroup(groups.defenders, 'defender', 'defenders')}
+                {renderPlayerGroup(groups.midfielders, 'midfielder', 'midfielders')}
+                {renderPlayerGroup(groups.forwards, 'forward', 'forwards')}
             </>
         );
     };
@@ -953,13 +1005,13 @@ function MatchDetail() {
                                     <p className="text-sm text-gray-600 mb-4">Recent H2H Games - {h2h.length}</p>
 
                                     {/* Win/Draw/Win Stats */}
-                                    <div className="flex items-center justify-between gap-8 mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <img src={matchData.team_home_badge} alt="Home" className="w-12 h-12 object-contain" />
-                                            <span className="font-semibold text-sm">{matchData.match_hometeam_name}</span>
+                                    <div className="flex items-center justify-between gap-2 md:gap-8 mb-4">
+                                        <div className="flex flex-col md:flex-row items-center gap-1 md:gap-3">
+                                            <img src={matchData.team_home_badge} alt="Home" className="w-8 h-8 md:w-12 md:h-12 object-contain" />
+                                            <span className="font-semibold text-[10px] md:text-sm text-center">{matchData.match_hometeam_name}</span>
                                         </div>
 
-                                        <div className="flex gap-8 text-center">
+                                        <div className="flex gap-2 md:gap-8 text-center">
                                             {(() => {
                                                 const homeWins = h2h.filter(m =>
                                                     (m.match_hometeam_name === matchData.match_hometeam_name && parseInt(m.match_hometeam_score) > parseInt(m.match_awayteam_score)) ||
@@ -978,28 +1030,28 @@ function MatchDetail() {
                                                 return (
                                                     <>
                                                         <div>
-                                                            <div className="text-3xl font-bold">{homeWins}</div>
-                                                            <div className="text-xs text-gray-500">win</div>
-                                                            <div className="text-sm font-semibold mt-1">{homeWinPct}%</div>
+                                                            <div className="text-lg md:text-3xl font-bold">{homeWins}</div>
+                                                            <div className="text-[9px] md:text-xs text-gray-500">win</div>
+                                                            <div className="text-[10px] md:text-sm font-semibold mt-1">{homeWinPct}%</div>
                                                         </div>
                                                         <div>
-                                                            <div className="text-3xl font-bold">{draws}</div>
-                                                            <div className="text-xs text-gray-500">draw</div>
-                                                            <div className="text-sm font-semibold mt-1">{drawPct}%</div>
+                                                            <div className="text-lg md:text-3xl font-bold">{draws}</div>
+                                                            <div className="text-[9px] md:text-xs text-gray-500">draw</div>
+                                                            <div className="text-[10px] md:text-sm font-semibold mt-1">{drawPct}%</div>
                                                         </div>
                                                         <div>
-                                                            <div className="text-3xl font-bold">{awayWins}</div>
-                                                            <div className="text-xs text-gray-500">wins</div>
-                                                            <div className="text-sm font-semibold mt-1 bg-yellow-400 px-2 py-1 rounded">{awayWinPct}%</div>
+                                                            <div className="text-lg md:text-3xl font-bold">{awayWins}</div>
+                                                            <div className="text-[9px] md:text-xs text-gray-500">wins</div>
+                                                            <div className="text-[10px] md:text-sm font-semibold mt-1 bg-yellow-400 px-2 py-1 rounded">{awayWinPct}%</div>
                                                         </div>
                                                     </>
                                                 );
                                             })()}
                                         </div>
 
-                                        <div className="flex items-center gap-3">
-                                            <span className="font-semibold text-sm">{matchData.match_awayteam_name}</span>
-                                            <img src={matchData.team_away_badge} alt="Away" className="w-12 h-12 object-contain" />
+                                        <div className="flex flex-col md:flex-row items-center gap-1 md:gap-3">
+                                            <span className="font-semibold text-[10px] md:text-sm text-center order-2 md:order-1">{matchData.match_awayteam_name}</span>
+                                            <img src={matchData.team_away_badge} alt="Away" className="w-8 h-8 md:w-12 md:h-12 object-contain order-1 md:order-2" />
                                         </div>
                                     </div>
 
@@ -1040,7 +1092,7 @@ function MatchDetail() {
                                 </div>
 
                                 {/* Goals Statistics */}
-                                <div className="grid grid-cols-3 gap-4 mb-6">
+                                <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
                                     {(() => {
                                         const over15 = h2h.filter(m => (parseInt(m.match_hometeam_score) + parseInt(m.match_awayteam_score)) > 1.5).length;
                                         const over25 = h2h.filter(m => (parseInt(m.match_hometeam_score) + parseInt(m.match_awayteam_score)) > 2.5).length;
@@ -1050,28 +1102,28 @@ function MatchDetail() {
                                         return (
                                             <>
                                                 <div>
-                                                    <div className="text-xs text-gray-600 mb-1">Over 1.5</div>
-                                                    <div className="text-2xl font-bold mb-2">{Math.round((over15 / total) * 100)}%</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">Over 1.5</div>
+                                                    <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((over15 / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(over15 / total) * 100}%` }}></div>
                                                     </div>
-                                                    <div className="text-xs text-gray-500 mt-1">{over15}/{total}</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-500 mt-1">{over15}/{total}</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-xs text-gray-600 mb-1">Over 2.5</div>
-                                                    <div className="text-2xl font-bold mb-2">{Math.round((over25 / total) * 100)}%</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">Over 2.5</div>
+                                                    <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((over25 / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(over25 / total) * 100}%` }}></div>
                                                     </div>
-                                                    <div className="text-xs text-gray-500 mt-1">{over25}/{total}</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-500 mt-1">{over25}/{total}</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-xs text-gray-600 mb-1">Over 3.5</div>
-                                                    <div className="text-2xl font-bold mb-2">{Math.round((over35 / total) * 100)}%</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">Over 3.5</div>
+                                                    <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((over35 / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(over35 / total) * 100}%` }}></div>
                                                     </div>
-                                                    <div className="text-xs text-gray-500 mt-1">{over35}/{total}</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-500 mt-1">{over35}/{total}</div>
                                                 </div>
                                             </>
                                         );
@@ -1079,7 +1131,7 @@ function MatchDetail() {
                                 </div>
 
                                 {/* BTTS & Clean Sheets */}
-                                <div className="grid grid-cols-3 gap-4 mb-8">
+                                <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
                                     {(() => {
                                         const btts = h2h.filter(m => parseInt(m.match_hometeam_score) > 0 && parseInt(m.match_awayteam_score) > 0).length;
                                         const homeClean = h2h.filter(m =>
@@ -1095,28 +1147,28 @@ function MatchDetail() {
                                         return (
                                             <>
                                                 <div>
-                                                    <div className="text-xs text-gray-600 mb-1">BTTS</div>
-                                                    <div className="text-2xl font-bold mb-2">{Math.round((btts / total) * 100)}%</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">BTTS</div>
+                                                    <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((btts / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(btts / total) * 100}%` }}></div>
                                                     </div>
-                                                    <div className="text-xs text-gray-500 mt-1">{btts}/{total}</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-500 mt-1">{btts}/{total}</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-xs text-gray-600 mb-1">Clean Sheets</div>
-                                                    <div className="text-2xl font-bold mb-2">{Math.round((homeClean / total) * 100)}%</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">Clean Sheets</div>
+                                                    <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((homeClean / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(homeClean / total) * 100}%` }}></div>
                                                     </div>
-                                                    <div className="text-xs text-gray-500 mt-1">{matchData.match_hometeam_name}</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-500 mt-1">{matchData.match_hometeam_name}</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-xs text-gray-600 mb-1">Clean Sheets</div>
-                                                    <div className="text-2xl font-bold mb-2">{Math.round((awayClean / total) * 100)}%</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">Clean Sheets</div>
+                                                    <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((awayClean / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(awayClean / total) * 100}%` }}></div>
                                                     </div>
-                                                    <div className="text-xs text-gray-500 mt-1">{matchData.match_awayteam_name}</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-500 mt-1">{matchData.match_awayteam_name}</div>
                                                 </div>
                                             </>
                                         );
@@ -1126,27 +1178,27 @@ function MatchDetail() {
                                 {/* Recent Matches List */}
                                 <div className="space-y-3">
                                     {h2h.map((match, index) => (
-                                        <div key={index} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between hover:bg-gray-100 transition">
-                                            <div className="text-sm text-gray-600">
+                                        <div key={index} className="bg-gray-50 rounded-lg p-2 md:p-4 flex items-center justify-between hover:bg-gray-100 transition gap-2">
+                                            <div className="w-14 md:w-auto text-[10px] md:text-sm text-gray-600 flex-shrink-0">
                                                 <div className="font-semibold">{new Date(match.match_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-                                                <div className="text-xs">{match.match_time}</div>
+                                                <div className="text-[9px] md:text-xs">{match.match_time}</div>
                                             </div>
 
-                                            <div className="flex-1 mx-6">
-                                                <div className="text-xs text-blue-600 font-semibold mb-2">{match.league_name}</div>
-                                                <div className="flex items-center justify-between gap-4">
-                                                    <div className="flex items-center gap-2 flex-1">
-                                                        <img src={match.team_home_badge} alt={match.match_hometeam_name} className="w-6 h-6 object-contain" />
-                                                        <span className="text-sm font-medium">{match.match_hometeam_name}</span>
+                                            <div className="flex-1 mx-2 md:mx-6 min-w-0">
+                                                <div className="text-[9px] md:text-xs text-blue-600 font-semibold mb-1 md:mb-2 line-clamp-1">{match.league_name}</div>
+                                                <div className="flex items-center justify-between gap-2 md:gap-4">
+                                                    <div className="flex items-center gap-1 md:gap-2 flex-1 min-w-0">
+                                                        <img src={match.team_home_badge} alt={match.match_hometeam_name} className="w-4 h-4 md:w-6 md:h-6 object-contain flex-shrink-0" />
+                                                        <span className="text-[10px] md:text-sm font-medium truncate">{match.match_hometeam_name}</span>
                                                     </div>
-                                                    <div className="flex gap-2 text-2xl font-bold">
+                                                    <div className="flex gap-1 md:gap-2 text-base md:text-2xl font-bold flex-shrink-0">
                                                         <span>{match.match_hometeam_score}</span>
                                                         <span className="text-gray-400">-</span>
                                                         <span>{match.match_awayteam_score}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-2 flex-1 justify-end">
-                                                        <span className="text-sm font-medium">{match.match_awayteam_name}</span>
-                                                        <img src={match.team_away_badge} alt={match.match_awayteam_name} className="w-6 h-6 object-contain" />
+                                                    <div className="flex items-center gap-1 md:gap-2 flex-1 justify-end min-w-0">
+                                                        <span className="text-[10px] md:text-sm font-medium truncate text-right">{match.match_awayteam_name}</span>
+                                                        <img src={match.team_away_badge} alt={match.match_awayteam_name} className="w-4 h-4 md:w-6 md:h-6 object-contain flex-shrink-0" />
                                                     </div>
                                                 </div>
                                             </div>

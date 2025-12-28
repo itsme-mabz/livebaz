@@ -64,19 +64,56 @@
 }
 
 @media (max-width: 768px) {
+    .league-review-page .container {
+        width: 100% !important;
+        padding: 0 16px !important;
+        box-sizing: border-box;
+    }
+
     .leagues-pop {
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        gap: 12px;
+        justify-content: center;
+        /* Center the grid */
     }
 
     .leagues-pop-item {
         padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* Center content */
+        justify-content: center;
+    }
+
+    .simple-box-description {
+        grid-template-columns: 1fr;
+        /* Full width list on mobile */
+    }
+
+    .simple-box-description .link {
+        padding: 16px;
+        /* Larger touch target */
+    }
+
+    .simple-box-description .link .image img,
+    .simple-box-description .link .image div {
+        width: 40px !important;
+        height: 40px !important;
+        max-width: 40px !important;
+        max-height: 40px !important;
+    }
+
+    .simple-box-description .link .title {
+        font-size: 16px;
+        /* Larger text */
     }
 }
 
 @media (max-width: 480px) {
     .leagues-pop {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        /* Keep 2 cols even on small screens */
     }
 }
 

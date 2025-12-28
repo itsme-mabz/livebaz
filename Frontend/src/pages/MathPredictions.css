@@ -781,87 +781,132 @@
     }
 
     .predictions-table-header {
-        display: none;
+        display: grid;
+        padding: 10px 8px;
+        font-size: 11px;
+        gap: 8px;
     }
 
     .match-row {
-        display: flex;
-        flex-direction: column;
-        gap: 4px !important;
-        padding: 16px;
-        border: 1px solid #f0f0f0;
-        border-radius: 8px;
-        margin-bottom: 12px;
+        display: grid;
+        padding: 10px 8px;
+        gap: 8px !important;
+        border: none;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0;
+        border-radius: 0;
     }
 
     .td-time {
-        border-right: none;
-        border-bottom: 1px solid #f0f0f0;
-        padding-bottom: 8px;
-        justify-content: center;
+        border-bottom: none;
+        padding-bottom: 0;
     }
 
     .match-time {
-        font-size: 12px;
-    }
-
-    .td-game {
-        gap: 8px;
-    }
-
-    .league-name {
-        font-size: 11px;
-    }
-
-    .team-row {
-        font-size: 14px;
-        gap: 8px;
-    }
-
-    .team-logo {
-        width: 24px;
-        height: 24px;
-    }
-
-    .prediction-boxes {
-        justify-content: space-between;
-        gap: 4px;
-        width: 100%;
-    }
-
-    .pred-box {
-        flex: 1;
-
-    }
-
-    .pred-label {
-        font-size: 9px;
-    }
-
-    .pred-odds {
-        font-size: 16px;
-    }
-
-    .pred-prob {
         font-size: 10px;
     }
 
-    .best-tip-card {
-        width: 100%;
-        padding: 12px;
+    .match-date-part {
+        font-size: 10px;
     }
 
-    .best-tip-type {
+    .match-time-part {
+        font-size: 9px;
+    }
+
+    .td-game {
+        gap: 4px;
+    }
+
+    .league-name {
+        font-size: 9px;
+        margin-bottom: 2px;
+    }
+
+    .team-row {
+        font-size: 11px;
+        gap: 4px;
+        min-height: 20px;
+    }
+
+    .team-logo {
+        width: 16px;
+        height: 16px;
+    }
+
+    .team-name {
         font-size: 11px;
     }
 
-    .best-tip-odds {
-        font-size: 20px;
+    .team-score {
+        font-size: 12px;
+        min-width: 15px;
     }
 
-    .show-more-container {
-        padding: 16px 0;
-        margin-bottom: 20px;
+    .prediction-boxes {
+        gap: 4px;
+    }
+
+    .pred-box {
+        padding: 4px 2px;
+    }
+
+    .pred-label {
+        font-size: 8px;
+    }
+
+    .pred-odds {
+        font-size: 11px !important;
+        padding: 2px 4px;
+        min-width: 25px;
+    }
+
+    .pred-prob {
+        font-size: 9px;
+    }
+
+    .td-best {
+        padding: 4px;
+        border-radius: 4px;
+    }
+
+    .best-tip-card {
+        padding: 0;
+        justify-content: space-between;
+    }
+
+    .best-tip-type {
+        font-size: 9px;
+        margin-bottom: 2px;
+    }
+
+    .best-tip-probability {
+        font-size: 9px;
+    }
+
+    .best-tip-odds {
+        font-size: 13px;
+    }
+
+    /* Fix Live Indicator size */
+    .live-indicator {
+        width: 20px;
+        height: 55%;
+        top: 0;
+        bottom: auto;
+        transform: none;
+        border-radius: 0 0 4px 0;
+    }
+
+    .live-badge {
+        font-size: 9px;
+    }
+
+    /* Move Best Tip to bottom */
+    .td-best {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin-top: 4px;
     }
 }
 
@@ -884,47 +929,40 @@
         font-size: 11px;
     }
 
-    .match-row {
-        padding: 12px;
-        gap: 4px;
+    .match-row,
+    .predictions-table-header {
+        padding: 8px 4px;
+        gap: 4px !important;
     }
 
-    .league-name {
-        font-size: 10px;
+    .td-game {
+        width: 100px;
+        /* Force some space for teams */
     }
 
-    .team-row {
-        font-size: 13px;
-    }
-
-    .team-logo {
-        width: 20px;
-        height: 20px;
-    }
-
-    .pred-box {}
-
-    .pred-label {
-        font-size: 8px;
+    .team-name {
+        max-width: 60px;
     }
 
     .pred-odds {
-        font-size: 14px;
+        font-size: 10px !important;
+        padding: 1px 3px;
     }
 
-    .pred-prob {
-        font-size: 9px;
-    }
-
-    .filter-group-title,
-    .filters-title {
-        font-size: 10px;
-    }
-
-    .filter-option {
-        font-size: 12px;
+    .best-tip-odds {
+        font-size: 11px;
     }
 }
+
+.filter-group-title,
+.filters-title {
+    font-size: 10px;
+}
+
+.filter-option {
+    font-size: 12px;
+}
+
 
 /* Show More Button */
 .show-more-container {
@@ -951,4 +989,111 @@
 .show-more-btn:hover {
     background-color: var(--primary-hover);
     transform: translateY(-1px);
+}
+
+/* Mobile League Dropdown */
+.mobile-league-dropdown {
+    display: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+}
+
+.mobile-dropdown-header {
+    padding: 12px 16px;
+    background: #212121;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 6px;
+}
+
+.mobile-dropdown-content {
+    max-height: 400px;
+    overflow-y: auto;
+    background: #fff;
+    margin-top: 4px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.mobile-dropdown-section-title {
+    padding: 12px 16px;
+    background: #f8f8f8;
+    color: #999;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.mobile-filter-options {
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mobile-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.mobile-league-item {
+    padding: 10px 16px;
+    color: #333;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e8e8e8;
+    cursor: pointer;
+}
+
+.mobile-league-item.selected {
+    background: #f0f0f0;
+}
+
+.league-name-mobile {
+    flex: 1;
+}
+
+.league-logo-wrapper {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.league-icon-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+@media (max-width: 768px) {
+    .filters-sidebar {
+        display: none;
+    }
+
+    .mobile-league-dropdown {
+        margin-bottom: 16px;
+        width: 93.5vw !important;
+        margin-left: 0px !important;
+
+    }
+
+    .mobile-dropdown-header {
+        width: 100%;
+        box-sizing: border-box;
+    }
 }

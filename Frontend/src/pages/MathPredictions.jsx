@@ -24,6 +24,16 @@ function MathPredictions() {
     const [visibleCount, setVisibleCount] = useState(30);
     const [isRTL, setIsRTL] = useState(false);
 
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+
+    // Update isMobile on resize
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     // Detect Arabic or Persian language
     useEffect(() => {
         const checkLanguage = () => {
@@ -188,6 +198,11 @@ function MathPredictions() {
                                 odds: calcOdds(100 - probBTS)
                             }
                         },
+                        'double-chance': {
+                            probX: match.prob_HW_D,
+                            prob2: match.prob_HW_AW,
+                            prob3: match.prob_AW_D
+                        },
                         bestTip: (() => {
                             // Find the highest probability prediction
                             const tips = [
@@ -302,7 +317,7 @@ function MathPredictions() {
         switch (type) {
             case '1x2':
                 return {
-                    template: '80px 1fr 1fr',
+                    template: isMobile ? '45px 120px 1fr 1fr 1fr' : '80px 240px 1fr 1fr 1fr',
                     show1x2: true,
                     showGoals: false,
                     showBTTS: false,
@@ -310,7 +325,7 @@ function MathPredictions() {
                 };
             case 'Goals':
                 return {
-                    template: '80px 1fr 1fr',
+                    template: isMobile ? '45px 120px 1fr 1fr' : '80px 240px 1fr 1fr',
                     show1x2: false,
                     showGoals: true,
                     showBTTS: false,
@@ -318,16 +333,25 @@ function MathPredictions() {
                 };
             case 'BTTS':
                 return {
-                    template: '80px 1fr 1fr',
+                    template: isMobile ? '45px 120px 1fr 1fr' : '80px 240px 1fr 1fr',
                     show1x2: false,
                     showGoals: false,
                     showBTTS: true,
                     showBest: false
                 };
+            case 'Double chance':
+                return {
+                    template: isMobile ? '45px 120px 1fr 1fr 1fr' : '80px 240px 1fr 1fr 1fr',
+                    show1x2: false,
+                    showGoals: false,
+                    showBTTS: false,
+                    showBest: false,
+                    showDoubleChance: true
+                };
             case 'Math':
             default:
                 return {
-                    template: '70px 240px 1fr 1fr 1fr 180px',
+                    template: isMobile ? '45px 100px 1fr 1fr 1fr' : '70px 240px 1fr 1fr 1fr 180px',
                     show1x2: true,
                     showGoals: true,
                     showBTTS: true,
@@ -346,6 +370,143 @@ function MathPredictions() {
                     <a href="/" className="breadcrumb-link">Livebaz</a>
                     <span className="breadcrumb-separator">›</span>
                     <span className="breadcrumb-current">Math predictions</span>
+                </div>
+
+                {/* Mobile Filter Dropdown */}
+                <div className="mobile-league-dropdown">
+                    <div className="mobile-dropdown-header" onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}>
+                        <span>Filters {filters.league ? '(1)' : ''}</span>
+                        <span>{mobileDropdownOpen ? '▼' : '▶'}</span>
+                    </div>
+                    {mobileDropdownOpen && (
+                        <div className="mobile-dropdown-content">
+                            <button
+                                onClick={() => setFilters({ matchType: 'all', probability: 0, league: null })}
+                                style={{
+                                    width: 'calc(100% - 32px)',
+                                    margin: '8px 16px',
+                                    padding: '8px 16px',
+                                    backgroundColor: '#ff4444',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Reset Filters
+                            </button>
+
+                            {/* Match Type Section */}
+                            <div className="mobile-dropdown-section-title">MATCHES</div>
+                            <div className="mobile-filter-options">
+                                <label className="mobile-filter-option">
+                                    <input
+                                        type="radio"
+                                        name="mobileMatchType"
+                                        checked={filters.matchType === 'all'}
+                                        onChange={() => setFilters({ ...filters, matchType: 'all' })}
+                                    />
+                                    <span>All matches</span>
+                                </label>
+                                <label className="mobile-filter-option">
+                                    <input
+                                        type="radio"
+                                        name="mobileMatchType"
+                                        checked={filters.matchType === 'live'}
+                                        onChange={() => setFilters({ ...filters, matchType: 'live' })}
+                                    />
+                                    <span>Live only</span>
+                                </label>
+                                <label className="mobile-filter-option">
+                                    <input
+                                        type="radio"
+                                        name="mobileMatchType"
+                                        checked={filters.matchType === 'plan'}
+                                        onChange={() => setFilters({ ...filters, matchType: 'plan' })}
+                                    />
+                                    <span>Planned only</span>
+                                </label>
+                                <label className="mobile-filter-option">
+                                    <input
+                                        type="radio"
+                                        name="mobileMatchType"
+                                        checked={filters.matchType === 'finished'}
+                                        onChange={() => setFilters({ ...filters, matchType: 'finished' })}
+                                    />
+                                    <span>Finished only</span>
+                                </label>
+                            </div>
+
+                            {/* Probability Section */}
+                            <div className="mobile-dropdown-section-title">PROBABILITY</div>
+                            <div className="mobile-filter-options">
+                                <label className="mobile-filter-option">
+                                    <input
+                                        type="radio"
+                                        name="mobileProbability"
+                                        checked={filters.probability === 0}
+                                        onChange={() => setFilters({ ...filters, probability: 0 })}
+                                    />
+                                    <span>All outcomes</span>
+                                </label>
+                                <label className="mobile-filter-option">
+                                    <input
+                                        type="radio"
+                                        name="mobileProbability"
+                                        checked={filters.probability === 60}
+                                        onChange={() => setFilters({ ...filters, probability: 60 })}
+                                    />
+                                    <span>≥ 60%</span>
+                                </label>
+                                <label className="mobile-filter-option">
+                                    <input
+                                        type="radio"
+                                        name="mobileProbability"
+                                        checked={filters.probability === 75}
+                                        onChange={() => setFilters({ ...filters, probability: 75 })}
+                                    />
+                                    <span>≥ 75%</span>
+                                </label>
+                                <label className="mobile-filter-option">
+                                    <input
+                                        type="radio"
+                                        name="mobileProbability"
+                                        checked={filters.probability === 90}
+                                        onChange={() => setFilters({ ...filters, probability: 90 })}
+                                    />
+                                    <span>≥ 90%</span>
+                                </label>
+                            </div>
+
+                            {/* Countries & Leagues Section */}
+                            <div className="mobile-dropdown-section-title">COUNTRIES & LEAGUES</div>
+                            {Object.entries(leaguesByCountry).map(([country, leagues]) => (
+                                <div key={country}>
+                                    <div
+                                        className="mobile-dropdown-section-title"
+                                        style={{ background: '#222', color: '#fff', fontSize: '10px', paddingLeft: '24px' }}
+                                        onClick={() => toggleCountry(country)}
+                                    >
+                                        {country} {expandedCountries.has(country) ? '▼' : '▶'}
+                                    </div>
+                                    {expandedCountries.has(country) && leagues.map(league => (
+                                        <div
+                                            key={league.id}
+                                            className={`mobile-league-item ${filters.league === league.id ? 'selected' : ''}`}
+                                            onClick={() => setFilters({ ...filters, league: league.id })}
+                                        >
+                                            <span className="league-name-mobile">{league.name}</span>
+                                            <div className="league-logo-wrapper">
+                                                {league.logo && <img src={league.logo} alt="" className="league-icon-img" />}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Main Grid Layout */}
@@ -528,7 +689,20 @@ function MathPredictions() {
                             {columnConfig.showBTTS && <div className="header-with-subs">
                                 <div className="main-header">BTTS</div>
                             </div>}
-                            {columnConfig.showBest && <div>Best Tip</div>}
+                            {columnConfig.showDoubleChance && (
+                                <>
+                                    <div className="header-with-subs">
+                                        <div className="main-header">1/X</div>
+                                    </div>
+                                    <div className="header-with-subs">
+                                        <div className="main-header">1/2</div>
+                                    </div>
+                                    <div className="header-with-subs">
+                                        <div className="main-header">X/2</div>
+                                    </div>
+                                </>
+                            )}
+                            {columnConfig.showBest && !isMobile && <div>Best Tip</div>}
                         </div>
 
                         {/* Table Body */}
@@ -682,6 +856,27 @@ function MathPredictions() {
                                                             );
                                                         })()}
                                                     </div>
+                                                )}
+
+                                                {/* Double Chance Predictions */}
+                                                {columnConfig.showDoubleChance && (
+                                                    <>
+                                                        <div className="prediction-boxes">
+                                                            <div className="pred-box">
+                                                                <div className="pred-odds">{formatOdds(match.predictions?.['double-chance']?.probX)}%</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="prediction-boxes">
+                                                            <div className="pred-box">
+                                                                <div className="pred-odds">{formatOdds(match.predictions?.['double-chance']?.prob2)}%</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="prediction-boxes">
+                                                            <div className="pred-box">
+                                                                <div className="pred-odds">{formatOdds(match.predictions?.['double-chance']?.prob3)}%</div>
+                                                            </div>
+                                                        </div>
+                                                    </>
                                                 )}
 
                                                 {/* Best Tip */}

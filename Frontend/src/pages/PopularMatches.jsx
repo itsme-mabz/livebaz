@@ -186,32 +186,13 @@ function PopularMatches() {
 
     return (
         <div className="livescore-page wrap" style={{ paddingTop: '8px' }}>
-            <div className="breadcrumbs">
-                <a href="/">Livebaz</a>
-                <span>/</span>
-                <span>Popular Matches</span>
-            </div>
+
 
             <div style={{ direction: isArabic ? 'rtl' : 'ltr', maxWidth: '1200px', margin: '0 auto' }}>
                 <main className="livescore-main" style={{ width: '100%' }}>
                     <div className="livescore-header">
                         <h1 className="livescore-title" style={{ display: 'flex', alignItems: 'center' }}>
                             Popular Matches
-                            {counts.live > 0 && (
-                                <span className="live-indicator" style={{
-                                    width: '12px',
-                                    height: '12px',
-                                    minWidth: '12px',
-                                    minHeight: '12px',
-                                    borderRadius: '50%',
-                                    backgroundColor: '#00c853',
-                                    display: 'block',
-                                    marginLeft: '15px',
-                                    animation: 'pulse 2s infinite',
-                                    boxShadow: '0 0 8px rgba(0, 200, 83, 0.8)',
-                                    flexShrink: '0'
-                                }}></span>
-                            )}
                         </h1>
                         <div className="livescore-date-pills">
                             <button

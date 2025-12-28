@@ -1401,27 +1401,61 @@ td {
         max-width: 90px;
     }
 
+    /* Responsive Football Field and Lineups */
+    .football-field {
+        min-height: 400px;
+        /* Reduced from default */
+        border-width: 2px;
+    }
+
+    .field-half {
+        padding: 20px 10px;
+    }
+
+    .center-circle {
+        width: 80px;
+        height: 80px;
+    }
+
+    /* Smaller Player Avatars on Mobile */
+    .player-avatar {
+        width: 30px;
+        height: 30px;
+        border-width: 2px;
+    }
+
+    .player-photo {
+        width: 100%;
+        height: 100%;
+    }
+
+    .player-jersey-number {
+        font-size: 12px;
+    }
+
+    .player-field-name {
+        font-size: 9px;
+        padding: 2px 4px;
+        max-width: 80px;
+        margin-top: 2px;
+        /* Pull name closer to avatar */
+    }
+
+    /* Adjust formations header if needed */
+    .formation-headers {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .team-formation {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Adjust substitutes section for mobile */
     .substitutes-section {
         grid-template-columns: 1fr;
         gap: 16px;
-    }
-
-    .sub-player {
-        padding: 8px 10px;
-    }
-
-    .sub-number {
-        width: 24px;
-        height: 24px;
-        font-size: 12px;
-    }
-
-    .sub-name {
-        font-size: 12px;
-    }
-
-    .sub-pos {
-        font-size: 9px;
     }
 
     .scorers-list {
@@ -1454,9 +1488,52 @@ td {
         font-size: 10px;
     }
 
-    .h2h-card {
-        padding: 12px;
+    .h2h-section {
+        padding: 10px;
+    }
+
+    .h2h-section h3 {
         font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .h2h-card {
+        padding: 8px;
+        font-size: 10px;
+    }
+
+    .h2h-card .teams {
+        font-size: 10px;
+        flex-direction: row;
+        gap: 6px;
+        align-items: center;
+        width: 100%;
+    }
+
+    .h2h-card .teams span:first-child,
+    .h2h-card .teams span:last-child {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+
+    .h2h-card .teams span:first-child {
+        text-align: left;
+    }
+
+    .h2h-card .teams span:last-child {
+        text-align: right;
+    }
+
+    .h2h-card .score {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 0 4px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        align-self: center;
     }
 
     .predictions-cards-grid {
@@ -2121,6 +2198,91 @@ td {
     .nav-tab {
         padding: 8px 16px;
         white-space: nowrap;
+    }
+
+    /* Vertical Field Layout for Mobile */
+    .football-field {
+        min-height: 800px;
+        flex-direction: column;
+        background: repeating-linear-gradient(0deg,
+                #2d9a5a 0px,
+                #2d9a5a 50px,
+                #34a862 50px,
+                #34a862 100px);
+    }
+
+    /* Mobile Player Sizing */
+    .field-player {
+        width: 70px;
+    }
+
+    .field-half {
+        width: 100%;
+        height: 50%;
+        border-right: none;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Adjust Goal Areas for Vertical */
+    .home-half::before {
+        left: 50%;
+        transform: translateX(-50%);
+        top: 0;
+        width: 40%;
+        height: 60px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-top: none;
+        border-left: 2px solid rgba(255, 255, 255, 0.5);
+        border-right: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .home-half::after {
+        left: 50%;
+        transform: translateX(-50%);
+        top: 0;
+        width: 20%;
+        height: 30px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-top: none;
+        border-left: 2px solid rgba(255, 255, 255, 0.5);
+        border-right: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .away-half::before {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 0;
+        top: auto;
+        right: auto;
+        width: 40%;
+        height: 60px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-bottom: none;
+        border-left: 2px solid rgba(255, 255, 255, 0.5);
+        border-right: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .away-half::after {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 0;
+        top: auto;
+        right: auto;
+        width: 20%;
+        height: 30px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-bottom: none;
+        border-left: 2px solid rgba(255, 255, 255, 0.5);
+        border-right: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    /* Center Line Horizontal */
+    .center-line {
+        width: 100%;
+        height: 2px;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
     }
 
     /* New Timeline - Mobile */
