@@ -9,18 +9,18 @@ function Footer() {
                         <div className="footer__top-left">
                             <span className="logo mb-24 mb-m-28">
 
-                                <a href="#" style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>
+                                <a href="#" className="notranslate" style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>
 
                                     Livebaz
 
                                 </a>
                             </span>
                             <div className="copyright copyright-text">
-                                Livebaz.com - match predictions, football stats &amp; live results. All rights reserved. When citing materials, a reference to "livebaz.com" is required.
+                                <span className="notranslate">Livebaz.com</span> - match predictions, football stats &amp; live results. All rights reserved. When citing materials, a reference to "livebaz.com" is required.
                             </div>
                         </div>
                         <div className="copyright copyright-date">
-                            Livebaz © Copyright 2025
+                            <span className="notranslate">Livebaz</span> © Copyright 2025
                         </div>
                         <ul className="about-project-footer fl_c_st">
                             <li className="footer__list-link">

@@ -169,7 +169,7 @@ function Navigation() {
                             alignItems: 'center',
                             height: '40px'
                         }}>
-                            <a href="/" style={{
+                            <a href="/" className="notranslate" style={{
                                 color: '#fff',
                                 fontSize: '20px',
                                 fontWeight: 'bold',
@@ -185,7 +185,7 @@ function Navigation() {
 
                     <div className="header-center fl_c_sb w-full">
                         <span className='header-logo-desktop'>
-                            <a href="/" style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>
+                            <a href="/" className="notranslate" style={{ color: '#fff', fontSize: '24px', fontWeight: 'bold' }}>
                                 Livebaz
                             </a>
                         </span>
@@ -497,7 +497,7 @@ function Navigation() {
                         top: 0,
                         zIndex: 10
                     }}>
-                        <span style={{ color: '#f5f5f5', fontSize: '22px', fontWeight: 'bold' }}>Livebaz</span>
+                        <span className="notranslate" style={{ color: '#f5f5f5', fontSize: '22px', fontWeight: 'bold' }}>Livebaz</span>
                         <button
                             className="mobile-menu__close"
                             onClick={toggleMobileMenu}
