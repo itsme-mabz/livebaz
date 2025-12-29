@@ -22,6 +22,7 @@
     align-items: center;
     gap: 6px;
     margin-bottom: 16px;
+    margin-top: 16px;
     font-size: 13px;
 }
 
@@ -679,24 +680,25 @@
     font-size: 14px;
 }
 
-/* Responsive Design */
+/* Responsive Design - Large Tablets and Below (≤1200px) */
 @media (max-width: 1200px) {
     .content-grid {
         flex-direction: column;
     }
 
     .filters-sidebar {
-        order: 2;
-        margin-top: 20px;
-        width: 100%;
+        display: none !important;
+    }
+
+    .mobile-league-dropdown {
+        display: block !important;
+        margin-bottom: 16px;
     }
 
     .main-content {
         order: 1;
     }
-}
 
-@media (max-width: 1200px) {
     .pred-odds {
         font-size: 14px;
         padding: 5px 10px;
@@ -712,6 +714,7 @@
     }
 }
 
+/* Responsive Design - Small Tablets (≤900px) */
 @media (max-width: 900px) {
     .page-title {
         font-size: 18px;
@@ -739,24 +742,20 @@
     }
 }
 
+/* Responsive Design - Mobile (≤768px) */
 @media (max-width: 768px) {
     .container-wrapper {
         padding: 12px 8px;
     }
 
-    .content-grid {
-        flex-direction: column;
-        gap: 16px;
+    .breadcrumb-wrapper{
+        width: 100% !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
-
-    .filters-sidebar {
-        order: 2;
-        margin-top: 0;
-        width: 100%;
-    }
-
-    .main-content {
-        order: 1;
+    .breadcrumbs{
+     max-width: 80% !important;
     }
 
     .page-header {
@@ -781,25 +780,15 @@
     }
 
     .predictions-table-header {
-        display: grid;
         padding: 10px 8px;
         font-size: 11px;
         gap: 8px;
     }
 
     .match-row {
-        display: grid;
         padding: 10px 8px;
         gap: 8px !important;
-        border: none;
         border-bottom: 1px solid #e5e7eb;
-        margin-bottom: 0;
-        border-radius: 0;
-    }
-
-    .td-time {
-        border-bottom: none;
-        padding-bottom: 0;
     }
 
     .match-time {
@@ -868,6 +857,9 @@
     .td-best {
         padding: 4px;
         border-radius: 4px;
+        grid-column: 1 / -1;
+        width: 100%;
+        margin-top: 4px;
     }
 
     .best-tip-card {
@@ -888,79 +880,17 @@
         font-size: 13px;
     }
 
-    /* Fix Live Indicator size */
     .live-indicator {
         width: 20px;
         height: 55%;
         top: 0;
         bottom: auto;
-        transform: none;
         border-radius: 0 0 4px 0;
     }
 
     .live-badge {
         font-size: 9px;
     }
-
-    /* Move Best Tip to bottom */
-    .td-best {
-        grid-column: 1 / -1;
-        width: 100%;
-        margin-top: 4px;
-    }
-}
-
-/* Extra small screens */
-@media (max-width: 480px) {
-    .container-wrapper {
-        padding: 8px 4px;
-    }
-
-    .page-title {
-        font-size: 18px;
-    }
-
-    .date-tabs {
-        padding: 10px 12px;
-    }
-
-    .date-tab {
-        padding: 6px 12px;
-        font-size: 11px;
-    }
-
-    .match-row,
-    .predictions-table-header {
-        padding: 8px 4px;
-        gap: 4px !important;
-    }
-
-    .td-game {
-        width: 100px;
-        /* Force some space for teams */
-    }
-
-    .team-name {
-        max-width: 60px;
-    }
-
-    .pred-odds {
-        font-size: 10px !important;
-        padding: 1px 3px;
-    }
-
-    .best-tip-odds {
-        font-size: 11px;
-    }
-}
-
-.filter-group-title,
-.filters-title {
-    font-size: 10px;
-}
-
-.filter-option {
-    font-size: 12px;
 }
 
 
@@ -1081,15 +1011,11 @@
 }
 
 @media (max-width: 768px) {
-    .filters-sidebar {
-        display: none;
-    }
-
     .mobile-league-dropdown {
+        display: block;
         margin-bottom: 16px;
         width: 93.5vw !important;
         margin-left: 0px !important;
-
     }
 
     .mobile-dropdown-header {

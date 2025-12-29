@@ -354,12 +354,14 @@ function LeagueDetail() {
         <div className="league-detail-page">
             <div className="league-detail-container">
                 {/* Breadcrumbs */}
+                <div className="breadcrumbs-wrapper">
                 <div className="breadcrumbs">
                     <a href="/">Livebaz</a>
                     <span>/</span>
                     <a href="/competitions">Leagues</a>
                     <span>/</span>
                     <span>{leagueInfo.league_name}</span>
+                </div>
                 </div>
 
                 {/* League Header */}

@@ -94,51 +94,13 @@ const GoogleTranslate = () => {
 
     // Aggressively hide the Google Translate banner
     useEffect(() => {
-        const hideGoogleBanner = () => {
-            // Hide the top banner frame
-            const bannerFrame = document.querySelector('.goog-te-banner-frame');
-            if (bannerFrame) {
-                bannerFrame.style.display = 'none';
-                bannerFrame.style.visibility = 'hidden';
-            }
-
-            // Reset body top position that Google adds
-            document.body.style.top = '0px';
+        const hideElements = () => {
+            document.body.style.top = '0';
             document.body.style.position = 'static';
-
-            // Hide the entire iframe if it exists
-            const iframes = document.querySelectorAll('iframe.goog-te-banner-frame');
-            iframes.forEach(iframe => {
-                iframe.style.display = 'none';
-                iframe.style.visibility = 'hidden';
-            });
-
-            // Hide the menu frame that appears
-            const menuFrame = document.querySelector('.goog-te-menu-frame');
-            if (menuFrame) {
-                menuFrame.style.display = 'none';
-            }
         };
-
-        // Run immediately
-        hideGoogleBanner();
-
-        // Run periodically to catch any new banners
-        const interval = setInterval(hideGoogleBanner, 100);
-
-        // Also observe DOM mutations
-        const observer = new MutationObserver(hideGoogleBanner);
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['style', 'class']
-        });
-
-        return () => {
-            clearInterval(interval);
-            observer.disconnect();
-        };
+        
+        const interval = setInterval(hideElements, 50);
+        return () => clearInterval(interval);
     }, []);
 
     // Detect language from URL and sync with Google Translate

@@ -11,13 +11,21 @@
 }
 
 /* Breadcrumbs */
+.breadcrumbs-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: start;
+    margin-bottom: 20px;
+    margin-left: 2px;
+}
+
 .breadcrumbs {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 20px;
     font-size: 14px;
     color: #666;
+    max-width: 98.5% !important;
 }
 
 .breadcrumbs a {
@@ -666,6 +674,16 @@
 }
 
 @media (max-width: 640px) {
+    .breadcrumbs-wrapper {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+
+    .breadcrumbs {
+        font-size: 12px;
+    }
+
     .league-detail-container {
         padding: 0 4px;
         /* Minimal padding */

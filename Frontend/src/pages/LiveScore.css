@@ -1044,7 +1044,7 @@
     .league-card {
         margin-bottom: 12px;
         border-radius: 8px;
-        overflow-x: auto;
+        overflow-x: visible;
     }
 
     .league-card-header {
@@ -1091,12 +1091,12 @@
         font-size: 11px;
     }
 
-    /* Mobile: Compact card layout for match stats */
+    /* Mobile: Improved table layout with better spacing */
     .match-row-stats {
         display: grid;
-        grid-template-columns: 35px 90px 28px 42px 42px 42px;
-        gap: 2px;
-        padding: 6px 3px;
+        grid-template-columns: 50px 1fr 45px 60px 60px 60px;
+        gap: 4px;
+        padding: 8px 6px;
         min-height: auto;
         align-items: center;
     }
@@ -1105,18 +1105,18 @@
         grid-column: 1;
         grid-row: 2 / 4;
         border-right: 1px solid #e8e8e8;
-        padding: 0;
+        padding: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 9px;
+        font-size: 10px;
     }
 
     .match-row-stats .col-time-stat::before {
         content: 'Time';
         position: absolute;
-        top: 8px;
-        font-size: 7px;
+        top: 10px;
+        font-size: 8px;
         font-weight: 700;
         color: #888;
         text-transform: uppercase;
@@ -1126,17 +1126,17 @@
         grid-column: 2;
         grid-row: 2 / 4;
         border-right: 1px solid #e8e8e8;
-        padding: 0;
+        padding: 4px 6px;
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 3px;
     }
 
     .match-row-stats .col-match-stat::before {
         content: 'Match';
         position: absolute;
-        top: 8px;
-        font-size: 7px;
+        top: 10px;
+        font-size: 8px;
         font-weight: 700;
         color: #888;
         text-transform: uppercase;
@@ -1146,7 +1146,7 @@
         grid-column: 3;
         grid-row: 2 / 4;
         border-right: 1px solid #e8e8e8;
-        padding: 0;
+        padding: 4px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1156,8 +1156,8 @@
     .match-row-stats .col-score-stat::before {
         content: 'Score';
         position: absolute;
-        top: 8px;
-        font-size: 7px;
+        top: 10px;
+        font-size: 8px;
         font-weight: 700;
         color: #888;
         text-transform: uppercase;
@@ -1165,13 +1165,13 @@
 
     .match-row-stats .col-score-stat .score-display {
         flex-direction: column;
-        gap: 1px;
+        gap: 2px;
     }
 
     .match-row-stats .col-score-stat .score-divider {
         width: 100%;
         height: 1px;
-        margin: 1px 0;
+        margin: 2px 0;
     }
 
     .match-row-stats .col-1-stat {
@@ -1181,14 +1181,14 @@
         align-items: center;
         justify-content: center;
         border-right: 1px solid #e8e8e8;
-        padding: 0;
+        padding: 4px;
     }
 
     .match-row-stats .col-1-stat::before {
         content: '1';
         position: absolute;
-        top: 8px;
-        font-size: 7px;
+        top: 10px;
+        font-size: 8px;
         font-weight: 700;
         color: #888;
         text-transform: uppercase;
@@ -1201,14 +1201,14 @@
         align-items: center;
         justify-content: center;
         border-right: 1px solid #e8e8e8;
-        padding: 0;
+        padding: 4px;
     }
 
     .match-row-stats .col-x-stat::before {
         content: 'X';
         position: absolute;
-        top: 8px;
-        font-size: 7px;
+        top: 10px;
+        font-size: 8px;
         font-weight: 700;
         color: #888;
         text-transform: uppercase;
@@ -1221,14 +1221,14 @@
         align-items: center;
         justify-content: center;
         border-right: none;
-        padding: 0;
+        padding: 4px;
     }
 
     .match-row-stats .col-2-stat::before {
         content: '2';
         position: absolute;
-        top: 8px;
-        font-size: 7px;
+        top: 10px;
+        font-size: 8px;
         font-weight: 700;
         color: #888;
         text-transform: uppercase;
@@ -1246,105 +1246,85 @@
 
     .match-row-stats {
         position: relative;
-        padding-top: 20px;
+        padding-top: 24px;
     }
 
     .prob-item-new {
-        padding: 2px 1px;
-        min-width: 30px;
+        padding: 4px 3px;
+        min-width: 50px;
         background-color: #f8f8f8;
     }
 
     .prob-odds {
-        font-size: 8px;
+        font-size: 10px;
     }
 
     .prob-percent {
-        font-size: 6px;
+        font-size: 8px;
     }
 
     .team-row-new {
-        gap: 4px;
-        padding: 1px 0;
+        gap: 6px;
+        padding: 2px 0;
     }
 
     .team-logo {
-        width: 10px;
-        height: 10px;
+        width: 14px;
+        height: 14px;
     }
 
     .team-name-new {
-        font-size: 8px;
+        font-size: 10px;
+        line-height: 1.3;
     }
 
     .score-number {
-        font-size: 9px;
-        padding: 2px 4px;
-        min-width: 16px;
-        line-height: 1.1;
+        font-size: 11px;
+        padding: 3px 6px;
+        min-width: 20px;
+        line-height: 1.2;
     }
 
     .match-time-new {
-        font-size: 8px;
+        font-size: 10px;
     }
 
     .live-text {
-        font-size: 6px;
-        padding: 2px 3px;
+        font-size: 7px;
+        padding: 3px 4px;
     }
 
     .live-minute {
-        font-size: 8px;
+        font-size: 9px;
     }
 
     .prob-row {
         justify-content: space-between;
         flex-wrap: nowrap;
-        gap: 4px;
+        gap: 6px;
     }
 
     .prob-item {
         flex: 1;
         min-width: 0;
-        padding: 6px 3px;
+        padding: 8px 4px;
         background-color: #f8f8f8;
         border-radius: 6px;
     }
 
     .prob-label {
-        font-size: 8px;
-        margin-bottom: 2px;
+        font-size: 9px;
+        margin-bottom: 3px;
         white-space: nowrap;
     }
 
     .prob-odds {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
     }
 
     .prob-percent {
-        font-size: 9px;
-    }
-
-    .team-row-new {
-        gap: 10px;
-        padding: 4px 0;
-    }
-
-    .team-logo {
-        width: 20px;
-        height: 20px;
-    }
-
-    .team-name-new {
-        font-size: 13px;
-        font-weight: 500;
-    }
-
-    .score-number {
-        font-size: 18px;
-        padding: 4px 14px;
-        min-width: 35px;
+        font-size: 10px;
     }
 
     .score-display {
@@ -1354,15 +1334,11 @@
     .live-badge-new {
         gap: 2px;
     }
-
-    .match-time-new {
-        font-size: 13px;
-    }
 }
 
 @media (max-width: 480px) {
     .livescore-page {
-        padding: 8px;
+        padding: 6px;
     }
 
     .livescore-header {
@@ -1370,75 +1346,77 @@
     }
 
     .livescore-title {
-        font-size: 19px;
-        margin-bottom: 12px;
+        font-size: 18px;
+        margin-bottom: 10px;
     }
 
     .livescore-date-pill {
-        padding: 8px 14px;
-        font-size: 12px;
+        padding: 7px 12px;
+        font-size: 11px;
     }
 
     .live-indicator-pill {
-        padding: 10px 16px;
-        font-size: 12px;
+        padding: 9px 14px;
+        font-size: 11px;
     }
 
     .live-dot {
-        width: 7px;
-        height: 7px;
+        width: 6px;
+        height: 6px;
     }
 
     .livescore-content {
-        padding: 12px 0;
+        padding: 10px 0;
     }
 
     .league-card {
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
 
     .league-card-header {
-        padding: 12px;
+        padding: 10px;
     }
 
     .league-card-title-wrapper {
-        gap: 10px;
+        gap: 8px;
     }
 
     .league-card-logo {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
     }
 
     .league-card-title {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .standings-link {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .match-row-new {
-        grid-template-columns: 65px 1fr 55px;
-        padding: 12px;
-        gap: 10px;
+        grid-template-columns: 60px 1fr 50px;
+        padding: 10px;
+        gap: 8px;
     }
 
     .match-row-stats {
-        padding: 12px;
+        grid-template-columns: 45px 1fr 40px 55px 55px 55px;
+        padding: 8px 4px;
+        padding-top: 22px;
     }
 
     .match-time-new {
-        font-size: 12px;
+        font-size: 10px;
     }
 
     .team-name-new {
-        font-size: 12px;
+        font-size: 9px;
     }
 
     .team-logo {
-        width: 18px;
-        height: 18px;
+        width: 12px;
+        height: 12px;
     }
 
     .score-number {
@@ -1448,19 +1426,24 @@
     }
 
     .prob-item {
-        padding: 7px 3px;
+        padding: 6px 2px;
+    }
+
+    .prob-item-new {
+        padding: 3px 2px;
+        min-width: 45px;
     }
 
     .prob-label {
-        font-size: 8px;
+        font-size: 7px;
     }
 
     .prob-odds {
-        font-size: 12px;
+        font-size: 9px;
     }
 
     .prob-percent {
-        font-size: 9px;
+        font-size: 7px;
     }
 }
 

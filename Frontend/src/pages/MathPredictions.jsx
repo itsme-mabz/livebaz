@@ -366,10 +366,12 @@ function MathPredictions() {
         <div className="math-predictions-page">
             <div className="container-wrapper wrap">
                 {/* Breadcrumbs */}
+                <div className="breadcrumb-wrapper">
                 <div className="breadcrumbs">
                     <a href="/" className="breadcrumb-link">Livebaz</a>
                     <span className="breadcrumb-separator">›</span>
                     <span className="breadcrumb-current">Math predictions</span>
+                </div>
                 </div>
 
                 {/* Mobile Filter Dropdown */}
