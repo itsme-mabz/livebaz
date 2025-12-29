@@ -1,0 +1,53 @@
+import axios from 'axios';
+import React from 'react';
+
+let translationMap = {};
+let isLoaded = false;
+
+// Load translations from backend
+export const loadTranslations = async () => {
+    if (isLoaded) return;
+
+    try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const response = await axios.get(`${API_URL}/api/v1/translations`);
+
+        if (response.data.success) {
+            translationMap = {};
+            response.data.data.forEach(trans => {
+                if (!translationMap[trans.language_code]) {
+                    translationMap[trans.language_code] = {};
+                }
+                // Use original_word (English) as key
+                translationMap[trans.language_code][trans.original_word] = trans.correct_translation;
+                // Backward compatibility
+                if (trans.wrong_translation) {
+                    translationMap[trans.language_code][trans.wrong_translation] = trans.correct_translation;
+                }
+            });
+            isLoaded = true;
+            console.log('Translations loaded:', translationMap);
+        }
+    } catch (error) {
+        console.error('Error loading translations:', error);
+    }
+};
+
+// Replace wrong translations with correct ones
+export const replaceTranslation = (text, languageCode = 'fa') => {
+    if (!text || !translationMap[languageCode]) return text;
+
+    const translated = translationMap[languageCode][text];
+    if (translated) {
+        // Return a span with notranslate class to prevent Google from re-translating it
+        return <span className="notranslate">{translated}</span>;
+    }
+
+    return text;
+};
+
+// Force reload translations
+export const reloadTranslations = () => {
+    isLoaded = false;
+    return loadTranslations();
+};

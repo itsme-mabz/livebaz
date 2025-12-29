@@ -11,7 +11,7 @@
     display: flex;
     min-height: 100vh;
     gap: 0;
-    
+
 }
 
 /* Sidebar Styles */
@@ -63,6 +63,7 @@
     padding: 4px 8px;
     border-radius: 4px;
     transition: background-color 0.2s;
+    max-width: 200px;
 }
 
 .clear-filters-btn:hover {
@@ -229,6 +230,10 @@
     .league-logo-placeholder {
         width: 20px;
         height: 20px;
+    }
+
+    .breadcrumbs {
+        display: none !important;
     }
 }
 
@@ -544,7 +549,8 @@
 
 /* Probability Display */
 .prob-row {
-    display: none; /* Hidden on desktop */
+    display: none;
+    /* Hidden on desktop */
     gap: 6px;
     justify-content: flex-start;
 }
@@ -695,7 +701,7 @@
     text-align: center;
 }
 
-.popular-matches-heading{
+.popular-matches-heading {
     text-align: center;
 }
 

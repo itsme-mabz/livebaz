@@ -24,7 +24,7 @@ import BlogDetail from './pages/BlogDetail';
 import BlogAdmin from './pages/BlogAdmin';
 import TranslationAdmin from './pages/TranslationAdmin';
 import AdminLayout from './components/AdminLayout';
-import { loadTranslations } from './utils/translationReplacer';
+import { loadTranslations } from './utils/translationReplacer.jsx';
 
 
 // Wrapper to intercept navigation and preserve language
@@ -38,7 +38,7 @@ function LanguageWrapper({ children }) {
       if (link && link.href && link.origin === window.location.origin) {
         const urlMatch = window.location.pathname.match(/^\/([a-z]{2})(?:\/|$)/);
         const langCode = urlMatch ? urlMatch[1] : '';
-        
+
         if (langCode) {
           const targetPath = new URL(link.href).pathname;
           if (!targetPath.startsWith(`/${langCode}`)) {
@@ -61,6 +61,32 @@ function LanguageWrapper({ children }) {
 function App() {
   useEffect(() => {
     loadTranslations();
+
+    // Monkey patch removeChild and insertBefore to prevent crashes with Google Translate
+    // This is a common workaround when external scripts modify the DOM structure managed by React
+    if (typeof Node === 'function' && Node.prototype) {
+      const originalRemoveChild = Node.prototype.removeChild;
+      Node.prototype.removeChild = function (child) {
+        if (child.parentNode !== this) {
+          if (console) {
+            console.warn('Cannot remove a child from a different parent', child, this);
+          }
+          return child;
+        }
+        return originalRemoveChild.apply(this, arguments);
+      }
+
+      const originalInsertBefore = Node.prototype.insertBefore;
+      Node.prototype.insertBefore = function (newNode, referenceNode) {
+        if (referenceNode && referenceNode.parentNode !== this) {
+          if (console) {
+            console.warn('Cannot insert before a reference node from a different parent', referenceNode, this);
+          }
+          return originalInsertBefore.apply(this, [newNode, null]);
+        }
+        return originalInsertBefore.apply(this, arguments);
+      }
+    }
   }, []);
   return (
     <BrowserRouter>

@@ -54,7 +54,7 @@ const GoogleTranslate = () => {
                             pageLanguage: 'en',
                             layout: window.google.translate.TranslateElement.InlineLayout.VERTICAL,
                             autoDisplay: false,
-                            multilanguagePage: true
+                            multilanguagePage: false
                         },
                         'google_translate_element'
                     );
@@ -98,8 +98,8 @@ const GoogleTranslate = () => {
             document.body.style.top = '0';
             document.body.style.position = 'static';
         };
-        
-        const interval = setInterval(hideElements, 50);
+
+        const interval = setInterval(hideElements, 500);
         return () => clearInterval(interval);
     }, []);
 
@@ -109,7 +109,7 @@ const GoogleTranslate = () => {
             const urlMatch = window.location.pathname.match(/^\/([a-z]{2})(?:\/|$)/);
             const urlCode = urlMatch ? urlMatch[1] : '';
             const langCode = Object.keys(LANGUAGE_URL_MAP).find(key => LANGUAGE_URL_MAP[key] === urlCode);
-            
+
             if (langCode) {
                 const lang = LANGUAGES.find(l => l.code === langCode);
                 if (lang) {
@@ -132,13 +132,13 @@ const GoogleTranslate = () => {
         const enforceLanguageUrl = () => {
             const select = document.querySelector('.goog-te-combo');
             if (!select) return;
-            
+
             const currentLangCode = select.value;
             const urlCode = LANGUAGE_URL_MAP[currentLangCode];
             const currentPath = window.location.pathname;
             const currentUrlMatch = currentPath.match(/^\/([a-z]{2})(?:\/|$)/);
             const currentUrlCode = currentUrlMatch ? currentUrlMatch[1] : '';
-            
+
             if (urlCode && currentUrlCode !== urlCode) {
                 const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '');
                 const newPath = `/${urlCode}${pathWithoutLang || '/'}`;
@@ -149,7 +149,7 @@ const GoogleTranslate = () => {
             }
         };
 
-        const interval = setInterval(enforceLanguageUrl, 100);
+        const interval = setInterval(enforceLanguageUrl, 500);
         return () => clearInterval(interval);
     }, []);
 
@@ -163,7 +163,7 @@ const GoogleTranslate = () => {
             const lang = LANGUAGES.find(l => l.code === langCode);
             if (lang) {
                 setSelectedLang(lang);
-                
+
                 const urlCode = LANGUAGE_URL_MAP[langCode];
                 const currentPath = window.location.pathname;
                 const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '');

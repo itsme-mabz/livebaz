@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { fetchPopularLeagues } from '../Service/FootballService';
-import { replaceTranslation } from '../utils/translationReplacer';
+import { replaceTranslation } from '../utils/translationReplacer.jsx';
 import { convertToLocalTime } from '../utils/timezone';
 import './LiveScore.css';
 
@@ -24,13 +24,18 @@ function LiveScore() {
     const [visibleCount, setVisibleCount] = useState(40);
     const [isArabic, setIsArabic] = useState(false);
     const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+    const [renderKey, setRenderKey] = useState(0);
 
-    // Detect Arabic or Persian language
+    const [currentLang, setCurrentLang] = useState('en');
+
+    // Detect Arabic or Persian language & Current Language
     useEffect(() => {
         const checkLanguage = () => {
             const select = document.querySelector('.goog-te-combo');
             if (select) {
-                setIsArabic(select.value === 'ar' || select.value === 'fa');    
+                // Keep isArabic for layout/RTL purposes if needed elsewhere
+                setIsArabic(select.value === 'ar' || select.value === 'fa');
+                setCurrentLang(select.value || 'en');
             }
         };
 
@@ -61,7 +66,7 @@ function LiveScore() {
             month: 'short',
             year: 'numeric'
         });
-        
+
         return {
             id: match.match_id,
             time: localTime,
@@ -306,7 +311,13 @@ function LiveScore() {
     };
 
     const clearFilters = () => {
-        setSelectedLeagues(new Set());
+        setRenderKey(prev => prev + 1);
+        setLoading(true);
+        setTimeout(() => {
+            setSelectedLeagues(new Set());
+            setVisibleCount(40);
+            setLoading(false);
+        }, 100);
     };
 
     // Fetch top leagues from backend
@@ -433,12 +444,12 @@ function LiveScore() {
                         )}
                         {topLeagues.length > 0 && (() => {
                             // Filter top leagues that have matches
-                            const leaguesWithMatches = topLeagues.filter(league => 
+                            const leaguesWithMatches = topLeagues.filter(league =>
                                 allMatches.some(match => match.leagueId === league.id)
                             );
-                            
+
                             if (leaguesWithMatches.length === 0) return null;
-                            
+
                             return (
                                 <>
                                     <div className="mobile-dropdown-section-title">Popular Leagues</div>
@@ -517,21 +528,14 @@ function LiveScore() {
                         const leaguesWithMatches = topLeagues
                             .filter(league => allMatches.some(match => match.leagueId === league.id))
                             .sort((a, b) => a.name.localeCompare(b.name));
-                        
+
                         if (leaguesWithMatches.length === 0) return null;
-                        
+
                         return (
                             <>
                                 <div className="sidebar-header" style={{ marginTop: '20px' }}>
                                     <h3 className="sidebar-title">TOP LEAGUES</h3>
-                                    <button
-                                        className="clear-filters-btn"
-                                        onClick={clearFilters}
-                                        style={{ opacity: selectedLeagues.size > 0 ? 1 : 0.5, cursor: selectedLeagues.size > 0 ? 'pointer' : 'not-allowed' }}
-                                        disabled={selectedLeagues.size === 0}
-                                    >
-                                        Clear All
-                                    </button>
+
                                 </div>
                                 <div style={{ padding: '0 16px 8px', fontSize: '14px', color: '#666', fontWeight: '700', marginTop: '8px' }}>Popular Today</div>
                                 <div className="sidebar-section">
@@ -594,8 +598,7 @@ function LiveScore() {
                     {/* Header */}
                     <div className="livescore-header">
                         <h1 className="livescore-title" style={{ display: 'flex', alignItems: 'center' }}>
-                            Live Football Games
-                           
+                            {replaceTranslation('Live Football Games', currentLang)}
                         </h1>
                         <div className="livescore-date-pills">
                             <button
@@ -642,11 +645,29 @@ function LiveScore() {
                             >
                                 Yesterday {counts.yesterday}
                             </button>
+                            {selectedLeagues.size > 0 && (
+                                <button
+                                    onClick={clearFilters}
+                                    style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: '#ff4444',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        fontSize: '12px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        marginLeft: 'auto'
+                                    }}
+                                >
+                                    Clear All
+                                </button>
+                            )}
                         </div>
                     </div>
 
                     {/* Matches */}
-                    <div className="livescore-content">
+                    <div className="livescore-content" key={renderKey}>
                         {loading ? (
                             <div className="loading-state">Loading matches...</div>
                         ) : filteredMatches.length === 0 ? (
@@ -677,7 +698,7 @@ function LiveScore() {
                                             matchCounter += matchesToShow.length;
 
                                             return (
-                                                <div key={idx} className="league-card">
+                                                <div key={`${group.leagueId}-${idx}-${renderKey}`} className="league-card" suppressHydrationWarning>
                                                     <div className="league-card-header">
                                                         <div className="league-card-title-wrapper">
                                                             {group.leagueLogo && (
@@ -716,12 +737,12 @@ function LiveScore() {
                                                             >
                                                                 <div className="col-time-stat">
                                                                     {match.isLive ? (
-                                                                        <div className="live-badge-new">
+                                                                        <div className="live-badge-new notranslate">
                                                                             <span className="live-text">Live</span>
                                                                             <span className="live-minute">{match.status}'</span>
                                                                         </div>
                                                                     ) : (
-                                                                        <div className="match-time-new">{match.time}</div>
+                                                                        <div className="match-time-new notranslate">{match.time}</div>
                                                                     )}
                                                                 </div>
 
@@ -735,7 +756,7 @@ function LiveScore() {
                                                                         <span className="team-name-new">{match.awayTeam}</span>
                                                                     </div>
                                                                 </div>
-                                                                <div className="col-score-stat">
+                                                                <div className="col-score-stat notranslate">
                                                                     <div className="score-display">
                                                                         <span className={`score-number score-home ${match.isLive ? 'live' : ''}`}>
                                                                             {match.homeScore}
@@ -878,7 +899,7 @@ function LiveScore() {
                         )}
                     </div>
                 </main>
-                
+
             </div>
 
             {/* Standings Modal */}

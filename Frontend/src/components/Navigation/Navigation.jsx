@@ -13,6 +13,8 @@ import { LiaTelegramPlane } from "react-icons/lia";
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
+import { replaceTranslation } from '../../utils/translationReplacer.jsx';
+
 function Navigation() {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authMode, setAuthMode] = useState('login');
@@ -24,6 +26,21 @@ function Navigation() {
     const [isMobileLeaguesExpanded, setIsMobileLeaguesExpanded] = useState(false);
     const [user, setUser] = useState(null);
     const [showUserDropdown, setShowUserDropdown] = useState(false);
+    const [currentLang, setCurrentLang] = useState('en');
+
+    // Detect language
+    useEffect(() => {
+        const checkLanguage = () => {
+            const select = document.querySelector('.goog-te-combo');
+            if (select) {
+                setCurrentLang(select.value || 'en');
+            }
+        };
+
+        checkLanguage();
+        const interval = setInterval(checkLanguage, 500);
+        return () => clearInterval(interval);
+    }, []);
 
     const openLoginModal = () => {
         setAuthMode('login');
@@ -157,7 +174,7 @@ function Navigation() {
                 )}
             </span>
             <span className="ml-8 overflow-elipsis">
-                <Link to={`/league/${league.league_id}`}>{league.league_name}</Link>
+                <Link to={`/league/${league.league_id}`}>{replaceTranslation(league.league_name, currentLang)}</Link>
             </span>
         </span>
     );
@@ -165,7 +182,7 @@ function Navigation() {
     // "Popular Leagues" column now comes from backend.
     // User requested to display ONLY the backend selection.
     // Filter to show only leagues with matches today
-    const popularLeagues = fetchedPopularLeagues.filter(league => 
+    const popularLeagues = fetchedPopularLeagues.filter(league =>
         todayMatches.some(match => match.league_id === league.league_id)
     );
     const moreLeagues = allLeagues.slice(10, 20);
@@ -202,16 +219,16 @@ function Navigation() {
                         </span>
                         <ul className="header-nav fl_c_sb">
                             <li className="dropdown-menu__wrapper">
-                                <a href='/predictions/' className='header-nav__link fl_c '>Predictions</a>
+                                <a href='/predictions/' className='header-nav__link fl_c '>{replaceTranslation('Predictions', currentLang)}</a>
 
 
                             </li>
 
                             <li className="dropdown-menu__wrapper">
-                                <a href='/competitions/' className='header-nav__link fl_c nav__link-arrow-down'>Leagues</a>
+                                <a href='/competitions/' className='header-nav__link fl_c nav__link-arrow-down'>{replaceTranslation('Leagues', currentLang)}</a>
                                 <div className="dropdown-menu">
                                     <div className="section-title mb-12">
-                                        <a href='/competitions/'>All leagues</a>
+                                        <a href='/competitions/'>{replaceTranslation('All leagues', currentLang)}</a>
                                     </div>
 
                                     {loading ? (
@@ -238,7 +255,7 @@ function Navigation() {
                                     ) : (
                                         <ul className="dropdown-submenu fl_s_s">
                                             <li className="dropdown-submenu__block">
-                                                <div className="dropdown-submenu__subtitle">Popular Leagues</div>
+                                                <div className="dropdown-submenu__subtitle">{replaceTranslation('Popular Leagues', currentLang)}</div>
                                                 <div className="dropdown-submenu__list top-tournaments">
                                                     {popularLeagues.map((league) => (
                                                         <LeagueItem key={league.league_id} league={league} />
@@ -247,7 +264,7 @@ function Navigation() {
                                             </li>
 
                                             <li className="dropdown-submenu__block">
-                                                <div className="dropdown-submenu__subtitle">More Leagues</div>
+                                                <div className="dropdown-submenu__subtitle">{replaceTranslation('More Leagues', currentLang)}</div>
                                                 <div className="dropdown-submenu__list top-tournaments">
                                                     {moreLeagues.map((league) => (
                                                         <LeagueItem key={league.league_id} league={league} />
@@ -260,13 +277,13 @@ function Navigation() {
 
                             </li>
                             <li>
-                                <a href='/math-predictions/' className='header-nav__link fl_c'>Math predictions</a>
+                                <a href='/math-predictions/' className='header-nav__link fl_c'>{replaceTranslation('Math predictions', currentLang)}</a>
                             </li>
                             <li>
-                                <a href='/popular-matches/' className='header-nav__link fl_c'>Popular Matches</a>
+                                <a href='/popular-matches/' className='header-nav__link fl_c'>{replaceTranslation('Popular Matches', currentLang)}</a>
                             </li>
                             <li>
-                                <a href='/blogs/' className='header-nav__link fl_c'>Insights</a>
+                                <a href='/blogs/' className='header-nav__link fl_c'>{replaceTranslation('Insights', currentLang)}</a>
                             </li>
                             {/* <li className="dropdown-menu__wrapper">
                                 <span className="header-nav__link fl_c nav__link-arrow-down">Football Tips</span>
@@ -335,7 +352,7 @@ function Navigation() {
 
                             </li> */}
                             <li>
-                                <a href='/livescore/' className='header-nav__link fl_c'>Scores</a>
+                                <a href='/livescore/' className='header-nav__link fl_c'>{replaceTranslation('Scores', currentLang)}</a>
                             </li>
                         </ul>
 

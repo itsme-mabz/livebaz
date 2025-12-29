@@ -1,6 +1,23 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { replaceTranslation } from '../../utils/translationReplacer.jsx';
 
 function Footer() {
+    const [currentLang, setCurrentLang] = useState('en');
+
+    // Detect language
+    useEffect(() => {
+        const checkLanguage = () => {
+            const select = document.querySelector('.goog-te-combo');
+            if (select) {
+                setCurrentLang(select.value || 'en');
+            }
+        };
+
+        checkLanguage();
+        const interval = setInterval(checkLanguage, 500);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
         <>
             <footer className="footer">
@@ -16,7 +33,7 @@ function Footer() {
                                 </a>
                             </span>
                             <div className="copyright copyright-text">
-                                <span className="notranslate">Livebaz.com</span> - match predictions, football stats &amp; live results. All rights reserved. When citing materials, a reference to "livebaz.com" is required.
+                                <span className="notranslate">Livebaz.com</span> - {replaceTranslation('match predictions, football stats & live results', currentLang)}. {replaceTranslation('All rights reserved', currentLang)}. {replaceTranslation('When citing materials, a reference to "livebaz.com" is required', currentLang)}.
                             </div>
                         </div>
                         <div className="copyright copyright-date">
@@ -24,25 +41,25 @@ function Footer() {
                         </div>
                         <ul className="about-project-footer fl_c_st">
                             <li className="footer__list-link">
-                                <a href="#about/">About Us</a>
+                                <a href="#about/">{replaceTranslation('About Us', currentLang)}</a>
                             </li>
                             <li className="footer__list-link">
-                                <a href="#contact/">Contact Us</a>
+                                <a href="#contact/">{replaceTranslation('Contact Us', currentLang)}</a>
                             </li>
                             <li className="footer__list-link">
-                                <a href="#agreement/">Terms of Use</a>
+                                <a href="#agreement/">{replaceTranslation('Terms of Use', currentLang)}</a>
                             </li>
                             <li className="footer__list-link">
-                                <a href="#authors/">Our team</a>
+                                <a href="#authors/">{replaceTranslation('Our team', currentLang)}</a>
                             </li>
                             <li className="footer__list-link">
-                                <a href="#privacy-policy/">Privacy Policy</a>
+                                <a href="#privacy-policy/">{replaceTranslation('Privacy Policy', currentLang)}</a>
                             </li>
                         </ul>
                         <div className="footer__top-right fl_s_s">
                             <div className="fl">
                                 <div className="footer__list fl_col_st_c">
-                                    <span className="footer__list-heading">Bookmaker review</span>
+                                    <span className="footer__list-heading">{replaceTranslation('Bookmaker review', currentLang)}</span>
                                     <ul className="fl_col_st_c bookmaker-list-footer">
 
                                         <li className="footer__list-link">
@@ -63,20 +80,20 @@ function Footer() {
                                 </div>
                                 <div className="footer__list fl_col_st_c">
                                     <ul className="fl_col_st_c forecast-types-footer">
-                                        <a href="#predictions/" className="footer__list-heading footer__list-heading-arrow">Sports Predictions</a>
+                                        <a href="#predictions/" className="footer__list-heading footer__list-heading-arrow">{replaceTranslation('Sports Predictions', currentLang)}</a>
 
                                         <li className="footer__list-link">
-                                            <a href="#predictions/football/">Football Predictions</a>
+                                            <a href="#predictions/football/">{replaceTranslation('Football Predictions', currentLang)}</a>
                                         </li>
 
 
                                         <li className="footer__list-link">
-                                            <a href="#predictions/basketball/">Basketball Predictions</a>
+                                            <a href="#predictions/basketball/">{replaceTranslation('Basketball Predictions', currentLang)}</a>
                                         </li>
 
 
                                         <li className="footer__list-link">
-                                            <a href="#predictions/tennis/">Tennis Predictions</a>
+                                            <a href="#predictions/tennis/">{replaceTranslation('Tennis Predictions', currentLang)}</a>
                                         </li>
 
 
@@ -85,7 +102,7 @@ function Footer() {
                             </div>
                             <div className="fl">
                                 <div className="footer__list fl_col_st_c">
-                                    <span className="footer__list-heading">Standings</span>
+                                    <span className="footer__list-heading">{replaceTranslation('Standings', currentLang)}</span>
                                     <ul className="fl_col_st_c bookmaker-rating-list-footer">
                                         <li className="footer__list-link">
                                             <a href="#football/england-efl-cup/table/" className="footer__nav-item">EFL Cup (Carabao Cup) Table</a>
@@ -107,16 +124,16 @@ function Footer() {
                                 <div className="footer__list fl_col_st_c">
                                     <ul className="footer__list fl_col_st_st">
                                         <li className="footer__list-heading footer__list-heading-arrow">
-                                            <a href="#livescore/">Scores</a>
+                                            <a href="#livescore/">{replaceTranslation('Scores', currentLang)}</a>
                                         </li>
                                         <li className="footer__list-heading footer__list-heading-arrow">
-                                            <a href="#football/competitions/">Leagues</a>
+                                            <a href="#football/competitions/">{replaceTranslation('Leagues', currentLang)}</a>
                                         </li>
                                         <li className="footer__list-heading footer__list-heading-arrow">
-                                            <a href="#how-we-rank/">How we rank bookmakers</a>
+                                            <a href="#how-we-rank/">{replaceTranslation('How we rank bookmakers', currentLang)}</a>
                                         </li>
                                         <li className="footer__list-heading footer__list-heading-arrow">
-                                            <a href="#winrate/">WinRate</a>
+                                            <a href="#winrate/">{replaceTranslation('WinRate', currentLang)}</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -128,8 +145,8 @@ function Footer() {
                             <div className="footer__bottom-text-wrap fl">
                                 <span className="footer__warn-sign fl_c_c"></span>
                                 <div className="footer__bottom-text fl_col">
-                                    <p>The site is informational and does not provide an opportunity to participate in gambling, place bets or receive winnings. All site materials are informational. The site does not have functions for participating in gambling, placing bets or receiving winnings.</p>
-                                    <p>If you feel that you or someone around you may have a problem with gambling, remember that you can always ask for help.</p>
+                                    <p>{replaceTranslation('The site is informational and does not provide an opportunity to participate in gambling, place bets or receive winnings. All site materials are informational. The site does not have functions for participating in gambling, placing bets or receiving winnings.', currentLang)}</p>
+                                    <p>{replaceTranslation('If you feel that you or someone around you may have a problem with gambling, remember that you can always ask for help.', currentLang)}</p>
                                 </div>
                             </div>
                             <div className="footer__bottom-item fl_c_c">
