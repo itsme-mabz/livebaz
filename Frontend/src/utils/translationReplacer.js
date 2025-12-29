@@ -2,6 +2,8 @@ import axios from 'axios';
 
 let translationMap = {};
 let isLoaded = false;
+let currentLanguage = 'en';
+let observer = null;
 
 // Load translations from backend
 export const loadTranslations = async () => {
@@ -20,7 +22,9 @@ export const loadTranslations = async () => {
                 translationMap[trans.language_code][trans.wrong_translation] = trans.correct_translation;
             });
             isLoaded = true;
+            console.log('Translations loaded:', translationMap);
             startTranslationObserver();
+            startLanguageMonitor();
         }
     } catch (error) {
         console.error('Error loading translations:', error);
@@ -43,35 +47,69 @@ export const reloadTranslations = () => {
 // Get current language from Google Translate
 const getCurrentLanguage = () => {
     const select = document.querySelector('.goog-te-combo');
-    return select?.value || 'fa';
+    return select?.value || 'en';
 };
 
-// Replace text in a node
+// Replace text in a node recursively
 const replaceTextInNode = (node, languageCode) => {
-    if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
-        const originalText = node.textContent.trim();
-        const replacedText = replaceTranslation(originalText, languageCode);
-        if (replacedText !== originalText) {
-            node.textContent = node.textContent.replace(originalText, replacedText);
+    if (!translationMap[languageCode]) return;
+    
+    if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        if (!text || !text.trim()) return;
+        
+        let newText = text;
+        Object.keys(translationMap[languageCode]).forEach(wrongText => {
+            const correctText = translationMap[languageCode][wrongText];
+            newText = newText.replace(new RegExp(wrongText, 'g'), correctText);
+        });
+        
+        if (newText !== text) {
+            node.textContent = newText;
         }
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
+    } else if (node.nodeType === Node.ELEMENT_NODE && node.childNodes.length > 0) {
         node.childNodes.forEach(child => replaceTextInNode(child, languageCode));
     }
 };
 
+// Apply translations to entire page
+const applyTranslations = (languageCode) => {
+    if (!translationMap[languageCode]) return;
+    console.log('Applying translations for:', languageCode);
+    replaceTextInNode(document.body, languageCode);
+};
+
+// Monitor language changes
+const startLanguageMonitor = () => {
+    setInterval(() => {
+        const newLanguage = getCurrentLanguage();
+        if (newLanguage !== currentLanguage) {
+            console.log('Language changed from', currentLanguage, 'to', newLanguage);
+            currentLanguage = newLanguage;
+            setTimeout(() => applyTranslations(currentLanguage), 1000);
+        }
+    }, 500);
+};
+
 // Start observing DOM changes
 const startTranslationObserver = () => {
-    const observer = new MutationObserver((mutations) => {
+    if (observer) observer.disconnect();
+    
+    observer = new MutationObserver((mutations) => {
         const languageCode = getCurrentLanguage();
-        if (!translationMap[languageCode]) return;
+        if (!translationMap[languageCode] || languageCode === 'en') return;
 
         mutations.forEach(mutation => {
-            mutation.addedNodes.forEach(node => {
-                replaceTextInNode(node, languageCode);
-            });
+            if (mutation.addedNodes.length > 0) {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+                        setTimeout(() => replaceTextInNode(node, languageCode), 100);
+                    }
+                });
+            }
             
-            if (mutation.type === 'characterData') {
-                replaceTextInNode(mutation.target.parentNode, languageCode);
+            if (mutation.type === 'characterData' && mutation.target.parentNode) {
+                setTimeout(() => replaceTextInNode(mutation.target.parentNode, languageCode), 100);
             }
         });
     });
@@ -83,8 +121,8 @@ const startTranslationObserver = () => {
     });
 
     // Initial replacement
-    const languageCode = getCurrentLanguage();
-    if (translationMap[languageCode]) {
-        replaceTextInNode(document.body, languageCode);
+    currentLanguage = getCurrentLanguage();
+    if (currentLanguage !== 'en') {
+        setTimeout(() => applyTranslations(currentLanguage), 1000);
     }
 };

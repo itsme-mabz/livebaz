@@ -170,7 +170,7 @@ const TranslationAdmin = () => {
 
                         <div>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                                Wrong Translation (Google)
+                                Incorrect Translation (from Google)
                             </label>
                             <input
                                 type="text"
@@ -185,13 +185,13 @@ const TranslationAdmin = () => {
                                     borderRadius: '4px',
                                     fontSize: '14px'
                                 }}
-                                placeholder="Wrong translation from Google"
+                                placeholder="The wrong text that appears"
                             />
                         </div>
 
                         <div>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                                Correct Translation
+                                Correct Translation (what to show)
                             </label>
                             <input
                                 type="text"
@@ -206,7 +206,7 @@ const TranslationAdmin = () => {
                                     borderRadius: '4px',
                                     fontSize: '14px'
                                 }}
-                                placeholder="Correct translation"
+                                placeholder="The correct text to display"
                             />
                         </div>
                     </div>
@@ -272,8 +272,8 @@ const TranslationAdmin = () => {
                             <thead>
                                 <tr style={{ backgroundColor: '#f8f8f8', borderBottom: '2px solid #ddd' }}>
                                     <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Original</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Wrong</th>
-                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Correct</th>
+                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Incorrect (Google)</th>
+                                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Correct (Fixed)</th>
                                     <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Language</th>
                                     <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Date</th>
                                     <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>Actions</th>
