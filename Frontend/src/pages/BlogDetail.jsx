@@ -2,10 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { fetchBlogBySlug, fetchTrendingBlogs, fetchComments, postComment, deleteComment } from '../Service/BlogService';
 import AuthModal from '../components/AuthModal/AuthModal';
+import { replaceTranslation } from '../utils/translationReplacer.jsx';
 
 function BlogDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const [currentLang, setCurrentLang] = useState('en');
+
+  useEffect(() => {
+    const checkLanguage = () => {
+      const select = document.querySelector('.goog-te-combo');
+      if (select) {
+        setCurrentLang(select.value || 'en');
+      }
+    };
+
+    const intervalId = setInterval(checkLanguage, 500);
+    return () => clearInterval(intervalId);
+  }, []);
+
   const [blog, setBlog] = useState(null);
   const [latestBlogs, setLatestBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -201,7 +216,7 @@ function BlogDetail() {
             animation: 'spin 1s linear infinite',
             marginBottom: '20px'
           }}></div>
-          <p style={{ fontSize: '18px' }}>Loading blog...</p>
+          <p style={{ fontSize: '18px' }}>{replaceTranslation('Loading blog...', currentLang)}</p>
         </div>
       </div>
     );
@@ -211,8 +226,8 @@ function BlogDetail() {
     return (
       <div className="livescore-page wrap" style={{ paddingTop: '20px', background: '#f8f9fa' }}>
         <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#1a1a1a', marginBottom: '15px' }}>Blog Not Found</h2>
-          <p style={{ color: '#666', marginBottom: '30px' }}>{error || 'The blog you are looking for does not exist.'}</p>
+          <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#1a1a1a', marginBottom: '15px' }}>{replaceTranslation('Blog Not Found', currentLang)}</h2>
+          <p style={{ color: '#666', marginBottom: '30px' }}>{error || replaceTranslation('The blog you are looking for does not exist.', currentLang)}</p>
           <button
             onClick={() => navigate('/blogs')}
             style={{
@@ -225,7 +240,7 @@ function BlogDetail() {
               cursor: 'pointer'
             }}
           >
-            Back to Blogs
+            {replaceTranslation('Back to Blogs', currentLang)}
           </button>
         </div>
       </div>
@@ -235,7 +250,7 @@ function BlogDetail() {
   return (
     <div className="livescore-page wrap" style={{ paddingTop: '20px', background: '#f8f9fa', minHeight: '100vh' }}>
       {/* Breadcrumb */}
-      <div style={{
+      <div className="blog-breadcrumb" style={{
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
@@ -244,9 +259,9 @@ function BlogDetail() {
         marginBottom: '20px',
         flexWrap: 'wrap'
       }}>
-        <Link to="/" style={{ color: '#666', textDecoration: 'none' }}>Home</Link>
+        <Link to="/" style={{ color: '#666', textDecoration: 'none' }}>{replaceTranslation('Home', currentLang)}</Link>
         <span>&gt;</span>
-        <Link to="/blogs" style={{ color: '#666', textDecoration: 'none' }}>Blogs</Link>
+        <Link to="/blogs" style={{ color: '#666', textDecoration: 'none' }}>{replaceTranslation('Blogs', currentLang)}</Link>
         {blog.category && (
           <>
             <span>&gt;</span>
@@ -262,7 +277,7 @@ function BlogDetail() {
       </div>
 
       {/* Main Layout - 2 columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '30px', alignItems: 'start' }}>
+      <div className="blog-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '30px', alignItems: 'start' }}>
         {/* Main Content */}
         <div>
           {/* Article Header */}
@@ -373,7 +388,7 @@ function BlogDetail() {
               marginBottom: '20px',
               boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
             }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1a1a', marginBottom: '12px' }}>Tags:</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1a1a', marginBottom: '12px' }}>{replaceTranslation('Tags:', currentLang)}</h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {(Array.isArray(blog.tags)
                   ? blog.tags
@@ -449,32 +464,32 @@ function BlogDetail() {
                 gap: '15px'
               }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>Win Rate</div>
+                  <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>{replaceTranslation('Win Rate', currentLang)}</div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#22c55e', fontWeight: '600' }}>
                     <CheckIcon size={14} />
                     <span>{blog.metadata.author_stats.win_rate || '0'}</span>
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>Avg. Coef</div>
+                  <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>{replaceTranslation('Avg. Coef', currentLang)}</div>
                   <div style={{ color: '#1a1a1a', fontWeight: '600' }}>
                     {blog.metadata.author_stats.avg_coef || '0'}
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>Yield</div>
+                  <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>{replaceTranslation('Yield', currentLang)}</div>
                   <div style={{ color: '#1a1a1a', fontWeight: '600' }}>
                     {blog.metadata.author_stats.yield || '0'}
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>Active tips</div>
+                  <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>{replaceTranslation('Active tips', currentLang)}</div>
                   <div style={{ color: '#1a1a1a', fontWeight: '600' }}>
                     {blog.metadata.author_stats.active_tips || '0'}
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>Form</div>
+                  <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>{replaceTranslation('Form', currentLang)}</div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                     {blog.metadata.author_stats.form?.map((result, i) => (
                       <span
@@ -510,7 +525,7 @@ function BlogDetail() {
             boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
           }}>
             <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#1a1a1a', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #ffc107' }}>
-              Comments ({comments.length})
+              {replaceTranslation('Comments', currentLang)} ({comments.length})
             </h3>
 
             {/* Comment Form */}
@@ -569,7 +584,7 @@ function BlogDetail() {
                           transition: 'all 0.2s'
                         }}
                       >
-                        {submitting ? 'Posting...' : 'Post Comment'}
+                        {submitting ? replaceTranslation('Posting...', currentLang) : replaceTranslation('Post Comment', currentLang)}
                       </button>
                     </div>
                   </div>
@@ -584,7 +599,7 @@ function BlogDetail() {
                 textAlign: 'center',
                 border: '1px dashed #e0e0e0'
               }}>
-                <p style={{ color: '#666', marginBottom: '12px' }}>Please log in to leave a comment</p>
+                <p style={{ color: '#666', marginBottom: '12px' }}>{replaceTranslation('Please log in to leave a comment', currentLang)}</p>
                 <button
                   onClick={openLoginModal}
                   style={{
@@ -598,7 +613,7 @@ function BlogDetail() {
                     cursor: 'pointer'
                   }}
                 >
-                  Log In
+                  {replaceTranslation('Log In', currentLang)}
                 </button>
               </div>
             )}
@@ -609,7 +624,7 @@ function BlogDetail() {
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ margin: '0 auto 16px' }}>
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
-                <p style={{ fontSize: '16px' }}>No comments yet. Be the first to share your thoughts!</p>
+                <p style={{ fontSize: '16px' }}>{replaceTranslation('No comments yet. Be the first to share your thoughts!', currentLang)}</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -669,7 +684,7 @@ function BlogDetail() {
                                 e.target.style.color = '#ef4444';
                               }}
                             >
-                              Delete
+                              {replaceTranslation('Delete', currentLang)}
                             </button>
                           )}
                         </div>
@@ -694,7 +709,7 @@ function BlogDetail() {
             boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
           }}>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1a1a1a', marginBottom: '20px', paddingBottom: '12px', borderBottom: '2px solid #ffc107' }}>
-              Latest Predictions
+              {replaceTranslation('Latest Predictions', currentLang)}
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {latestBlogs.map((latestBlog) => (
@@ -767,7 +782,7 @@ function BlogDetail() {
               onMouseEnter={(e) => e.currentTarget.style.background = '#ffca2c'}
               onMouseLeave={(e) => e.currentTarget.style.background = '#ffc107'}
             >
-              View All Predictions →
+              {replaceTranslation('View All Predictions', currentLang)} →
             </button>
           </div>
         </div>
@@ -781,6 +796,12 @@ function BlogDetail() {
         @media (max-width: 1024px) {
           .livescore-page > div[style*="grid-template-columns"] {
             grid-template-columns: 1fr !important;
+          }
+          .blog-main-grid {
+             padding: 0 16px;
+          }
+          .blog-breadcrumb {
+             padding: 0 16px;
           }
         }
       `}</style>

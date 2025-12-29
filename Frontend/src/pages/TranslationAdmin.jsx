@@ -46,7 +46,7 @@ const TranslationAdmin = () => {
                     alert('Translation saved successfully!');
                 }
             }
-            
+
             setFormData({
                 original_word: '',
                 wrong_translation: '',
@@ -54,10 +54,14 @@ const TranslationAdmin = () => {
                 language_code: 'fa'
             });
             fetchTranslations();
-            
+
             // Reload translations in the app
-            const { reloadTranslations } = await import('../utils/translationReplacer');
-            await reloadTranslations();
+            try {
+                const { reloadTranslations } = await import('../utils/translationReplacer.jsx');
+                await reloadTranslations();
+            } catch (reloadError) {
+                console.error('Failed to hot-reload translations:', reloadError);
+            }
         } catch (error) {
             alert('Error: ' + (error.response?.data?.message || error.message));
         } finally {
@@ -228,7 +232,7 @@ const TranslationAdmin = () => {
                         >
                             {loading ? 'Saving...' : editingId ? 'Update Translation' : 'Save Translation'}
                         </button>
-                        
+
                         {editingId && (
                             <button
                                 type="button"

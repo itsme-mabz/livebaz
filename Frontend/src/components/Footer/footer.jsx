@@ -39,7 +39,7 @@ function Footer() {
                         <div className="copyright copyright-date">
                             <span className="notranslate">Livebaz</span> © Copyright 2025
                         </div>
-                        <ul className="about-project-footer fl_c_st">
+                        {/* <ul className="about-project-footer fl_c_st">
                             <li className="footer__list-link">
                                 <a href="#about/">{replaceTranslation('About Us', currentLang)}</a>
                             </li>
@@ -55,85 +55,35 @@ function Footer() {
                             <li className="footer__list-link">
                                 <a href="#privacy-policy/">{replaceTranslation('Privacy Policy', currentLang)}</a>
                             </li>
-                        </ul>
+                        </ul> */}
                         <div className="footer__top-right fl_s_s">
                             <div className="fl">
-                                <div className="footer__list fl_col_st_c">
-                                    <span className="footer__list-heading">{replaceTranslation('Bookmaker review', currentLang)}</span>
-                                    <ul className="fl_col_st_c bookmaker-list-footer">
-
-                                        <li className="footer__list-link">
-                                            <a href="#en-ng/bookmakers/1xbet/" className="footer__nav-item">1xbet Nigeria</a>
-                                        </li>
-                                        <li className="footer__list-link">
-                                            <a href="#bookmakers/22bet/" className="footer__nav-item">22Bet Nigeria</a>
-                                        </li>
-                                        <li className="footer__list-link">
-                                            <a href="#en-ng/bookmakers/melbet/" className="footer__nav-item">Melbet Nigeria</a>
-                                        </li>
-                                        <li className="footer__list-link">
-                                            <a href="#en-ng/bookmakers/betwinner/" className="footer__nav-item">Betwinner Nigeria</a>
-                                        </li>
-
-
-                                    </ul>
-                                </div>
+                                {/* Removed Bookmaker review section */}
                                 <div className="footer__list fl_col_st_c">
                                     <ul className="fl_col_st_c forecast-types-footer">
-                                        <a href="#predictions/" className="footer__list-heading footer__list-heading-arrow">{replaceTranslation('Sports Predictions', currentLang)}</a>
+                                        <a href="/predictions/" className="footer__list-heading footer__list-heading-arrow">{replaceTranslation('Predictions', currentLang)}</a>
 
                                         <li className="footer__list-link">
-                                            <a href="#predictions/football/">{replaceTranslation('Football Predictions', currentLang)}</a>
+                                            <a href="/math-predictions/">{replaceTranslation('Math Predictions', currentLang)}</a>
                                         </li>
-
-
                                         <li className="footer__list-link">
-                                            <a href="#predictions/basketball/">{replaceTranslation('Basketball Predictions', currentLang)}</a>
+                                            <a href="/popular-matches/">{replaceTranslation('Popular Matches', currentLang)}</a>
                                         </li>
-
-
-                                        <li className="footer__list-link">
-                                            <a href="#predictions/tennis/">{replaceTranslation('Tennis Predictions', currentLang)}</a>
-                                        </li>
-
-
                                     </ul>
                                 </div>
                             </div>
                             <div className="fl">
-                                <div className="footer__list fl_col_st_c">
-                                    <span className="footer__list-heading">{replaceTranslation('Standings', currentLang)}</span>
-                                    <ul className="fl_col_st_c bookmaker-rating-list-footer">
-                                        <li className="footer__list-link">
-                                            <a href="#football/england-efl-cup/table/" className="footer__nav-item">EFL Cup (Carabao Cup) Table</a>
-                                        </li>
-                                        <li className="footer__list-link">
-                                            <a href="#football/france-ligue-1/table/" className="footer__nav-item">Ligue 1 France Table</a>
-                                        </li>
-                                        <li className="footer__list-link">
-                                            <a href="#football/germany-1-bundesliga/table/" className="footer__nav-item">Bundesliga Germany Table</a>
-                                        </li>
-                                        <li className="footer__list-link">
-                                            <a href="#football/italy-serie-a/table/" className="footer__nav-item">Serie A Italy Table</a>
-                                        </li>
-                                        <li className="footer__list-link">
-                                            <a href="#football/netherlands-eredivisie/table/" className="footer__nav-item">Eredivisie Netherlands Table</a>
-                                        </li>
-                                    </ul>
-                                </div>
+                                {/* Removed Standings section */}
                                 <div className="footer__list fl_col_st_c">
                                     <ul className="footer__list fl_col_st_st">
                                         <li className="footer__list-heading footer__list-heading-arrow">
-                                            <a href="#livescore/">{replaceTranslation('Scores', currentLang)}</a>
+                                            <a href="/livescore/">{replaceTranslation('Scores', currentLang)}</a>
                                         </li>
                                         <li className="footer__list-heading footer__list-heading-arrow">
-                                            <a href="#football/competitions/">{replaceTranslation('Leagues', currentLang)}</a>
+                                            <a href="/competitions/">{replaceTranslation('Leagues', currentLang)}</a>
                                         </li>
                                         <li className="footer__list-heading footer__list-heading-arrow">
-                                            <a href="#how-we-rank/">{replaceTranslation('How we rank bookmakers', currentLang)}</a>
-                                        </li>
-                                        <li className="footer__list-heading footer__list-heading-arrow">
-                                            <a href="#winrate/">{replaceTranslation('WinRate', currentLang)}</a>
+                                            <a href="/blogs/">{replaceTranslation('Insights', currentLang)}</a>
                                         </li>
                                     </ul>
                                 </div>

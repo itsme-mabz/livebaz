@@ -9,8 +9,24 @@ import { fetchTrendingBlogs } from '../Service/BlogService';
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 const BASE_URL = 'https://apiv3.apifootball.com';
 
+import { replaceTranslation } from '../utils/translationReplacer.jsx';
+
 function Predictions() {
     const navigate = useNavigate();
+    const [currentLang, setCurrentLang] = useState('en');
+
+    useEffect(() => {
+        const checkLanguage = () => {
+            const select = document.querySelector('.goog-te-combo');
+            if (select) {
+                setCurrentLang(select.value || 'en');
+            }
+        };
+
+        const intervalId = setInterval(checkLanguage, 500);
+        return () => clearInterval(intervalId);
+    }, []);
+
     const [predictions, setPredictions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState('today');
@@ -20,9 +36,9 @@ function Predictions() {
 
     // Date tabs configuration
     const dateTabs = [
-        { label: 'All Predictions', value: 'all' },
-        { label: 'Today', value: 'today' },
-        { label: 'Tomorrow', value: 'tomorrow' }
+        { label: replaceTranslation('All Predictions', currentLang), value: 'all' },
+        { label: replaceTranslation('Today', currentLang), value: 'today' },
+        { label: replaceTranslation('Tomorrow', currentLang), value: 'tomorrow' }
     ];
 
     // Fetch predictions from API
@@ -221,7 +237,7 @@ function Predictions() {
                     <div className="container container_70x30" style={{ direction: 'ltr' }}>
                         <div className="container-main">
                             <section className="forecasts forecast-small">
-                                <h1 className="page-title">All Sports Predictions for Today</h1>
+                                <h1 className="page-title">{replaceTranslation('All Sports Predictions for Today', currentLang)}</h1>
                                 <div className="forecasts__header fl">
                                     <div className="date-setting fl_c">
                                         {dateTabs.map(tab => (
@@ -243,7 +259,7 @@ function Predictions() {
                                         <PredictionsPageSkeleton />
                                     ) : predictions.length === 0 ? (
                                         <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
-                                            No predictions available
+                                            {replaceTranslation('No predictions available', currentLang)}
                                         </div>
                                     ) : (
                                         predictions.map((prediction) => {
@@ -268,7 +284,7 @@ function Predictions() {
                                                     }}
                                                 >
                                                     {prediction.isLive && (
-                                                        <span className="popular-icon">LIVE</span>
+                                                        <span className="popular-icon">{replaceTranslation('LIVE', currentLang)}</span>
                                                     )}
                                                     <span className="forecast-item__top fl">
                                                         <div style={{
@@ -301,7 +317,7 @@ function Predictions() {
                                                                 </div>
                                                             </div>
                                                             <div style={{ fontSize: '24px', fontWeight: 'bold', padding: '0 10px' }}>
-                                                                VS
+                                                                {replaceTranslation('VS', currentLang)}
                                                             </div>
                                                             <div style={{ textAlign: 'center', flex: 1 }}>
                                                                 {prediction.awayTeamBadge && (
@@ -328,7 +344,7 @@ function Predictions() {
                                                         <span className="news-item__text-m">
                                                             <span className="info">
                                                                 <span className="tag">
-                                                                    Football
+                                                                    {replaceTranslation('Football', currentLang)}
                                                                 </span>
                                                                 <span className="time">{formatMatchTime(prediction.time)}</span>
                                                             </span>
@@ -339,7 +355,7 @@ function Predictions() {
                                                             </div>
                                                             {bestTip && (
                                                                 <div style={{ fontSize: '13px', color: '#666' }}>
-                                                                    <strong>Best Tip:</strong> {bestTip.type} ({bestTip.probability}%)
+                                                                    <strong>{replaceTranslation('Best Tip:', currentLang)}</strong> {bestTip.type} ({bestTip.probability}%)
                                                                 </div>
                                                             )}
                                                             <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
@@ -389,17 +405,17 @@ function Predictions() {
                                         textTransform: 'uppercase',
                                         letterSpacing: '0.5px'
                                     }}>
-                                        Latest Predictions
+                                        {replaceTranslation('Latest Predictions', currentLang)}
                                     </h2>
                                 </div>
 
                                 {blogsLoading ? (
                                     <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
-                                        Loading...
+                                        {replaceTranslation('Loading...', currentLang)}
                                     </div>
                                 ) : trendingBlogs.length === 0 ? (
                                     <div style={{ textAlign: 'center', padding: '20px', color: '#999', fontSize: '14px' }}>
-                                        No predictions available
+                                        {replaceTranslation('No predictions available', currentLang)}
                                     </div>
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
@@ -430,7 +446,7 @@ function Predictions() {
                                                     textTransform: 'uppercase',
                                                     letterSpacing: '0.5px'
                                                 }}>
-                                                    {blog.category || 'FOOTBALL'} • {formatDate(blog.published_at || blog.createdAt)}
+                                                    {blog.category || replaceTranslation('FOOTBALL', currentLang)} • {formatDate(blog.published_at || blog.createdAt)}
                                                 </div>
                                                 <h3 style={{
                                                     fontSize: '13px',

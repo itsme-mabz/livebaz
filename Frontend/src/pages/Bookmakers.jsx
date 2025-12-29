@@ -1,6 +1,27 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { replaceTranslation } from '../utils/translationReplacer.jsx';
 
 function Bookmakers() {
+    const [currentLang, setCurrentLang] = useState('en');
+
+    useEffect(() => {
+        const checkLanguage = () => {
+            const select = document.querySelector('.goog-te-combo');
+            if (select) {
+                // If select.value is empty, it means 'en' (original language)
+                setCurrentLang(select.value || 'en');
+            }
+        };
+
+        // Check initially
+        checkLanguage();
+
+        // Set up an interval to check for language changes
+        const intervalId = setInterval(checkLanguage, 500);
+
+        return () => clearInterval(intervalId);
+    }, []);
+
     return (
         <div>
             <meta charSet="UTF-8" />
@@ -47,13 +68,13 @@ function Bookmakers() {
                             <div className="side-filters__top fl_c">
                                 <div className="fl_c_st">
                                     <div className="section-title without-decor mb-12">
-                                        Filters
+                                        {replaceTranslation('Filters', currentLang)}
                                     </div>
                                     <span className="filters-count fw_700 rounded_4">0</span>
                                 </div>
                                 <button type="button" className="button fl_c button_clean-filters">
                                     <span className="button_clear-icon mr-6" />
-                                    <span className="button_text button_dashed js-clear-filters">Clear filters</span>
+                                    <span className="button_text button_dashed js-clear-filters">{replaceTranslation('Clear filters', currentLang)}</span>
                                 </button>
                             </div>
                             <div className="side-filters__wrap fl_col_st_c">
@@ -359,7 +380,7 @@ function Bookmakers() {
                         </form>
                         <section className="side-forecasts">
                             <div className="section-title mb-12">
-                                Latest Predictions
+                                {replaceTranslation('Latest Predictions', currentLang)}
                             </div>
                             <div className="side-forecasts_wrap fl_col_st_c mb-24 w-full block_white">
                                 <div className="news-item__text-m">
@@ -446,7 +467,7 @@ function Bookmakers() {
                         </section>
                         <section className="side-upcoming-matches mb-24 mb-m-40">
                             <div className="section-title mb-12">
-                                Today’s upcoming matches
+                                {replaceTranslation('Today’s upcoming matches', currentLang)}
                             </div>
                             <div className="upcoming-matches__container w-full fl_col mb-16">
                                 <div className="upcoming-matches__match block_white fl_c_sb">
@@ -512,10 +533,10 @@ function Bookmakers() {
                                                 </div>
                                             </div>
                                             <div className="prediction__right fl_col_c_c">
-                                                <span className="prediction-item__head">Prediction</span>
+                                                <span className="prediction-item__head">{replaceTranslation('Prediction', currentLang)}</span>
                                                 <button type="button" className="button btn_black fl_c_c">
                                                     <span className="forecast-index fw_500">0</span>
-                                                    <span className="forecast-label">TIPS</span>
+                                                    <span className="forecast-label">{replaceTranslation('TIPS', currentLang)}</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -584,10 +605,10 @@ function Bookmakers() {
                                                 </div>
                                             </div>
                                             <div className="prediction__right fl_col_c_c">
-                                                <span className="prediction-item__head">Prediction</span>
+                                                <span className="prediction-item__head">{replaceTranslation('Prediction', currentLang)}</span>
                                                 <button type="button" className="button btn_black fl_c_c">
                                                     <span className="forecast-index fw_500">0</span>
-                                                    <span className="forecast-label">TIPS</span>
+                                                    <span className="forecast-label">{replaceTranslation('TIPS', currentLang)}</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -656,10 +677,10 @@ function Bookmakers() {
                                                 </div>
                                             </div>
                                             <div className="prediction__right fl_col_c_c">
-                                                <span className="prediction-item__head">Prediction</span>
+                                                <span className="prediction-item__head">{replaceTranslation('Prediction', currentLang)}</span>
                                                 <button type="button" className="button btn_black fl_c_c">
                                                     <span className="forecast-index fw_500">0</span>
-                                                    <span className="forecast-label">TIPS</span>
+                                                    <span className="forecast-label">{replaceTranslation('TIPS', currentLang)}</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -728,10 +749,10 @@ function Bookmakers() {
                                                 </div>
                                             </div>
                                             <div className="prediction__right fl_col_c_c">
-                                                <span className="prediction-item__head">Prediction</span>
+                                                <span className="prediction-item__head">{replaceTranslation('Prediction', currentLang)}</span>
                                                 <button type="button" className="button btn_black fl_c_c">
                                                     <span className="forecast-index fw_500">0</span>
-                                                    <span className="forecast-label">TIPS</span>
+                                                    <span className="forecast-label">{replaceTranslation('TIPS', currentLang)}</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -811,14 +832,14 @@ function Bookmakers() {
                                 </div>
                             </div>
                             <a href="/livescore/" className="fl_c_c" aria-label="Football Games Today">
-                                <span className="button all-matches btn_black rounded_6 fl_c_c">All matches</span>
+                                <span className="button all-matches btn_black rounded_6 fl_c_c">{replaceTranslation('All matches', currentLang)}</span>
                             </a>
                         </section>
                     </aside>
                     <section className="bk w-full">
                         <section className="bk-list__header w-full block_black mb-8 mb-m-16 fl_col">
-                            <h1 className="title mb-16 mb-m-8 font_28 font_m_24 fw_600">Best Betting Sites in Kenya: Top 13 Online Sites for Betting 2025</h1>
-                            <div className="subtitle text_regular mb-32 mb-m-12"><p>Kenya’s betting market offers many platforms, to make your choice easier, we’ve compiled a list of the most reliable betting sites in Kenya. All information about criteria and methodology may be found on our <a href="https://ratingbet.com/how-we-rank/">How We Rank</a> page.</p></div>
+                            <h1 className="title mb-16 mb-m-8 font_28 font_m_24 fw_600">{replaceTranslation('Best Betting Sites in Kenya: Top 13 Online Sites for Betting 2025', currentLang)}</h1>
+                            <div className="subtitle text_regular mb-32 mb-m-12"><p>{replaceTranslation('Kenya’s betting market offers many platforms, to make your choice easier, we’ve compiled a list of the most reliable betting sites in Kenya. All information about criteria and methodology may be found on our', currentLang)} <a href="https://ratingbet.com/how-we-rank/">{replaceTranslation('How We Rank', currentLang)}</a> {replaceTranslation('page.', currentLang)}</p></div>
                             <div className="bk__experts-container fl_c_st w-full mb-m-16">
                                 <div className="bk__experts-column fl_c_st">
                                     <div className="bk__expert fl_c_st">
@@ -826,7 +847,7 @@ function Bookmakers() {
                                             <img srcSet="https://cdn.ratingbet.com/sport-news/ratingbet/authors/20231009/037a908c9e404162d7ebe8c4491f04712233af43243c45f4c7ad721833295374-70-70.jpg 70w" sizes="70px" decoding="async" width={40} height={40} alt="Benjamin Mcneil" src="https://cdn.ratingbet.com/sport-news/ratingbet/authors/20231009/037a908c9e404162d7ebe8c4491f04712233af43243c45f4c7ad721833295374-70-70.jpg" />
                                         </div>
                                         <span className="fl_col_st_c">
-                                            <span className="bk__expert-info fw_400">Written by:</span>
+                                            <span className="bk__expert-info fw_400">{replaceTranslation('Written by:', currentLang)}</span>
                                             <span className="bk__expert-name-wrap">
                                                 <a href="/authors/benjamin-mcneil/" className="bk__expert-name fw_500">Benjamin Mcneil, </a>
                                                 <span className="bk__expert-position">betting expert</span>
@@ -835,10 +856,10 @@ function Bookmakers() {
                                     </div>
                                     <div className="bk__expert">
                                         <span className="fl_col_st_c">
-                                            <span className="bk__expert-info info-checked fl_c fw_400">Fact checked by:</span>
+                                            <span className="bk__expert-info info-checked fl_c fw_400">{replaceTranslation('Fact checked by:', currentLang)}</span>
                                             <span className="bk__expert-name-wrap">
                                                 <a href="/authors/thomas-jenkins/" className="bk__expert-name fw_500">Thomas Jenkins, </a>
-                                                <span className="bk__expert-position">Head of content</span>
+                                                <span className="bk__expert-position">{replaceTranslation('Head of content', currentLang)}</span>
                                             </span>
                                         </span>
                                     </div>
@@ -846,65 +867,65 @@ function Bookmakers() {
                                 <div className="modal mr-m-4">
                                     <button type="button" className="ads-disclosure w-full text_regular button fl_s_st button_i btn-open">
                                         <span className="ads-disclosure__icon square_20 mr-6" />
-                                        <span className="button_dashed">Ads disclosure</span>
+                                        <span className="button_dashed">{replaceTranslation('Ads disclosure', currentLang)}</span>
                                     </button>
                                     <div className="modal-window">
                                         <div className="ads-modal">
-                                            <p className="mb-8">We list betting deals from trusted sportsbooks and may earn commission via affiliate links at no extra cost to you.</p>
-                                            <p className="mb-16">Please adhere to local gambling laws, which may change. Note, <a href="/">ratingbet.com</a>  is not a gambling operator nor offers gambling services. We are not responsible for third-party actions and do not support gambling where prohibited.</p>
-                                            <button className="button btn_black fl_c_c btn-close">Close</button>
+                                            <p className="mb-8">{replaceTranslation('We list betting deals from trusted sportsbooks and may earn commission via affiliate links at no extra cost to you.', currentLang)}</p>
+                                            <p className="mb-16">{replaceTranslation('Please adhere to local gambling laws, which may change. Note,', currentLang)} <a href="/">ratingbet.com</a>  {replaceTranslation('is not a gambling operator nor offers gambling services. We are not responsible for third-party actions and do not support gambling where prohibited.', currentLang)}</p>
+                                            <button className="button btn_black fl_c_c btn-close">{replaceTranslation('Close', currentLang)}</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div className="bookmakers fl_c_st">
                                 <span className="bookmakers-item">
-                                    <a href="/bookmakers/betting-app/" className="bookmakers-item__link">Best Betting Apps in Kenya</a>
+                                    <a href="/bookmakers/betting-app/" className="bookmakers-item__link">{replaceTranslation('Best Betting Apps in Kenya', currentLang)}</a>
                                 </span>
                                 <span className="bookmakers-item">
-                                    <a href="/bookmakers/welcome-bonus/" className="bookmakers-item__link">Betting Sites with Welcome Bonus</a>
+                                    <a href="/bookmakers/welcome-bonus/" className="bookmakers-item__link">{replaceTranslation('Betting Sites with Welcome Bonus', currentLang)}</a>
                                 </span>
                             </div>
                         </section>
                         <h2 className="section-title mb-4 mt-32 mt-m-20">
-                            Top betting sites in Kenya
+                            {replaceTranslation('Top betting sites in Kenya', currentLang)}
                         </h2>
                         <div className="bk__subtitle-wrap ">
                             <div className="bk__subtitle text_regular mb-16 mb-m-12 js-subtitle">
-                                Found:
+                                {replaceTranslation('Found:', currentLang)}
                                 <span className="count" data-translations="{&quot;1-ru&quot;:&quot;\u0431\u0443\u043a\u043c\u0435\u043a\u0435\u0440&quot;,&quot;1-en&quot;:&quot;bookmaker&quot;,&quot;1-ar&quot;:&quot;\u0627\u0644\u0645\u0631\u0627\u0647\u0646\u0627\u062a&quot;,&quot;2-ru&quot;:&quot;\u0431\u0443\u043a\u043c\u0435\u043a\u0435\u0440\u0430&quot;,&quot;2-en&quot;:&quot;bookmakers&quot;,&quot;2-ar&quot;:&quot;\u0627\u0644\u0645\u0631\u0627\u0647\u0646\u0627\u062a&quot;,&quot;other-ru&quot;:&quot;\u0431\u0443\u043a\u043c\u0435\u043a\u0435\u0440\u043e\u0432&quot;,&quot;other-en&quot;:&quot;bookmakers&quot;,&quot;other-ar&quot;:&quot;\u0627\u0644\u0645\u0631\u0627\u0647\u0646\u0627\u062a&quot;}" data-locale="en">
                                     13
-                                    bookmakers
+                                    {replaceTranslation('bookmakers', currentLang)}
                                 </span>
-                                matching to your criteria
+                                {replaceTranslation('matching to your criteria', currentLang)}
                             </div>
                             <div className="fl_c_sb mb-m-20">
                                 <div className="dropdown-sort mr-8 ml-m-4 js-dropdown-sort">
                                     <div className="dropdown dropdown-list">
                                         <button className="dropdown-button fl_c">
                                             <span className="dropdown-button__text overflow-elipsis fl_c">
-                                                Rating
+                                                {replaceTranslation('Rating', currentLang)}
                                             </span>
                                         </button>
                                         <div className="dropdown-content">
                                             <div className="dropdown-items-list">
                                                 <div className="dropdown-item">
-                                                    <div className="dropdown-item__value overflow-elipsis current" data-info="all Leagues" data-key="id_437">Rating</div>
+                                                    <div className="dropdown-item__value overflow-elipsis current" data-info="all Leagues" data-key="id_437">{replaceTranslation('Rating', currentLang)}</div>
                                                 </div>
                                                 <div className="dropdown-item">
-                                                    <div className="dropdown-item__value overflow-elipsis" data-info="Usability" data-key="id_428">Usability</div>
+                                                    <div className="dropdown-item__value overflow-elipsis" data-info="{replaceTranslation('Usability', currentLang)}" data-key="id_428">{replaceTranslation('Usability', currentLang)}</div>
                                                 </div>
                                                 <div className="dropdown-item">
-                                                    <div className="dropdown-item__value overflow-elipsis" data-info="Coefficients" data-key="id_431">Coefficients</div>
+                                                    <div className="dropdown-item__value overflow-elipsis" data-info="{replaceTranslation('Coefficients', currentLang)}" data-key="id_431">{replaceTranslation('Coefficients', currentLang)}</div>
                                                 </div>
                                                 <div className="dropdown-item">
-                                                    <div className="dropdown-item__value overflow-elipsis" data-info="Withdrawal of funds" data-key="id_434">Withdrawal of funds</div>
+                                                    <div className="dropdown-item__value overflow-elipsis" data-info="{replaceTranslation('Withdrawal of funds', currentLang)}" data-key="id_434">{replaceTranslation('Withdrawal of funds', currentLang)}</div>
                                                 </div>
                                                 <div className="dropdown-item">
-                                                    <div className="dropdown-item__value overflow-elipsis" data-info="Attitude to the client" data-key="id_440">Attitude to the client</div>
+                                                    <div className="dropdown-item__value overflow-elipsis" data-info="{replaceTranslation('Attitude to the client', currentLang)}" data-key="id_440">{replaceTranslation('Attitude to the client', currentLang)}</div>
                                                 </div>
                                                 <div className="dropdown-item">
-                                                    <div className="dropdown-item__value overflow-elipsis" data-info="Reliability" data-key="id_446">Reliability</div>
+                                                    <div className="dropdown-item__value overflow-elipsis" data-info="{replaceTranslation('Reliability', currentLang)}" data-key="id_446">{replaceTranslation('Reliability', currentLang)}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -920,7 +941,7 @@ function Bookmakers() {
                                             <td className="fr">
                                                 <div className="fr-wrapper fl_c_c">
                                                     <div className="number fl_c_c rounded_full font_18 fw_500">1</div>
-                                                    <span className="gift-recommended">Top Pick</span>
+                                                    <span className="gift-recommended">{replaceTranslation('Top Pick', currentLang)}</span>
                                                     <div className="fl_col_c_c">
                                                         <a href="/bookmakers/melbet/" className="img__wrapper brand-logo fl_c_c mb-4" data-brand-name="Melbet">
                                                             <img decoding="async" width={120} height={48} alt="Melbet app" src="https://cdn.ratingbet.com/ratingbet/20250730/f2f56e08aed8fc2d0c7c62b4a7adbc859573ea1dfd61d9332bdd09935b5cf5ad.webp" />
@@ -943,26 +964,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>200% welcome bonus</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 100 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> €0.20</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 64.76 KES</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 15 min - 24 hours</span>
                                                             </span>
                                                         </div>
@@ -974,19 +995,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">ML_6295</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tLzJ4dnNDWQ==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': 'melbet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': 'melbet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/melbet/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     Melbet Kenya
@@ -1004,7 +1025,7 @@ function Bookmakers() {
                                             <td className="fr">
                                                 <div className="fr-wrapper fl_c_c">
                                                     <div className="number fl_c_c rounded_full font_18 fw_500">2</div>
-                                                    <span className="gift-recommended">Top Pick</span>
+                                                    <span className="gift-recommended">{replaceTranslation('Top Pick', currentLang)}</span>
                                                     <div className="fl_col_c_c">
                                                         <a href="/bookmakers/mostbet/" className="img__wrapper brand-logo fl_c_c mb-4" data-brand-name="Mostbet">
                                                             <img decoding="async" width={120} height={48} alt="Mostbet app" src="https://cdn.ratingbet.com/ratingbet/20250730/3a97885f736962b6f6fcbeac8cc692f9128c8dd84bcd44ea1f4c3f24f4a02c42.webp" />
@@ -1027,26 +1048,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>150% First Deposit Bonus</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 650 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 26 KES</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 200 KES</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> up to 72 hours</span>
                                                             </span>
                                                         </div>
@@ -1058,19 +1079,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">150BET</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL21QYzVrOQ==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': 'mostbet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': 'mostbet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/mostbet/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     Mostbet Kenya
@@ -1088,7 +1109,7 @@ function Bookmakers() {
                                             <td className="fr">
                                                 <div className="fr-wrapper fl_c_c">
                                                     <div className="number fl_c_c rounded_full font_18 fw_500">3</div>
-                                                    <span className="gift-recommended">Top Pick</span>
+                                                    <span className="gift-recommended">{replaceTranslation('Top Pick', currentLang)}</span>
                                                     <div className="fl_col_c_c">
                                                         <a href="/bookmakers/1xbet/" className="img__wrapper brand-logo fl_c_c mb-4" data-brand-name="1xbet">
                                                             <img decoding="async" width={120} height={48} alt="1xbet app" src="https://cdn.ratingbet.com/ratingbet/20250730/a0db9c6cbe87e21c49a4e2f34bd3d3e3e78bbb2da5f95654d42bd8326130c408.webp" />
@@ -1111,26 +1132,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>200% deposit bonus</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 10 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> $0.30/€0.20</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> from 100 KES</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 15 minutes</span>
                                                             </span>
                                                         </div>
@@ -1142,19 +1163,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">1X_148495</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL1k2VHhGNQ==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': '1xbet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': '1xbet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/1xbet/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     1xbet Kenya
@@ -1194,26 +1215,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>100% up to KES 15,000</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 10 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 22 KES</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> </span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> Instant</span>
                                                             </span>
                                                         </div>
@@ -1225,19 +1246,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">RTNGBET</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL1oydEJ0Rg==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': 'betwinner','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': 'betwinner','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/betwinner/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     Betwinner Kenya
@@ -1277,26 +1298,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>100% up to 19,000 KES</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 10 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> €0.20</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> Min 10 KES - Max 150 000 KES</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> Up to 24 hours</span>
                                                             </span>
                                                         </div>
@@ -1308,19 +1329,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">RBPROMO</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL0JQTVF0Uw==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': '22bet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': '22bet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/22bet/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     22Bet Kenya
@@ -1360,26 +1381,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>130% bonus up to 18,000 KES with Promo Code</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 50 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> $0.30/€0.20</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> from 140 to 150000 KES</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 15 minutes</span>
                                                             </span>
                                                         </div>
@@ -1391,19 +1412,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">PAR_11105</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL2ZISFNLOA==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': 'paripesa','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': 'paripesa','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/paripesa/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     Paripesa Kenya
@@ -1443,26 +1464,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>100% bonus up to 20000 KES</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 1 EUR/USD</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> €0.20/$0.30</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> from 10 EUR/USD</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 15 minutes</span>
                                                             </span>
                                                         </div>
@@ -1474,19 +1495,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">WIN_9659</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL3lwblRHWg==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': 'winwin','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': 'winwin','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/winwin/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     WinWin Kenya
@@ -1526,26 +1547,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>100% up to 15700 KES</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 50 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> $0.30/€0.20</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> from 100 to 2 895 867 KES</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> Up to 24 hours</span>
                                                             </span>
                                                         </div>
@@ -1557,19 +1578,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">M_68540</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tLzlyTVdjZA==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': 'megapari','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': 'megapari','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/megapari/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     MegaPari Kenya
@@ -1609,26 +1630,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p><span style={{ backgroundColor: 'rgb(255,255,255)', color: 'rgb(51,51,51)' }}>100% first deposit bonus</span></p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 20 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> $0.30/€0.20</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> from 83 to 14 243 981 KES</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 15 minutes</span>
                                                             </span>
                                                         </div>
@@ -1640,19 +1661,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">RB7777</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL1k5VDFrNA==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': 'linebet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': 'linebet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/linebet/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     Linebet Kenya
@@ -1692,26 +1713,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>500% bonus up to KES 110,000</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 150 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 25 KES</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> from 1000 KES</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> Up to 24 hours</span>
                                                             </span>
                                                         </div>
@@ -1723,19 +1744,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">RATINGBET</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL1MxSDFQNQ==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': '1win','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': '1win','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/1win/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     1win Kenya
@@ -1775,26 +1796,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>Free Bets on the <span style={{ backgroundColor: 'rgb(255,255,255)', color: 'rgb(33,33,33)' }}>1st</span> deposit</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> $10</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> $0.30</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> $10 - $50 000</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> From 1-4 Hours</span>
                                                             </span>
                                                         </div>
@@ -1803,8 +1824,8 @@ function Bookmakers() {
                                             </td>
                                             <td className="fl_col_c_c buttons tr">
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL0dHdDVCbQ==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': 'bet365','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': 'bet365','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/bet365/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     Bet365 Kenya
@@ -1844,26 +1865,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p>300% on the 1st deposit</p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 10 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 38,7 KES</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> from 225 KES</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 15 min</span>
                                                             </span>
                                                         </div>
@@ -1875,19 +1896,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">AFR_16516</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL1NOOW1OQg==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': 'afropari','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': 'afropari','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/afropari/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     Afropari Kenya
@@ -1927,26 +1948,26 @@ function Bookmakers() {
                                             </td>
                                             <td className="sr fl_c_st">
                                                 <div className="gift fl_col_st_c">
-                                                    <div className="gift-top mb-6 bonus-type fw_400">Bonus Offer</div>
+                                                    <div className="gift-top mb-6 bonus-type fw_400">{replaceTranslation('Bonus Offer', currentLang)}</div>
                                                     <div className="text font_18 fw_500 mb-8 mb-m-6"><p><span style={{ backgroundColor: 'transparent', color: '#000000' }}>100% welcome bonus up to 13000 KES</span></p></div>
                                                     <div className="pay-details fl_c_sb font_12 font_m_14 fw_400">
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st min-deposit">
-                                                                <span className="pay-details__name">Min. deposit:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. deposit:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 50 KES</span>
                                                             </span>
                                                             <span className="fl_c_st min-bet">
-                                                                <span className="pay-details__name">Min. bet:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Min. bet:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> $0.30/€0.20</span>
                                                             </span>
                                                         </div>
                                                         <div className="pay-details__column fl_col">
                                                             <span className="fl_c_st withdrawal">
-                                                                <span className="pay-details__name">Withdrawal:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Withdrawal:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> from 10 KES</span>
                                                             </span>
                                                             <span className="fl_c_st payout-time">
-                                                                <span className="pay-details__name">Payout time:</span>
+                                                                <span className="pay-details__name">{replaceTranslation('Payout time:', currentLang)}</span>
                                                                 <span className="pay-details__value ml-2 fw_600"> 15 min up to 5 days</span>
                                                             </span>
                                                         </div>
@@ -1958,19 +1979,19 @@ function Bookmakers() {
                                                     <div className="bonus__promocode fl_c_c w-full block_gray">
                                                         <div className="clipboard-wrapper w-full button-copy fl_c">
                                                             <div className="promocode-inner fl_col_c_c w-full">
-                                                                <span className="promocode-title font_12 fw_400">Bonus code</span>
+                                                                <span className="promocode-title font_12 fw_400">{replaceTranslation('Bonus code', currentLang)}</span>
                                                                 <span className="copy-to-clipboard promocode-text font_14">XP_8871</span>
                                                                 <span className="copy-icon square_20" />
                                                                 <span className="clipboard-copied rounded_12 font_14">
-                                                                    <span>Promo code copied</span>
+                                                                    <span>{replaceTranslation('Promo code copied', currentLang)}</span>
                                                                 </span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <a href="/ratings/go/aHR0cHM6Ly9nby5yYXRpbmdiZXQuY29tL1EydjVtWg==/" className="button__text play block_yellow btn_yellow fl_c_c" target="_blank" rel="nofollow noopener" onclick="if (!window.__cfRLUnblockHandlers) return false; if (!window.__cfRLUnblockHandlers) return;
-                dataLayer.push({'event': 'Bookmaker','eventCategory': 'Rating outbound','eventAction': 'xparibet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
-                                                    Bet now
+                dataLayer.push({'event': 'Bookmaker','eventCategory': '{replaceTranslation('Rating', currentLang)} outbound','eventAction': 'xparibet','eventLabel': 'https://ratingbet.com/bookmakers/'});" data-cf-modified-9386684d2c0d74b2d77fdbf9->
+                                                    {replaceTranslation('Bet now', currentLang)}
                                                 </a>
                                                 <a href="/bookmakers/xparibet/" className="review button__text fl_c_c rounded_4">                    <span>
                                                     XpariBet Kenya

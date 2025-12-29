@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './LiveScore.css';
 import { convertToLocalTime } from '../utils/timezone';
+import { replaceTranslation } from '../utils/translationReplacer.jsx';
 
 function PopularMatches() {
     const navigate = useNavigate();
@@ -11,14 +12,16 @@ function PopularMatches() {
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [counts, setCounts] = useState({ all: 0, live: 0, upcoming: 0, finished: 0 });
     const [visibleCount, setVisibleCount] = useState(40);
+    const [currentLang, setCurrentLang] = useState('en');
     const [isArabic, setIsArabic] = useState(false);
 
-    // Detect Arabic or Persian language
+    // Detect Language
     useEffect(() => {
         const checkLanguage = () => {
             const select = document.querySelector('.goog-te-combo');
             if (select) {
                 setIsArabic(select.value === 'ar' || select.value === 'fa');
+                setCurrentLang(select.value || 'en');
             }
         };
 
@@ -45,7 +48,7 @@ function PopularMatches() {
             month: 'short',
             year: 'numeric'
         });
-        
+
         return {
             id: match.match_id,
             time: localTime,
@@ -210,14 +213,14 @@ function PopularMatches() {
                 <main className="livescore-main" style={{ width: '100%' }}>
                     <div className="livescore-header">
                         <h1 className="livescore-title" style={{ display: 'flex', alignItems: 'center' }}>
-                            Popular Matches
+                            {replaceTranslation('Popular Matches', currentLang)}
                         </h1>
                         <div className="livescore-date-pills">
                             <button
                                 className={`livescore-date-pill ${selectedStatus === 'all' ? 'active' : ''}`}
                                 onClick={() => setSelectedStatus('all')}
                             >
-                                All {counts.all}
+                                {replaceTranslation('All', currentLang)} {counts.all}
                             </button>
                             <button
                                 className={`livescore-date-pill ${selectedStatus === 'live' ? 'active' : ''}`}
@@ -231,26 +234,26 @@ function PopularMatches() {
                                     display: 'inline-block',
                                     marginRight: '6px'
                                 }}></span>
-                                Live {counts.live}
+                                {replaceTranslation('Live', currentLang)} {counts.live}
                             </button>
                             <button
                                 className={`livescore-date-pill ${selectedStatus === 'upcoming' ? 'active' : ''}`}
                                 onClick={() => setSelectedStatus('upcoming')}
                             >
-                                Upcoming {counts.upcoming}
+                                {replaceTranslation('Upcoming', currentLang)} {counts.upcoming}
                             </button>
                             <button
                                 className={`livescore-date-pill ${selectedStatus === 'finished' ? 'active' : ''}`}
                                 onClick={() => setSelectedStatus('finished')}
                             >
-                                Finished {counts.finished}
+                                {replaceTranslation('Finished', currentLang)} {counts.finished}
                             </button>
                         </div>
                     </div>
 
                     <div className="livescore-content">
                         {loading ? (
-                            <div className="loading-state">Loading matches...</div>
+                            <div className="loading-state">{replaceTranslation('Loading matches...', currentLang)}</div>
                         ) : filteredMatches.length === 0 ? (
                             <div className="empty-state">No {selectedStatus} matches found</div>
                         ) : (
@@ -459,7 +462,7 @@ function PopularMatches() {
                                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#222'}
                                             onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#000'}
                                         >
-                                            Load More
+                                            {replaceTranslation('Load More', currentLang)}
                                         </button>
                                     </div>
                                 )}

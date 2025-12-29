@@ -1,9 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchBlogs, fetchCategories } from '../Service/BlogService';
+import { replaceTranslation } from '../utils/translationReplacer.jsx';
 
 function BlogList() {
   const navigate = useNavigate();
+  const [currentLang, setCurrentLang] = useState('en');
+
+  useEffect(() => {
+    const checkLanguage = () => {
+      const select = document.querySelector('.goog-te-combo');
+      if (select) {
+        setCurrentLang(select.value || 'en');
+      }
+    };
+
+    const intervalId = setInterval(checkLanguage, 500);
+    return () => clearInterval(intervalId);
+  }, []);
+
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
@@ -112,7 +127,7 @@ function BlogList() {
             animation: 'spin 1s linear infinite',
             marginBottom: '20px'
           }}></div>
-          <p style={{ fontSize: '18px' }}>Loading blogs...</p>
+          <p style={{ fontSize: '18px' }}>{replaceTranslation('Loading blogs...', currentLang)}</p>
         </div>
       </div>
     );
@@ -123,10 +138,10 @@ function BlogList() {
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '40px', paddingTop: '20px' }}>
         <h1 style={{ fontSize: '36px', fontWeight: '700', color: '#1a1a1a', marginBottom: '10px' }}>
-          Predictions Blog
+          {replaceTranslation('Predictions Blog', currentLang)}
         </h1>
         <p style={{ fontSize: '16px', color: '#666' }}>
-          Expert analysis, match predictions, and betting tips
+          {replaceTranslation('Expert analysis, match predictions, and betting tips', currentLang)}
         </p>
       </div>
 
@@ -169,7 +184,7 @@ function BlogList() {
               transition: 'all 0.3s'
             }}
           >
-            Search
+            {replaceTranslation('Search', currentLang)}
           </button>
         </form>
 
@@ -189,7 +204,7 @@ function BlogList() {
               transition: 'all 0.3s'
             }}
           >
-            All
+            {replaceTranslation('All', currentLang)}
           </button>
           {categories.map((cat) => (
             <button
@@ -237,13 +252,13 @@ function BlogList() {
               cursor: 'pointer'
             }}
           >
-            Retry
+            {replaceTranslation('Retry', currentLang)}
           </button>
         </div>
       )}
 
       {/* Blog Grid */}
-      <div style={{
+      <div className="blog-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
         gap: '24px',
@@ -252,6 +267,7 @@ function BlogList() {
         {blogs.map((blog) => (
           <div
             key={blog.id}
+            className="blog-card"
             onClick={() => handleBlogClick(blog.slug)}
             style={{
               background: '#fff',
@@ -349,10 +365,21 @@ function BlogList() {
         ))}
       </div>
 
+      {/* No Results and Pagination - Keep existing logic if not included in this chunk, or if included ensure it's preserved. 
+         Wait, I am replacing a big chunk. I must be careful.
+         The previous ReplaceFileContent targeted specific chunk.
+         I will focus on the Style tag separately or include it here if I replace the whole map.
+         Actually, I should split this into two edits: 
+         1. Add classes. 
+         2. Add styles.
+         But ReplaceFileContent works best with contiguous blocks.
+         I'll grab the block from `div className="blog-grid"` (line 246) down to style tag (line 431).
+      */}
+
       {/* No Results */}
       {blogs.length === 0 && !loading && (
         <div style={{ textAlign: 'center', padding: '80px 20px', color: '#999', fontSize: '18px' }}>
-          <p>No blogs found. Try adjusting your filters.</p>
+          <p>{replaceTranslation('No blogs found. Try adjusting your filters.', currentLang)}</p>
         </div>
       )}
 
@@ -372,7 +399,7 @@ function BlogList() {
               opacity: currentPage === 1 ? 0.5 : 1
             }}
           >
-            Previous
+            {replaceTranslation('Previous', currentLang)}
           </button>
           <div style={{ display: 'flex', gap: '5px' }}>
             {[...Array(totalPages)].map((_, index) => {
@@ -418,7 +445,7 @@ function BlogList() {
               opacity: currentPage === totalPages ? 0.5 : 1
             }}
           >
-            Next
+            {replaceTranslation('Next', currentLang)}
           </button>
         </div>
       )}
@@ -427,6 +454,15 @@ function BlogList() {
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+          .blog-grid {
+             grid-template-columns: 1fr !important;
+             padding: 0 16px;
+          }
+          .blog-card {
+             /* Adjustments if needed, but grid padding handles the 'padding to card' request effectively by spacing it from edges */
+          }
         }
       `}</style>
     </div>
