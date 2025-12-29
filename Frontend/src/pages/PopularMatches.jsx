@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './LiveScore.css';
+import { convertToLocalTime } from '../utils/timezone';
 
 function PopularMatches() {
     const navigate = useNavigate();
@@ -30,29 +31,46 @@ function PopularMatches() {
         setVisibleCount(40);
     }, [selectedStatus]);
 
-    const transformMatch = (match) => ({
-        id: match.match_id,
-        time: match.match_time,
-        league: match.league_name,
-        leagueId: match.league_id,
-        leagueLogo: match.league_logo,
-        country: match.country_name,
-        homeTeam: match.match_hometeam_name,
-        awayTeam: match.match_awayteam_name,
-        homeScore: match.match_hometeam_score || '-',
-        awayScore: match.match_awayteam_score || '-',
-        homeLogo: match.team_home_badge,
-        awayLogo: match.team_away_badge,
-        isLive: match.match_live === '1',
-        status: match.match_status,
-        date: match.match_date,
-        probHome: match.prob_HW || null,
-        probDraw: match.prob_D || null,
-        probAway: match.prob_AW || null,
-        probOver: match.prob_O || null,
-        probUnder: match.prob_U || null,
-        probBTTS: match.prob_BTTS || null
-    });
+    const transformMatch = (match) => {
+        // API returns BST (UTC+1), convert to local timezone
+        const [hours, minutes] = match.match_time.split(':');
+        const utcDate = new Date(`${match.match_date}T${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}:00Z`);
+        const localTime = utcDate.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+        const localDate = utcDate.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+        
+        return {
+            id: match.match_id,
+            time: localTime,
+            league: match.league_name,
+            leagueId: match.league_id,
+            leagueLogo: match.league_logo,
+            country: match.country_name,
+            homeTeam: match.match_hometeam_name,
+            awayTeam: match.match_awayteam_name,
+            homeScore: match.match_hometeam_score || '-',
+            awayScore: match.match_awayteam_score || '-',
+            homeLogo: match.team_home_badge,
+            awayLogo: match.team_away_badge,
+            isLive: match.match_live === '1',
+            status: match.match_status,
+            date: match.match_date,
+            localDate: localDate,
+            probHome: match.prob_HW || null,
+            probDraw: match.prob_D || null,
+            probAway: match.prob_AW || null,
+            probOver: match.prob_O || null,
+            probUnder: match.prob_U || null,
+            probBTTS: match.prob_BTTS || null
+        };
+    };
 
     const formatPercentage = (value) => {
         if (!value || value === '0' || value === 0) return '-';

@@ -43,6 +43,8 @@ const blogRoutes = require("./routes/blog.routes");
 
 const blogAdminRoutes = require("./routes/blog.admin.routes");
 
+const translationRoutes = require("./routes/translation.routes");
+
 app.use("/api/v1/user", userRoutes);
 
 app.use("/api/v1/match", matchRoutes);
@@ -56,6 +58,8 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/public", publicRoutes);
 
 app.use("/api/v1", blogRoutes);
+
+app.use("/api/v1/translations", translationRoutes);
 
 // Error Middleware (must be last)
 const errorMiddleware = require("./middleware/error.middleware");

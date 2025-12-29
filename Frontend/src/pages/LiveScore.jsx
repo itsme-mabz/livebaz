@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { fetchPopularLeagues } from '../Service/FootballService';
+import { replaceTranslation } from '../utils/translationReplacer';
+import { convertToLocalTime } from '../utils/timezone';
 import './LiveScore.css';
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
@@ -44,30 +46,47 @@ function LiveScore() {
     const [loadingStandings, setLoadingStandings] = useState(false);
 
     // Transform match data
-    const transformMatch = (match) => ({
-        id: match.match_id,
-        time: match.match_time,
-        league: match.league_name,
-        leagueId: match.league_id,
-        leagueLogo: match.league_logo,
-        country: match.country_name,
-        homeTeam: match.match_hometeam_name,
-        awayTeam: match.match_awayteam_name,
-        homeScore: match.match_hometeam_score || '-',
-        awayScore: match.match_awayteam_score || '-',
-        homeLogo: match.team_home_badge,
-        awayLogo: match.team_away_badge,
-        isLive: match.match_live === '1',
-        status: match.match_status,
-        date: match.match_date,
-        // Prediction data
-        probHome: match.prob_HW || null,
-        probDraw: match.prob_D || null,
-        probAway: match.prob_AW || null,
-        probOver: match.prob_O || null,
-        probUnder: match.prob_U || null,
-        probBTTS: match.prob_BTTS || null
-    });
+    const transformMatch = (match) => {
+        // API returns BST (UTC+1), convert to local timezone
+        const [hours, minutes] = match.match_time.split(':');
+        const utcDate = new Date(`${match.match_date}T${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}:00Z`);
+        const localTime = utcDate.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+        const localDate = utcDate.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+        
+        return {
+            id: match.match_id,
+            time: localTime,
+            league: match.league_name,
+            leagueId: match.league_id,
+            leagueLogo: match.league_logo,
+            country: match.country_name,
+            homeTeam: match.match_hometeam_name,
+            awayTeam: match.match_awayteam_name,
+            homeScore: match.match_hometeam_score || '-',
+            awayScore: match.match_awayteam_score || '-',
+            homeLogo: match.team_home_badge,
+            awayLogo: match.team_away_badge,
+            isLive: match.match_live === '1',
+            status: match.match_status,
+            date: match.match_date,
+            localDate: localDate,
+            // Prediction data
+            probHome: match.prob_HW || null,
+            probDraw: match.prob_D || null,
+            probAway: match.prob_AW || null,
+            probOver: match.prob_O || null,
+            probUnder: match.prob_U || null,
+            probBTTS: match.prob_BTTS || null
+        };
+    };
 
     // Format percentage value
     const formatPercentage = (value) => {
@@ -397,7 +416,7 @@ function LiveScore() {
                                         className={`mobile-league-item ${selectedLeagues.has(league.id) ? 'selected' : ''}`}
                                         onClick={() => toggleLeague(league.id)}
                                     >
-                                        <span className="league-name-mobile">{league.name}</span>
+                                        <span className="league-name-mobile">{replaceTranslation(league.name, isArabic ? 'ar' : 'fa')}</span>
                                         <div className="league-logo-wrapper">
                                             {league.logo ? (
                                                 <img src={league.logo} alt="" className="league-icon-img" />
@@ -418,7 +437,7 @@ function LiveScore() {
                                     className={`mobile-league-item ${selectedLeagues.has(league.id) ? 'selected' : ''}`}
                                     onClick={() => toggleLeague(league.id)}
                                 >
-                                    <span className="league-name-mobile">{league.name}</span>
+                                    <span className="league-name-mobile">{replaceTranslation(league.name, isArabic ? 'ar' : 'fa')}</span>
                                     <div className="league-logo-wrapper">
                                         {league.logo ? (
                                             <img src={league.logo} alt="" className="league-icon-img" />
@@ -463,7 +482,7 @@ function LiveScore() {
                                     ) : (
                                         <span className="league-icon">⚽</span>
                                     )}
-                                    <span className="league-name">{league.name}</span>
+                                    <span className="league-name">{replaceTranslation(league.name, isArabic ? 'ar' : 'fa')}</span>
                                 </div>
                             ))}
                         </div>
@@ -484,20 +503,7 @@ function LiveScore() {
                                 </h4>
                                 {expandedCountries.has(country) && (
                                     <div className="sidebar-leagues">
-                                        {leagues.map(league => (
-                                            <div
-                                                key={league.id}
-                                                className="sidebar-league-item"
-                                                onClick={() => toggleLeague(league.id)}
-                                            >
-                                                {league.logo ? (
-                                                    <img src={league.logo} alt="" className="league-icon-img" />
-                                                ) : (
-                                                    <span className="league-icon">⚽</span>
-                                                )}
-                                                <span className="league-name">{league.name}</span>
-                                            </div>
-                                        ))}
+
                                     </div>
                                 )}
                             </div>
@@ -599,7 +605,7 @@ function LiveScore() {
                                                                 <img src={group.leagueLogo} alt="" className="league-card-logo" />
                                                             )}
                                                             <h3 className="league-card-title">
-                                                                {group.country.toUpperCase()}: {group.league.toUpperCase()}
+                                                                {group.country.toUpperCase()}: {replaceTranslation(group.league.toUpperCase(), isArabic ? 'ar' : 'fa')}
                                                             </h3>
                                                         </div>
                                                         <button

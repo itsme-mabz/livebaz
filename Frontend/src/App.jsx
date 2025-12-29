@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
 import Navigation from './components/Navigation/Navigation';
 import Footer from './components/Footer/footer';
 import Homepage from './components/Home/home';
@@ -21,10 +22,15 @@ import AdminDashboard from './pages/AdminDashboard';
 import BlogList from './pages/BlogList';
 import BlogDetail from './pages/BlogDetail';
 import BlogAdmin from './pages/BlogAdmin';
+import TranslationAdmin from './pages/TranslationAdmin';
 import AdminLayout from './components/AdminLayout';
+import { loadTranslations } from './utils/translationReplacer';
 
 
 function App() {
+  useEffect(() => {
+    loadTranslations();
+  }, []);
   return (
     <BrowserRouter>
       <Routes>
@@ -64,6 +70,7 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard initialTab="matches" />} />
           <Route path="leagues" element={<AdminDashboard initialTab="leagues" />} />
           <Route path="blogs" element={<BlogAdmin />} />
+          <Route path="translations" element={<TranslationAdmin />} />
         </Route>
 
         {/* Admin Login - No Layout */}

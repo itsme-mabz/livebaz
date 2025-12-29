@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import './MatchDetail.css';
 import { MatchDetailSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
+import { convertToLocalTime } from '../utils/timezone';
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
@@ -567,7 +568,13 @@ function MatchDetail() {
 
                         <div className="score-board">
                             <div className="match-meta-top">
-                                {new Date(matchData.match_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, {matchData.match_time}
+                                {(() => {
+                                    const [hours, minutes] = matchData.match_time.split(':');
+                                    const utcDate = new Date(`${matchData.match_date}T${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}:00Z`);
+                                    const localTime = utcDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+                                    const localDate = utcDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                                    return `${localDate}, ${localTime}`;
+                                })()}
                             </div>
                             <div className="score-display-detail">
                                 <span className="score score-home" style={{ color: '#fff' }}>{matchData.match_hometeam_score} : {matchData.match_awayteam_score}</span>
@@ -1180,8 +1187,20 @@ function MatchDetail() {
                                     {h2h.map((match, index) => (
                                         <div key={index} className="bg-gray-50 rounded-lg p-2 md:p-4 flex items-center justify-between hover:bg-gray-100 transition gap-2">
                                             <div className="w-14 md:w-auto text-[10px] md:text-sm text-gray-600 flex-shrink-0">
-                                                <div className="font-semibold">{new Date(match.match_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-                                                <div className="text-[9px] md:text-xs">{match.match_time}</div>
+                                                <div className="font-semibold">
+                                                    {(() => {
+                                                        const [hours, minutes] = match.match_time.split(':');
+                                                        const utcDate = new Date(`${match.match_date}T${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}:00Z`);
+                                                        return utcDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                                                    })()}
+                                                </div>
+                                                <div className="text-[9px] md:text-xs">
+                                                    {(() => {
+                                                        const [hours, minutes] = match.match_time.split(':');
+                                                        const utcDate = new Date(`${match.match_date}T${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}:00Z`);
+                                                        return utcDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+                                                    })()}
+                                                </div>
                                             </div>
 
                                             <div className="flex-1 mx-2 md:mx-6 min-w-0">

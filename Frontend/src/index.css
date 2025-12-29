@@ -13,6 +13,16 @@ body * {
     font-family: 'Geom', monospace !important;
 }
 
+/* Persian/Arabic font override */
+body:lang(fa) *,
+body:lang(ar) *,
+html[lang="fa"] *,
+html[lang="ar"] *,
+.translated-ltr *,
+.translated-rtl * {
+    font-family: IRANSansXFaNum, tahoma !important;
+}
+
 /* ============================================================ 
    RTL LAYOUT PROTECTION
    Ensures sidebars and navigation stay on the left/right 
