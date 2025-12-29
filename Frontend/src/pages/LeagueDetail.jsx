@@ -122,6 +122,17 @@ function LeagueDetail() {
         return num % 1 === 0 ? `${Math.round(num)}%` : `${num.toFixed(1)}%`;
     };
 
+    const calculateOdds = (value) => {
+        if (!value || value === '0' || value === 0) return '-';
+        let num = parseFloat(value);
+        if (isNaN(num) || num <= 0) return '-';
+        if (num > 0 && num < 1) num = num * 100;
+        if (num < 0.01) return '-';
+        const odds = 100 / num;
+        if (!isFinite(odds)) return '-';
+        return odds.toFixed(2);
+    };
+
     const getExpectedScore = (homeId, awayId) => {
         if (!standings || standings.length === 0) return '-';
         const homeTeam = standings.find(s => String(s.team_id) === String(homeId));
@@ -152,7 +163,7 @@ function LeagueDetail() {
         return (Math.pow(lambda, k) * Math.exp(-lambda)) / factorial(k);
     };
 
-    const renderPredValue = (value, isHighest, isActual = false) => {
+    const renderPredValue = (value, isHighest, isActual = false, oddsValue = null) => {
         if (typeof value === 'string' && value.includes('-') && value !== '-') {
             return (
                 <div className={`pred-value ${isHighest ? 'highest' : ''}`} style={{
@@ -173,27 +184,33 @@ function LeagueDetail() {
         return (
             <span className={`pred-value ${isHighest ? 'highest' : ''}`} style={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: '100%',
-                color: isActual && value !== '-' ? '#2563eb' : undefined,
-                fontWeight: isActual && value !== '-' ? '700' : undefined
+                gap: '4px'
             }}>
-                {value}
+                <span style={{ color: isActual && value !== '-' ? '#2563eb' : undefined, fontWeight: isActual && value !== '-' ? '700' : undefined }}>{value}</span>
+                {showOdds && oddsValue && oddsValue !== '-' && (
+                    <span style={{ fontSize: '11px', color: '#666', fontWeight: '500' }}>({oddsValue})</span>
+                )}
             </span>
         );
     };
 
     const getPredictionData = (match, type) => {
         const prediction = predictions.find(p => p.match_id === match.match_id);
-        if (!prediction) return { prob1: '-', probX: '-', prob2: '-' };
+        if (!prediction) return { prob1: '-', probX: '-', prob2: '-', odds1: '-', oddsX: '-', odds2: '-' };
 
         switch (type) {
             case '1x2':
                 return {
                     prob1: formatPercentage(prediction.prob_HW),
                     probX: formatPercentage(prediction.prob_D),
-                    prob2: formatPercentage(prediction.prob_AW)
+                    prob2: formatPercentage(prediction.prob_AW),
+                    odds1: calculateOdds(prediction.prob_HW),
+                    oddsX: calculateOdds(prediction.prob_D),
+                    odds2: calculateOdds(prediction.prob_AW)
                 };
             case 'goals':
                 const expG = getExpectedScore(match.match_hometeam_id, match.match_awayteam_id);
@@ -201,7 +218,10 @@ function LeagueDetail() {
                 return {
                     prob1: formatPercentage(prediction.prob_O),
                     probX: scoreTextG,
-                    prob2: formatPercentage(prediction.prob_U)
+                    prob2: formatPercentage(prediction.prob_U),
+                    odds1: calculateOdds(prediction.prob_O),
+                    oddsX: '-',
+                    odds2: calculateOdds(prediction.prob_U)
                 };
             case 'btts':
                 const expB = getExpectedScore(match.match_hometeam_id, match.match_awayteam_id);
@@ -209,11 +229,14 @@ function LeagueDetail() {
                 return {
                     prob1: formatPercentage(prediction.prob_bts),
                     probX: scoreTextB,
-                    prob2: formatPercentage(prediction.prob_ots)
+                    prob2: formatPercentage(prediction.prob_ots),
+                    odds1: calculateOdds(prediction.prob_bts),
+                    oddsX: '-',
+                    odds2: calculateOdds(prediction.prob_ots)
                 };
             case 'correct-score':
                 const expCS = getExpectedScore(match.match_hometeam_id, match.match_awayteam_id);
-                if (typeof expCS !== 'object') return { prob1: '-', probX: '-', prob2: '-' };
+                if (typeof expCS !== 'object') return { prob1: '-', probX: '-', prob2: '-', odds1: '-', oddsX: '-', odds2: '-' };
 
                 const hScore = Math.round(expCS.hExp);
                 const aScore = Math.round(expCS.aExp);
@@ -225,7 +248,10 @@ function LeagueDetail() {
                 return {
                     prob1: expCS.score,
                     probX: `${prob}%`,
-                    prob2: actual
+                    prob2: actual,
+                    odds1: '-',
+                    oddsX: calculateOdds(prob),
+                    odds2: '-'
                 };
             case 'double-chance':
                 const expDC = getExpectedScore(match.match_hometeam_id, match.match_awayteam_id);
@@ -234,11 +260,15 @@ function LeagueDetail() {
                     prob1: scoreDC,
                     probX: formatPercentage(prediction.prob_HW_D),
                     prob2: formatPercentage(prediction.prob_HW_AW),
-                    prob3: formatPercentage(prediction.prob_AW_D)
+                    prob3: formatPercentage(prediction.prob_AW_D),
+                    odds1: '-',
+                    oddsX: calculateOdds(prediction.prob_HW_D),
+                    odds2: calculateOdds(prediction.prob_HW_AW),
+                    odds3: calculateOdds(prediction.prob_AW_D)
                 };
             case '1x2-first-half':
                 const expHT = getExpectedScore(match.match_hometeam_id, match.match_awayteam_id);
-                if (typeof expHT !== 'object') return { prob1: '-', probX: '-', prob2: '-' };
+                if (typeof expHT !== 'object') return { prob1: '-', probX: '-', prob2: '-', odds1: '-', oddsX: '-', odds2: '-' };
 
                 // Scale expected goals to 1st half (approx 45% of total goals)
                 const hExpHT = expHT.hExp * 0.45;
@@ -263,10 +293,13 @@ function LeagueDetail() {
                     prob1: formatPercentage(hProbHT * 100),
                     probX: formatPercentage(dProbHT * 100),
                     prob2: formatPercentage(aProbHT * 100),
-                    actualHT: actualHT
+                    actualHT: actualHT,
+                    odds1: calculateOdds(hProbHT * 100),
+                    oddsX: calculateOdds(dProbHT * 100),
+                    odds2: calculateOdds(aProbHT * 100)
                 };
             default:
-                return { prob1: '-', probX: '-', prob2: '-' };
+                return { prob1: '-', probX: '-', prob2: '-', odds1: '-', oddsX: '-', odds2: '-' };
         }
     };
 
@@ -401,7 +434,8 @@ function LeagueDetail() {
                             <h2 className="section-title mb-6">PREDICTIONS FOR {leagueInfo.league_name.toUpperCase()}</h2>
                             <br />
                             {/* Prediction Type Filters - Inline Style */}
-                            <div className="prediction-type-tabs">
+                            <div className="prediction-type-tabs" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0' }}>
                                 <button
                                     onClick={() => setPredictionType('1x2')}
                                     style={{
@@ -536,6 +570,48 @@ function LeagueDetail() {
                                         </select>
                                     </div>
                                 )}
+                                </div>
+                            </div>
+
+                            {/* Odds Toggle Switch */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                                <span style={{ fontSize: '14px', fontWeight: '600', color: '#4b5563' }}>Odds</span>
+                                <label style={{
+                                    position: 'relative',
+                                    display: 'inline-block',
+                                    width: '50px',
+                                    height: '24px',
+                                    cursor: 'pointer'
+                                }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={showOdds}
+                                        onChange={() => setShowOdds(!showOdds)}
+                                        style={{ opacity: 0, width: 0, height: 0 }}
+                                    />
+                                    <span style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        backgroundColor: showOdds ? '#000' : '#ccc',
+                                        borderRadius: '24px',
+                                        transition: 'background-color 0.3s'
+                                    }}>
+                                        <span style={{
+                                            position: 'absolute',
+                                            content: '',
+                                            height: '18px',
+                                            width: '18px',
+                                            left: showOdds ? '29px' : '3px',
+                                            bottom: '3px',
+                                            backgroundColor: '#fff',
+                                            borderRadius: '50%',
+                                            transition: 'left 0.3s'
+                                        }}></span>
+                                    </span>
+                                </label>
                             </div>
 
 
@@ -624,10 +700,10 @@ function LeagueDetail() {
                                                 gridTemplateColumns: (predictionType === 'double-chance' || predictionType === '1x2-first-half') ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
                                                 gap: '10px'
                                             }}>
-                                                {renderPredValue(predData.prob1, highest.prob1)}
-                                                {renderPredValue(predData.probX, highest.probX)}
-                                                {renderPredValue(predData.prob2, highest.prob2, predictionType === 'correct-score')}
-                                                {predictionType === 'double-chance' && renderPredValue(predData.prob3, highest.prob3)}
+                                                {renderPredValue(predData.prob1, highest.prob1, false, predData.odds1)}
+                                                {renderPredValue(predData.probX, highest.probX, false, predData.oddsX)}
+                                                {renderPredValue(predData.prob2, highest.prob2, predictionType === 'correct-score', predData.odds2)}
+                                                {predictionType === 'double-chance' && renderPredValue(predData.prob3, highest.prob3, false, predData.odds3)}
                                                 {predictionType === '1x2-first-half' && renderPredValue(predData.actualHT, false, true)}
                                             </div>
                                         </Link>

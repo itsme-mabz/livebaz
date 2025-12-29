@@ -17,9 +17,15 @@ body * {
 body:lang(fa) *,
 body:lang(ar) *,
 html[lang="fa"] *,
-html[lang="ar"] *,
-.translated-ltr *,
-.translated-rtl * {
+html[lang="ar"] * {
+    font-family: IRANSansXFaNum, tahoma !important;
+}
+
+/* Google Translate specific selectors for Persian/Arabic */
+.translated-ltr[lang="fa"] *,
+.translated-ltr[lang="ar"] *,
+.translated-rtl[lang="fa"] *,
+.translated-rtl[lang="ar"] * {
     font-family: IRANSansXFaNum, tahoma !important;
 }
 

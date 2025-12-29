@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Editor } from '@tinymce/tinymce-react';
-import { fetchAllBlogsAdmin, createBlog, updateBlog, deleteBlog } from '../Service/BlogService';
+import { fetchAllBlogsAdmin, createBlog, updateBlog, deleteBlog, fetchBlogAnalytics } from '../Service/BlogService';
 
 function BlogAdmin() {
   const navigate = useNavigate();
@@ -9,6 +9,7 @@ function BlogAdmin() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingBlog, setEditingBlog] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -26,6 +27,7 @@ function BlogAdmin() {
 
   useEffect(() => {
     loadBlogs();
+    loadAnalytics();
   }, []);
 
   const loadBlogs = async () => {
@@ -47,6 +49,18 @@ function BlogAdmin() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAnalytics = async () => {
+    try {
+      const token = localStorage.getItem('token') || getCookie('token');
+      if (!token) return;
+      
+      const data = await fetchBlogAnalytics(token);
+      setAnalytics(data);
+    } catch (err) {
+      console.error('Error loading analytics:', err);
     }
   };
 
@@ -200,6 +214,64 @@ function BlogAdmin() {
 
   return (
     <div style={{ padding: '28px 32px', maxWidth: '1400px' }}>
+      {/* Analytics Section */}
+      {analytics && (
+        <div style={{
+          background: '#fff',
+          border: '1px solid #e0e0e0',
+          borderRadius: '8px',
+          padding: '20px',
+          marginBottom: '24px'
+        }}>
+          <h2 style={{
+            margin: '0 0 16px',
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#1a1a1a'
+          }}>
+            Blog Analytics
+          </h2>
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '14px', color: '#666', marginBottom: '4px' }}>Total Views</div>
+            <div style={{ fontSize: '28px', fontWeight: '600', color: '#ffc107' }}>{analytics.totalViews}</div>
+          </div>
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '14px', color: '#666', marginBottom: '4px' }}>Today's Views</div>
+            <div style={{ fontSize: '28px', fontWeight: '600', color: '#4caf50' }}>{analytics.todayViews}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: '#333', marginBottom: '8px' }}>Views by Country</div>
+            <div style={{ 
+              maxHeight: '400px', 
+              overflowY: 'auto',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px'
+            }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead style={{ background: '#f8f8f8', position: 'sticky', top: 0, zIndex: 1 }}>
+                  <tr>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: '#333', borderBottom: '1px solid #e0e0e0' }}>
+                      Country
+                    </th>
+                    <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: '#333', borderBottom: '1px solid #e0e0e0' }}>
+                      Views
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analytics.viewsByCountry.map((item, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                      <td style={{ padding: '12px 16px', fontSize: '14px', color: '#333' }}>{item.country}</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: '#ffc107' }}>{item.views}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',

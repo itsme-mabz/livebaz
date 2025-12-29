@@ -266,6 +266,28 @@ export const deleteComment = async (blogId, commentId, token) => {
   }
 };
 
+// Admin: Fetch blog analytics
+export const fetchBlogAnalytics = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/admin/blogs/analytics`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      return data.data;
+    }
+    throw new Error(data.message || 'Failed to fetch analytics');
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    throw error;
+  }
+};
+
 export default {
   fetchBlogs,
   fetchBlogBySlug,
@@ -278,5 +300,6 @@ export default {
   fetchAllBlogsAdmin,
   fetchComments,
   postComment,
-  deleteComment
+  deleteComment,
+  fetchBlogAnalytics
 };

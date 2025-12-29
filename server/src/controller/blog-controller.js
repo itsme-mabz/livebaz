@@ -1,9 +1,11 @@
 const Blog = require("../model/blog.model");
 const User = require("../model/user.model");
 const Comment = require("../model/comment.model");
+const BlogView = require("../model/blog-view.model");
 const AsyncHandler = require("express-async-handler");
 const ErrorHandler = require("../utils/Errorhandler");
 const { uploadToCloudinary } = require("../utils/cloudinary");
+const axios = require('axios');
 
 // Get all published blogs (public)
 exports.getAllBlogs = AsyncHandler(async (req, res, next) => {
@@ -75,6 +77,39 @@ exports.getBlogBySlug = AsyncHandler(async (req, res, next) => {
   // Increment view count
   blog.view_count += 1;
   await blog.save();
+
+  // Track view with country
+  let ip = req.headers['x-forwarded-for']?.split(',')[0] || 
+           req.headers['x-real-ip'] || 
+           req.connection.remoteAddress || 
+           req.socket.remoteAddress;
+  
+  // Clean IPv6 localhost to IPv4
+  if (ip === '::1' || ip === '::ffff:127.0.0.1') {
+    ip = '127.0.0.1';
+  }
+  
+  let country = 'Unknown';
+  
+  // Skip geolocation for localhost
+  if (ip !== '127.0.0.1' && ip !== 'localhost') {
+    try {
+      const geoResponse = await axios.get(`http://ip-api.com/json/${ip}`, { timeout: 3000 });
+      if (geoResponse.data && geoResponse.data.status === 'success') {
+        country = geoResponse.data.country;
+      }
+    } catch (error) {
+      console.log('Geo lookup failed for IP', ip, ':', error.message);
+    }
+  } else {
+    country = 'Localhost';
+  }
+
+  await BlogView.create({
+    blog_id: blog.id,
+    country,
+    ip_address: ip
+  });
 
   res.status(200).json({
     success: true,
@@ -400,5 +435,45 @@ exports.deleteComment = AsyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Comment deleted successfully"
+  });
+});
+
+// Admin: Get blog analytics
+exports.getBlogAnalytics = AsyncHandler(async (req, res, next) => {
+  const { sequelize } = require('../config/db');
+  const { Op } = require('sequelize');
+  
+  // Total views
+  const totalViews = await BlogView.count();
+  
+  // Today's views
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayViews = await BlogView.count({
+    where: {
+      createdAt: {
+        [Op.gte]: today
+      }
+    }
+  });
+  
+  // Views by country
+  const viewsByCountry = await BlogView.findAll({
+    attributes: [
+      'country',
+      [sequelize.fn('COUNT', sequelize.col('id')), 'views']
+    ],
+    group: ['country'],
+    order: [[sequelize.fn('COUNT', sequelize.col('id')), 'DESC']]
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Analytics fetched successfully",
+    data: {
+      totalViews,
+      todayViews,
+      viewsByCountry
+    }
   });
 });

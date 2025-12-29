@@ -2,6 +2,22 @@ import React, { useEffect, useState, useRef } from 'react';
 import './Navigation.css'; // Ensure CSS is available
 import { MdOutlineLanguage } from "react-icons/md";
 
+const LANGUAGE_URL_MAP = {
+    'en': '',
+    'es': 'es',
+    'fr': 'fr',
+    'de': 'de',
+    'it': 'it',
+    'pt': 'pt',
+    'ru': 'ru',
+    'ar': 'ar',
+    'fa': 'pr',
+    'zh-CN': 'cn',
+    'ja': 'ja',
+    'hi': 'hi',
+    'tr': 'tr'
+};
+
 const LANGUAGES = [
     { code: 'en', label: 'English', flag: '🇬🇧' },
     { code: 'es', label: 'Español', flag: '🇪🇸' },
@@ -36,9 +52,9 @@ const GoogleTranslate = () => {
                     new window.google.translate.TranslateElement(
                         {
                             pageLanguage: 'en',
-                            // We use 'VERTICAL' layout to ensure the standard <select> element is rendered which we can hijack
                             layout: window.google.translate.TranslateElement.InlineLayout.VERTICAL,
                             autoDisplay: false,
+                            multilanguagePage: true
                         },
                         'google_translate_element'
                     );
@@ -125,24 +141,54 @@ const GoogleTranslate = () => {
         };
     }, []);
 
-    // Handle translation loading overlay to prevent flash of English content
+    // Detect language from URL and sync with Google Translate
     useEffect(() => {
-        // Check if a language is already selected (from Google's cookie)
         const checkCurrentLanguage = () => {
-            const select = document.querySelector('.goog-te-combo');
-            if (select && select.value && select.value !== 'en' && select.value !== '') {
-                // A non-English language is selected
-                // Find and update our UI
-                const lang = LANGUAGES.find(l => l.code === select.value);
+            const urlMatch = window.location.pathname.match(/^\/([a-z]{2})(?:\/|$)/);
+            const urlCode = urlMatch ? urlMatch[1] : '';
+            const langCode = Object.keys(LANGUAGE_URL_MAP).find(key => LANGUAGE_URL_MAP[key] === urlCode);
+            
+            if (langCode) {
+                const lang = LANGUAGES.find(l => l.code === langCode);
                 if (lang) {
                     setSelectedLang(lang);
+                    const select = document.querySelector('.goog-te-combo');
+                    if (select && select.value !== lang.code) {
+                        select.value = lang.code;
+                        select.dispatchEvent(new Event('change'));
+                    }
                 }
             }
         };
 
-        // Check after a delay to allow Google to initialize
         const timer = setTimeout(checkCurrentLanguage, 500);
         return () => clearTimeout(timer);
+    }, []);
+
+    // Force language code to stay in URL based on selected language
+    useEffect(() => {
+        const enforceLanguageUrl = () => {
+            const select = document.querySelector('.goog-te-combo');
+            if (!select) return;
+            
+            const currentLangCode = select.value;
+            const urlCode = LANGUAGE_URL_MAP[currentLangCode];
+            const currentPath = window.location.pathname;
+            const currentUrlMatch = currentPath.match(/^\/([a-z]{2})(?:\/|$)/);
+            const currentUrlCode = currentUrlMatch ? currentUrlMatch[1] : '';
+            
+            if (urlCode && currentUrlCode !== urlCode) {
+                const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '');
+                const newPath = `/${urlCode}${pathWithoutLang || '/'}`;
+                window.history.replaceState({}, '', newPath);
+            } else if (!urlCode && currentUrlCode) {
+                const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/';
+                window.history.replaceState({}, '', pathWithoutLang);
+            }
+        };
+
+        const interval = setInterval(enforceLanguageUrl, 100);
+        return () => clearInterval(interval);
     }, []);
 
     // Function to trigger the Google Translate change
@@ -152,12 +198,18 @@ const GoogleTranslate = () => {
             select.value = langCode;
             select.dispatchEvent(new Event('change'));
 
-            // Find the language object to update UI
             const lang = LANGUAGES.find(l => l.code === langCode);
-            if (lang) setSelectedLang(lang);
+            if (lang) {
+                setSelectedLang(lang);
+                
+                const urlCode = LANGUAGE_URL_MAP[langCode];
+                const currentPath = window.location.pathname;
+                const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '');
+                const newPath = urlCode ? `/${urlCode}${pathWithoutLang || '/'}` : (pathWithoutLang || '/');
+                window.history.replaceState({}, '', newPath);
+            }
         } else {
             console.error("Google Translate selector not found. The widget might not be loaded yet or was blocked.");
-            // If the selector is missing, it's virtually certain that the script was blocked or failed
             setIsBlocked(true);
         }
         setIsOpen(false);

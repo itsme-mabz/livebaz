@@ -16,6 +16,7 @@ function LiveScore() {
     const [selectedLeagues, setSelectedLeagues] = useState(new Set());
     const [leaguesByCountry, setLeaguesByCountry] = useState({});
     const [topLeagues, setTopLeagues] = useState([]);
+    const [popularMatches, setPopularMatches] = useState([]);
     const [expandedCountries, setExpandedCountries] = useState(new Set());
     const [selectedStatus, setSelectedStatus] = useState('all'); // 'yesterday', 'all', 'live', 'upcoming', 'finished', 'tomorrow'
     const [counts, setCounts] = useState({ yesterday: 0, all: 0, live: 0, upcoming: 0, finished: 0, tomorrow: 0 });
@@ -313,19 +314,41 @@ function LiveScore() {
         try {
             const popularData = await fetchPopularLeagues();
             if (Array.isArray(popularData)) {
-                // Map to format expected by LiveScore component
                 const formatted = popularData.map(l => ({
                     id: l.league_id,
                     name: l.league_name,
                     logo: l.league_logo
                 }));
-                // Only show if we have data, otherwise sidebar section won't render
                 if (formatted.length > 0) {
                     setTopLeagues(formatted);
                 }
             }
         } catch (error) {
             console.error('Error fetching top leagues:', error);
+        }
+    }, []);
+
+    // Fetch popular matches from backend
+    const fetchPopularMatches = useCallback(async () => {
+        try {
+            const response = await axios.get('/api/v1/public/popular-items?type=match');
+            if (response.data?.success && response.data.data) {
+                const matchIds = response.data.data.map(item => item.item_id);
+                if (matchIds.length > 0) {
+                    const matchesResponse = await axios.get(`/api/v1/public/matches-by-ids?match_ids=${matchIds.join(',')}`);
+                    if (matchesResponse.data?.success) {
+                        setPopularMatches(matchesResponse.data.data.map(m => ({
+                            id: m.match_id,
+                            homeTeam: m.match_hometeam_name,
+                            awayTeam: m.match_awayteam_name,
+                            homeLogo: m.team_home_badge,
+                            awayLogo: m.team_away_badge
+                        })));
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching popular matches:', error);
         }
     }, []);
 
@@ -353,7 +376,8 @@ function LiveScore() {
 
     useEffect(() => {
         fetchTopLeagues();
-    }, [fetchTopLeagues]);
+        fetchPopularMatches();
+    }, [fetchTopLeagues, fetchPopularMatches]);
 
     useEffect(() => {
         fetchMatches();
@@ -407,27 +431,36 @@ function LiveScore() {
                                 Reset Filters
                             </button>
                         )}
-                        {topLeagues.length > 0 && (
-                            <>
-                                <div className="mobile-dropdown-section-title">Popular Leagues</div>
-                                {topLeagues.map(league => (
-                                    <div
-                                        key={league.id}
-                                        className={`mobile-league-item ${selectedLeagues.has(league.id) ? 'selected' : ''}`}
-                                        onClick={() => toggleLeague(league.id)}
-                                    >
-                                        <span className="league-name-mobile">{replaceTranslation(league.name, isArabic ? 'ar' : 'fa')}</span>
-                                        <div className="league-logo-wrapper">
-                                            {league.logo ? (
-                                                <img src={league.logo} alt="" className="league-icon-img" />
-                                            ) : (
-                                                <div className="league-logo-placeholder"></div>
-                                            )}
+                        {topLeagues.length > 0 && (() => {
+                            // Filter top leagues that have matches
+                            const leaguesWithMatches = topLeagues.filter(league => 
+                                allMatches.some(match => match.leagueId === league.id)
+                            );
+                            
+                            if (leaguesWithMatches.length === 0) return null;
+                            
+                            return (
+                                <>
+                                    <div className="mobile-dropdown-section-title">Popular Leagues</div>
+                                    {leaguesWithMatches.map(league => (
+                                        <div
+                                            key={league.id}
+                                            className={`mobile-league-item ${selectedLeagues.has(league.id) ? 'selected' : ''}`}
+                                            onClick={() => toggleLeague(league.id)}
+                                        >
+                                            <span className="league-name-mobile">{replaceTranslation(league.name, isArabic ? 'ar' : 'fa')}</span>
+                                            <div className="league-logo-wrapper">
+                                                {league.logo ? (
+                                                    <img src={league.logo} alt="" className="league-icon-img" />
+                                                ) : (
+                                                    <div className="league-logo-placeholder"></div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </>
-                        )}
+                                    ))}
+                                </>
+                            );
+                        })()}
                         <div className="mobile-dropdown-section-title">All Leagues</div>
                         {Object.entries(leaguesByCountry)
                             .sort(([countryA], [countryB]) => countryA.localeCompare(countryB))
@@ -455,38 +488,71 @@ function LiveScore() {
             <div className="livescore-container wrap" style={{ direction: isArabic ? 'rtl' : 'ltr', gap: isArabic ? '20px' : '0' }}>
                 {/* Sidebar */}
                 <aside className="livescore-sidebar">
-                    <div className="sidebar-header">
-                        <h3 className="sidebar-title">TOP LEAGUES</h3>
-                        <button
-                            className="clear-filters-btn"
-                            onClick={clearFilters}
-                            style={{ opacity: selectedLeagues.size > 0 ? 1 : 0.5, cursor: selectedLeagues.size > 0 ? 'pointer' : 'not-allowed' }}
-                            disabled={selectedLeagues.size === 0}
-                        >
-                            Clear All
-                        </button>
-                    </div>
-
-
-                    {topLeagues.length > 0 && (
+                    {popularMatches.length > 0 && (
                         <div className="sidebar-section">
-                            <h4 className="sidebar-section-title">Popular Today</h4>
-                            {topLeagues.map(league => (
+                            <h4 className="sidebar-title popular-matches-heading">Popular Matches</h4>
+                            {popularMatches.map(match => (
                                 <div
-                                    key={league.id}
+                                    key={match.id}
                                     className="sidebar-league-item"
-                                    onClick={() => toggleLeague(league.id)}
+                                    onClick={() => navigate(`/match/${match.id}`)}
+                                    style={{ cursor: 'pointer' }}
                                 >
-                                    {league.logo ? (
-                                        <img src={league.logo} alt="" className="league-icon-img" />
-                                    ) : (
-                                        <span className="league-icon">⚽</span>
-                                    )}
-                                    <span className="league-name">{replaceTranslation(league.name, isArabic ? 'ar' : 'fa')}</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                                        {match.homeLogo && <img src={match.homeLogo} alt="" style={{ width: '20px', height: '20px' }} />}
+                                        <span style={{ fontSize: '12px' }}>{match.homeTeam}</span>
+                                    </div>
+                                    <span style={{ fontSize: '10px', color: '#666' }}>vs</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, justifyContent: 'flex-end' }}>
+                                        <span style={{ fontSize: '12px' }}>{match.awayTeam}</span>
+                                        {match.awayLogo && <img src={match.awayLogo} alt="" style={{ width: '20px', height: '20px' }} />}
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     )}
+
+                    {topLeagues.length > 0 && (() => {
+                        // Filter top leagues that have matches and sort alphabetically
+                        const leaguesWithMatches = topLeagues
+                            .filter(league => allMatches.some(match => match.leagueId === league.id))
+                            .sort((a, b) => a.name.localeCompare(b.name));
+                        
+                        if (leaguesWithMatches.length === 0) return null;
+                        
+                        return (
+                            <>
+                                <div className="sidebar-header" style={{ marginTop: '20px' }}>
+                                    <h3 className="sidebar-title">TOP LEAGUES</h3>
+                                    <button
+                                        className="clear-filters-btn"
+                                        onClick={clearFilters}
+                                        style={{ opacity: selectedLeagues.size > 0 ? 1 : 0.5, cursor: selectedLeagues.size > 0 ? 'pointer' : 'not-allowed' }}
+                                        disabled={selectedLeagues.size === 0}
+                                    >
+                                        Clear All
+                                    </button>
+                                </div>
+                                <div style={{ padding: '0 16px 8px', fontSize: '14px', color: '#666', fontWeight: '700', marginTop: '8px' }}>Popular Today</div>
+                                <div className="sidebar-section">
+                                    {leaguesWithMatches.map(league => (
+                                        <div
+                                            key={league.id}
+                                            className={`sidebar-league-item ${selectedLeagues.has(league.id) ? 'selected' : ''}`}
+                                            onClick={() => toggleLeague(league.id)}
+                                        >
+                                            {league.logo ? (
+                                                <img src={league.logo} alt="" className="league-icon-img" />
+                                            ) : (
+                                                <span className="league-icon">⚽</span>
+                                            )}
+                                            <span className="league-name">{replaceTranslation(league.name, isArabic ? 'ar' : 'fa')}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        );
+                    })()}
 
                     {Object.entries(leaguesByCountry)
                         .sort(([countryA], [countryB]) => countryA.localeCompare(countryB))
@@ -503,7 +569,20 @@ function LiveScore() {
                                 </h4>
                                 {expandedCountries.has(country) && (
                                     <div className="sidebar-leagues">
-
+                                        {leagues.map(league => (
+                                            <div
+                                                key={league.id}
+                                                className={`sidebar-league-item ${selectedLeagues.has(league.id) ? 'selected' : ''}`}
+                                                onClick={() => toggleLeague(league.id)}
+                                            >
+                                                {league.logo ? (
+                                                    <img src={league.logo} alt="" className="league-icon-img" />
+                                                ) : (
+                                                    <span className="league-icon">⚽</span>
+                                                )}
+                                                <span className="league-name">{replaceTranslation(league.name, isArabic ? 'ar' : 'fa')}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>

@@ -18,6 +18,7 @@ function Navigation() {
     const [authMode, setAuthMode] = useState('login');
     const [allLeagues, setAllLeagues] = useState([]);
     const [fetchedPopularLeagues, setFetchedPopularLeagues] = useState([]); // from backend
+    const [todayMatches, setTodayMatches] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isMobileLeaguesExpanded, setIsMobileLeaguesExpanded] = useState(false);
@@ -103,6 +104,7 @@ function Navigation() {
         const loadLeagues = async () => {
             try {
                 setLoading(true);
+                const today = new Date().toISOString().split('T')[0];
 
                 // Fetch external leagues (for "More Leagues" - existing logic)
                 const response = await axios.get(`https://apiv3.apifootball.com/?action=get_leagues&APIkey=${API_KEY}`);
@@ -114,6 +116,12 @@ function Navigation() {
                 const popularData = await fetchPopularLeagues();
                 if (Array.isArray(popularData)) {
                     setFetchedPopularLeagues(popularData);
+                }
+
+                // Fetch today's matches to filter leagues
+                const matchesResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_events&from=${today}&to=${today}&APIkey=${API_KEY}`);
+                if (Array.isArray(matchesResponse.data)) {
+                    setTodayMatches(matchesResponse.data);
                 }
             } catch (error) {
                 console.error('Error fetching leagues:', error);
@@ -156,7 +164,10 @@ function Navigation() {
 
     // "Popular Leagues" column now comes from backend.
     // User requested to display ONLY the backend selection.
-    const popularLeagues = fetchedPopularLeagues;
+    // Filter to show only leagues with matches today
+    const popularLeagues = fetchedPopularLeagues.filter(league => 
+        todayMatches.some(match => match.league_id === league.league_id)
+    );
     const moreLeagues = allLeagues.slice(10, 20);
 
     return (
@@ -587,8 +598,10 @@ function Navigation() {
                                     </div>
                                     {loading ? (
                                         <div style={{ padding: '12px 24px', color: '#999' }}>Loading leagues...</div>
+                                    ) : popularLeagues.length === 0 ? (
+                                        <div style={{ padding: '12px 24px', color: '#999' }}>No leagues with matches today</div>
                                     ) : (
-                                        popularLeagues.slice(0, 10).map((league) => (
+                                        popularLeagues.map((league) => (
                                             <a
                                                 key={league.league_id}
                                                 href={`/league/${league.league_id}`}

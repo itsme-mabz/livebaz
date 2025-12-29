@@ -49,6 +49,8 @@
     font-weight: 700;
     color: #666;
     margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .clear-filters-btn {
@@ -690,6 +692,10 @@
     font-size: 14px;
     font-weight: 600;
     color: #666;
+    text-align: center;
+}
+
+.popular-matches-heading{
     text-align: center;
 }
 
