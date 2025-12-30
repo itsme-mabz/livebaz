@@ -58,6 +58,14 @@ const GoogleTranslate = () => {
                         },
                         'google_translate_element'
                     );
+                    
+                    // Force English as default after initialization
+                    setTimeout(() => {
+                        const select = document.querySelector('.goog-te-combo');
+                        if (select && !window.location.pathname.match(/^\/([a-z]{2})(?:\/|$)/)) {
+                            select.value = 'en';
+                        }
+                    }, 500);
                 }
                 clearInterval(intervalId);
             }
@@ -152,19 +160,12 @@ const GoogleTranslate = () => {
                     if (lang) setSelectedLang(lang);
                 }
             } else {
-                // If URL is default (no prefix, i.e., English), check if the widget has auto-selected a different language (e.g. via cookie)
-                // If so, update the URL to match the widget.
+                // If URL is default (no prefix, i.e., English), FORCE widget to stay on English
+                // Ignore any cookie-based language preferences from Google Translate
                 if (select.value !== 'en' && select.value !== '') {
-                    const widgetUrlCode = LANGUAGE_URL_MAP[select.value];
-                    if (widgetUrlCode) {
-                        const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/';
-                        const newPath = `/${widgetUrlCode}${pathWithoutLang === '/' ? '' : pathWithoutLang}`;
-                        // Only update state if we are sure it's a stable change to avoid loops
-                        window.history.replaceState({}, '', newPath);
-
-                        const lang = LANGUAGES.find(l => l.code === select.value);
-                        if (lang) setSelectedLang(lang);
-                    }
+                    select.value = 'en';
+                    select.dispatchEvent(new Event('change'));
+                    setSelectedLang(LANGUAGES[0]); // English
                 }
             }
         };
