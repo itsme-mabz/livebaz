@@ -4,9 +4,11 @@ import axios from 'axios';
 import './LiveScore.css';
 import { convertToLocalTime } from '../utils/timezone';
 import { replaceTranslation } from '../utils/translationReplacer.jsx';
+import { useTimezone } from '../context/TimezoneContext';
 
 function PopularMatches() {
     const navigate = useNavigate();
+    const { currentTimezone } = useTimezone();
     const [allMatches, setAllMatches] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState('all');
@@ -35,23 +37,14 @@ function PopularMatches() {
     }, [selectedStatus]);
 
     const transformMatch = (match) => {
-        // API returns BST (UTC+1), convert to local timezone
+        // API returns BST (UTC+1), convert to selected timezone
         const [hours, minutes] = match.match_time.split(':');
-        const utcDate = new Date(`${match.match_date}T${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}:00Z`);
-        const localTime = utcDate.toLocaleTimeString('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        });
-        const localDate = utcDate.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        });
+        const gmtTime = `${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}`;
+        const converted = convertToLocalTime(match.match_date, gmtTime, currentTimezone);
 
         return {
             id: match.match_id,
-            time: localTime,
+            time: converted.time,
             league: match.league_name,
             leagueId: match.league_id,
             leagueLogo: match.league_logo,
@@ -65,7 +58,7 @@ function PopularMatches() {
             isLive: match.match_live === '1',
             status: match.match_status,
             date: match.match_date,
-            localDate: localDate,
+            localDate: converted.date,
             probHome: match.prob_HW || null,
             probDraw: match.prob_D || null,
             probAway: match.prob_AW || null,
@@ -156,7 +149,7 @@ function PopularMatches() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [currentTimezone]);
 
     const getMatchStatus = (match) => {
         if (match.isLive) return 'live';

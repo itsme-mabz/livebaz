@@ -127,52 +127,74 @@ const GoogleTranslate = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    // Force language code to stay in URL based on selected language
+    // Sync Google Translate Widget with URL (Source of Truth)
     useEffect(() => {
-        const enforceLanguageUrl = () => {
+        const syncWidgetWithUrl = () => {
             const select = document.querySelector('.goog-te-combo');
             if (!select) return;
 
-            const currentLangCode = select.value;
-            const urlCode = LANGUAGE_URL_MAP[currentLangCode];
             const currentPath = window.location.pathname;
             const currentUrlMatch = currentPath.match(/^\/([a-z]{2})(?:\/|$)/);
             const currentUrlCode = currentUrlMatch ? currentUrlMatch[1] : '';
 
-            if (urlCode && currentUrlCode !== urlCode) {
-                const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '');
-                const newPath = `/${urlCode}${pathWithoutLang || '/'}`;
-                window.history.replaceState({}, '', newPath);
-            } else if (!urlCode && currentUrlCode) {
-                const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/';
-                window.history.replaceState({}, '', pathWithoutLang);
+            // Find the language code corresponding to the current URL prefix
+            const targetLangCode = Object.keys(LANGUAGE_URL_MAP).find(key => LANGUAGE_URL_MAP[key] === currentUrlCode) || 'en';
+
+            if (currentUrlCode) {
+                // If URL has an explicit language prefix (e.g. 'pr'), FORCE the widget to match it.
+                // This prevents the widget's default 'en' state from stripping the URL prefix on reload.
+                if (select.value !== targetLangCode) {
+                    select.value = targetLangCode;
+                    select.dispatchEvent(new Event('change'));
+
+                    // Update internal state to match
+                    const lang = LANGUAGES.find(l => l.code === targetLangCode);
+                    if (lang) setSelectedLang(lang);
+                }
+            } else {
+                // If URL is default (no prefix, i.e., English), check if the widget has auto-selected a different language (e.g. via cookie)
+                // If so, update the URL to match the widget.
+                if (select.value !== 'en' && select.value !== '') {
+                    const widgetUrlCode = LANGUAGE_URL_MAP[select.value];
+                    if (widgetUrlCode) {
+                        const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/';
+                        const newPath = `/${widgetUrlCode}${pathWithoutLang === '/' ? '' : pathWithoutLang}`;
+                        // Only update state if we are sure it's a stable change to avoid loops
+                        window.history.replaceState({}, '', newPath);
+
+                        const lang = LANGUAGES.find(l => l.code === select.value);
+                        if (lang) setSelectedLang(lang);
+                    }
+                }
             }
         };
 
-        const interval = setInterval(enforceLanguageUrl, 500);
+        const interval = setInterval(syncWidgetWithUrl, 1000); // Check every second
         return () => clearInterval(interval);
     }, []);
 
     // Function to trigger the Google Translate change
+    // Function to trigger the Google Translate change
     const changeLanguage = (langCode) => {
+        const lang = LANGUAGES.find(l => l.code === langCode);
+        if (lang) {
+            setSelectedLang(lang);
+
+            // Update URL immediately - this is our source of truth
+            const urlCode = LANGUAGE_URL_MAP[langCode];
+            const currentPath = window.location.pathname;
+            const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '');
+            const newPath = urlCode ? `/${urlCode}${pathWithoutLang || '/'}` : (pathWithoutLang || '/');
+            window.history.replaceState({}, '', newPath);
+        }
+
         const select = document.querySelector('.goog-te-combo');
         if (select) {
             select.value = langCode;
             select.dispatchEvent(new Event('change'));
-
-            const lang = LANGUAGES.find(l => l.code === langCode);
-            if (lang) {
-                setSelectedLang(lang);
-
-                const urlCode = LANGUAGE_URL_MAP[langCode];
-                const currentPath = window.location.pathname;
-                const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '');
-                const newPath = urlCode ? `/${urlCode}${pathWithoutLang || '/'}` : (pathWithoutLang || '/');
-                window.history.replaceState({}, '', newPath);
-            }
         } else {
-            console.error("Google Translate selector not found. The widget might not be loaded yet or was blocked.");
-            setIsBlocked(true);
+            // If widget isn't ready yet, the useEffect sync will handle it later since we updated the URL
+            console.warn("Google Translate selector not found yet. URL updated, widget will sync shortly.");
         }
         setIsOpen(false);
     };

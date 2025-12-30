@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import './MathPredictions.css';
 import { PredictionsPageSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
 import { fetchTrendingBlogs } from '../Service/BlogService';
+import { useTimezone } from '../context/TimezoneContext';
+import { convertToLocalTime } from '../utils/timezone';
 
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
@@ -13,6 +15,7 @@ import { replaceTranslation } from '../utils/translationReplacer.jsx';
 
 function Predictions() {
     const navigate = useNavigate();
+    const { currentTimezone } = useTimezone();
     const [currentLang, setCurrentLang] = useState('en');
 
     useEffect(() => {
@@ -107,6 +110,7 @@ function Predictions() {
                     homeTeamBadge: match.team_home_badge || '',
                     awayTeamBadge: match.team_away_badge || '',
                     time: match.match_time,
+                    date: match.match_date,
                     league: match.league_name,
                     league_id: match.league_id,
                     country: match.country_name,
@@ -195,7 +199,7 @@ function Predictions() {
     // Fetch predictions when date changes
     useEffect(() => {
         fetchPredictions();
-    }, [selectedDate]);
+    }, [selectedDate, currentTimezone]);
 
     // Fetch trending blogs on mount
     useEffect(() => {
@@ -203,9 +207,12 @@ function Predictions() {
     }, []);
 
     // Format match time
-    const formatMatchTime = (timeString) => {
-        if (!timeString) return '-';
-        return timeString;
+    const formatMatchTime = (date, timeString) => {
+        if (!date || !timeString) return '-';
+        const [hours, minutes] = timeString.split(':');
+        const gmtTime = `${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}`;
+        const converted = convertToLocalTime(date, gmtTime, currentTimezone);
+        return converted.time;
     };
 
     // Get best prediction tip
@@ -346,7 +353,7 @@ function Predictions() {
                                                                 <span className="tag">
                                                                     {replaceTranslation('Football', currentLang)}
                                                                 </span>
-                                                                <span className="time">{formatMatchTime(prediction.time)}</span>
+                                                                <span className="time">{formatMatchTime(prediction.date, prediction.time)}</span>
                                                             </span>
                                                         </span>
                                                         <a href={`/prediction/${prediction.id}`} className="forecast-item__info" style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>

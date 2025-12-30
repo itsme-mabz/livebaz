@@ -1,0 +1,58 @@
+.timezone-selector-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    border-radius: 8px;
+    border: 1px solid #333;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.timezone-selector-wrapper:hover {
+    border-color: #555;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    transform: translateY(-1px);
+}
+
+.timezone-icon {
+    color: #00d4ff;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+
+.timezone-selector-wrapper:hover .timezone-icon {
+    color: #00e5ff;
+}
+
+.timezone-select {
+    background: transparent;
+    color: #fff;
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    padding: 2px 4px;
+    min-width: 110px;
+    font-family: inherit;
+}
+
+.timezone-select option {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 8px;
+    font-weight: 500;
+}
+
+.timezone-select option:hover {
+    background: #2a2a2a;
+}
+
+.timezone-select option:checked {
+    background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+    color: #000;
+    font-weight: 600;
+}

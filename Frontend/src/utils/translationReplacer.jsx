@@ -46,6 +46,12 @@ export const replaceTranslation = (text, languageCode = 'fa') => {
     return text;
 };
 
+// Get raw translation string (for attributes, options, etc.)
+export const getTranslation = (text, languageCode = 'fa') => {
+    if (!text || !translationMap[languageCode]) return text;
+    return translationMap[languageCode][text] || text;
+};
+
 // Force reload translations
 export const reloadTranslations = () => {
     isLoaded = false;

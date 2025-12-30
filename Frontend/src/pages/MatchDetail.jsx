@@ -4,11 +4,13 @@ import axios from 'axios';
 import './MatchDetail.css';
 import { MatchDetailSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
 import { convertToLocalTime } from '../utils/timezone';
+import { replaceTranslation, getTranslation } from '../utils/translationReplacer.jsx';
+import { useTimezone } from '../context/TimezoneContext';
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
 function MatchDetail() {
-    const { matchId } = useParams();
+    const { matchId, lang } = useParams();
     const [activeTab, setActiveTab] = useState('stats');
     const [matchData, setMatchData] = useState(null);
     const [h2h, setH2H] = useState([]);
@@ -25,6 +27,26 @@ function MatchDetail() {
     const [commentaryOpen, setCommentaryOpen] = useState(false);
     const [timelineOpen, setTimelineOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [currentLang, setCurrentLang] = useState(lang || 'en');
+    const { currentTimezone } = useTimezone();
+
+    // Detect language from URL or Google Translate
+    useEffect(() => {
+        if (lang) {
+            setCurrentLang(lang);
+        }
+
+        const checkLanguage = () => {
+            const select = document.querySelector('.goog-te-combo');
+            if (select && !lang) {
+                setCurrentLang(select.value || 'en');
+            }
+        };
+
+        checkLanguage();
+        const interval = setInterval(checkLanguage, 500);
+        return () => clearInterval(interval);
+    }, [lang]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -40,7 +62,7 @@ function MatchDetail() {
 
     useEffect(() => {
         fetchMatchData();
-    }, [matchId]);
+    }, [matchId, currentTimezone]);
 
     // Scroll to section function
     const scrollToSection = (sectionId) => {
@@ -532,13 +554,13 @@ function MatchDetail() {
             <div className="match-detail-container">
                 {/* Breadcrumbs */}
                 <div className="breadcrumbs">
-                    <a href="/">Livebaz</a>
+                    <a href="/">{replaceTranslation('Livebaz', currentLang)}</a>
                     <span>/</span>
-                    <a href="/competitions">Leagues</a>
+                    <a href="/competitions">{replaceTranslation('Leagues', currentLang)}</a>
                     <span>/</span>
-                    <a href={`/league/${matchData.league_id}`}>{matchData.league_name}</a>
+                    <a href={`/league/${matchData.league_id}`}>{replaceTranslation(matchData.league_name, currentLang)}</a>
                     <span>/</span>
-                    <span>{matchData.match_hometeam_name} vs {matchData.match_awayteam_name}</span>
+                    <span>{matchData.match_hometeam_name} {replaceTranslation('vs', currentLang)} {matchData.match_awayteam_name}</span>
                 </div>
 
                 {/* Match Header */}
@@ -559,7 +581,7 @@ function MatchDetail() {
                                             </span>
                                         ))
                                     ) : (
-                                        <span className="form-loading">Loading...</span>
+                                        <span className="form-loading">{replaceTranslation('Loading...', currentLang)}</span>
                                     )}
                                 </div>
                                 <div className="team-standing">{getTeamPosition(matchData.match_hometeam_id)}</div>
@@ -570,10 +592,9 @@ function MatchDetail() {
                             <div className="match-meta-top">
                                 {(() => {
                                     const [hours, minutes] = matchData.match_time.split(':');
-                                    const utcDate = new Date(`${matchData.match_date}T${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}:00Z`);
-                                    const localTime = utcDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-                                    const localDate = utcDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                                    return `${localDate}, ${localTime}`;
+                                    const gmtTime = `${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}`;
+                                    const converted = convertToLocalTime(matchData.match_date, gmtTime, currentTimezone);
+                                    return `${converted.date}, ${converted.time}`;
                                 })()}
                             </div>
                             <div className="score-display-detail">
@@ -594,7 +615,7 @@ function MatchDetail() {
                                             </span>
                                         ))
                                     ) : (
-                                        <span className="form-loading">Loading...</span>
+                                        <span className="form-loading">{replaceTranslation('Loading...', currentLang)}</span>
                                     )}
                                 </div>
                                 <div className="team-standing">{getTeamPosition(matchData.match_awayteam_id)}</div>
@@ -611,13 +632,13 @@ function MatchDetail() {
                             <circle cx="12" cy="12" r="10" />
                             <polyline points="12 6 12 12 16 14" />
                         </svg>
-                        Timeline
+                        {replaceTranslation('Timeline', currentLang)}
                     </button>
-                    <button className={`nav-tab ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => scrollToSection('stats')}>Stats</button>
-                    <button className={`nav-tab ${activeTab === 'predictions' ? 'active' : ''}`} onClick={() => scrollToSection('predictions')}>Predictions</button>
-                    <button className={`nav-tab ${activeTab === 'odds' ? 'active' : ''}`} onClick={() => scrollToSection('odds')}>Odds</button>
-                    <button className={`nav-tab ${activeTab === 'lineups' ? 'active' : ''}`} onClick={() => scrollToSection('lineups')}>Lineups</button>
-                    <button className={`nav-tab ${activeTab === 'h2h' ? 'active' : ''}`} onClick={() => scrollToSection('h2h')}>H2H</button>
+                    <button className={`nav-tab ${activeTab === 'stats' ? 'active' : ''}`} onClick={() => scrollToSection('stats')}>{replaceTranslation('Stats', currentLang)}</button>
+                    <button className={`nav-tab ${activeTab === 'predictions' ? 'active' : ''}`} onClick={() => scrollToSection('predictions')}>{replaceTranslation('Predictions', currentLang)}</button>
+                    <button className={`nav-tab ${activeTab === 'odds' ? 'active' : ''}`} onClick={() => scrollToSection('odds')}>{replaceTranslation('Odds', currentLang)}</button>
+                    <button className={`nav-tab ${activeTab === 'lineups' ? 'active' : ''}`} onClick={() => scrollToSection('lineups')}>{replaceTranslation('Lineups', currentLang)}</button>
+                    <button className={`nav-tab ${activeTab === 'h2h' ? 'active' : ''}`} onClick={() => scrollToSection('h2h')}>{replaceTranslation('H2H', currentLang)}</button>
                 </div>
 
                 {/* Content */}
@@ -629,11 +650,11 @@ function MatchDetail() {
                     <div className="match-info-extra">
                         <div className="info-card">
                             <div className="info-item">
-                                <span className="label">Stadium:</span>
+                                <span className="label">{replaceTranslation('Stadium', currentLang)}:</span>
                                 <span className="value">{matchData.match_stadium || 'N/A'}</span>
                             </div>
                             <div className="info-item">
-                                <span className="label">Referee:</span>
+                                <span className="label">{replaceTranslation('Referee', currentLang)}:</span>
                                 <span className="value">{matchData.match_referee || 'N/A'}</span>
                             </div>
                         </div>
@@ -641,7 +662,7 @@ function MatchDetail() {
                     <div id="stats" className="stats-section">
                         <div className="section-header">
                             <img src={matchData.team_home_badge} alt="Home" width="24" />
-                            <h3>Team Statistics</h3>
+                            <h3>{replaceTranslation('Team Statistics', currentLang)}</h3>
                             <img src={matchData.team_away_badge} alt="Away" width="24" />
                         </div>
 
@@ -691,30 +712,30 @@ function MatchDetail() {
                                                 <div className={`stat-val ${awayIsHigher ? 'highlight' : ''}`}>{stat.away}</div>
                                             </div>
                                         );
-                                    }) : <div className="no-data">No statistics available</div>;
+                                    }) : <div className="no-data">{replaceTranslation('No statistics available', currentLang)}</div>;
                                 })()}
                             </div>
                         ) : (
-                            <div className="no-data">No statistics available</div>
+                            <div className="no-data">{replaceTranslation('No statistics available', currentLang)}</div>
                         )}
 
                         {/* Player Statistics if available */}
                         {statistics?.player_statistics && statistics.player_statistics.length > 0 && (
                             <div className="player-stats-section mt-8">
                                 <div className="section-header">
-                                    <h3>Player Statistics</h3>
+                                    <h3>{replaceTranslation('Player Statistics', currentLang)}</h3>
                                 </div>
                                 <div className="player-stats-table-wrapper overflow-x-auto">
                                     <table className="player-stats-table w-full">
                                         <thead>
                                             <tr>
-                                                <th className="text-left">Player</th>
-                                                <th>Mins</th>
-                                                <th>Rating</th>
-                                                <th>Shots</th>
-                                                <th>Goals</th>
-                                                <th>Passes</th>
-                                                <th>Acc.</th>
+                                                <th className="text-left">{replaceTranslation('Player', currentLang)}</th>
+                                                <th>{replaceTranslation('Mins', currentLang)}</th>
+                                                <th>{replaceTranslation('Rating', currentLang)}</th>
+                                                <th>{replaceTranslation('Shots', currentLang)}</th>
+                                                <th>{replaceTranslation('Goals', currentLang)}</th>
+                                                <th>{replaceTranslation('Passes', currentLang)}</th>
+                                                <th>{replaceTranslation('Acc.', currentLang)}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -746,17 +767,17 @@ function MatchDetail() {
                     <div id="predictions" className="predictions-section match-detail">
                         <div className="section-header">
                             <img src={matchData.team_home_badge} alt="Home" width="24" />
-                            <h3> Match Predictions</h3>
+                            <h3> {replaceTranslation('Match Predictions', currentLang)}</h3>
                             <img src={matchData.team_away_badge} alt="Away" width="24" />
                         </div>
                         {predictions ? (
                             <div className="predictions-cards-grid">
                                 {/* Full-time result */}
                                 <div className="prediction-card">
-                                    <h4 className="prediction-card-title">Full-time result</h4>
+                                    <h4 className="prediction-card-title">{replaceTranslation('Full-time result', currentLang)}</h4>
                                     <div className="prediction-circles">
                                         <div className="circle-item">
-                                            <span className="circle-label">Home</span>
+                                            <span className="circle-label">{replaceTranslation('Home', currentLang)}</span>
                                             <div className="circle-progress">
                                                 <svg className="progress-ring" width="85" height="85">
                                                     <circle className="progress-ring-circle-bg" cx="42.5" cy="42.5" r="37" />
@@ -775,7 +796,7 @@ function MatchDetail() {
                                             </div>
                                         </div>
                                         <div className="circle-item">
-                                            <span className="circle-label">Draw</span>
+                                            <span className="circle-label">{replaceTranslation('Draw', currentLang)}</span>
                                             <div className="circle-progress">
                                                 <svg className="progress-ring" width="85" height="85">
                                                     <circle className="progress-ring-circle-bg" cx="42.5" cy="42.5" r="37" />
@@ -794,7 +815,7 @@ function MatchDetail() {
                                             </div>
                                         </div>
                                         <div className="circle-item">
-                                            <span className="circle-label">Away</span>
+                                            <span className="circle-label">{replaceTranslation('Away', currentLang)}</span>
                                             <div className="circle-progress">
                                                 <svg className="progress-ring" width="85" height="85">
                                                     <circle className="progress-ring-circle-bg" cx="42.5" cy="42.5" r="37" />
@@ -815,8 +836,8 @@ function MatchDetail() {
                                     </div>
                                     <div className="prediction-footer">
                                         <div className="footer-info">
-                                            <span className="footer-label">W1</span>
-                                            <span className="footer-rate">Win rate {predictions.prob_HW || 0}%</span>
+                                            <span className="footer-label">{replaceTranslation('W1', currentLang)}</span>
+                                            <span className="footer-rate">{replaceTranslation('Win rate', currentLang)} {predictions.prob_HW || 0}%</span>
                                         </div>
                                         <span className="footer-odd">{getAverageOdd1()}</span>
                                     </div>
@@ -824,10 +845,10 @@ function MatchDetail() {
 
                                 {/* Both teams to score */}
                                 <div className="prediction-card">
-                                    <h4 className="prediction-card-title">Both teams to score</h4>
+                                    <h4 className="prediction-card-title">{replaceTranslation('Both teams to score', currentLang)}</h4>
                                     <div className="prediction-circles">
                                         <div className="circle-item">
-                                            <span className="circle-label">Yes</span>
+                                            <span className="circle-label">{replaceTranslation('Yes', currentLang)}</span>
                                             <div className="circle-progress">
                                                 <svg className="progress-ring" width="85" height="85">
                                                     <circle className="progress-ring-circle-bg" cx="42.5" cy="42.5" r="37" />
@@ -846,7 +867,7 @@ function MatchDetail() {
                                             </div>
                                         </div>
                                         <div className="circle-item">
-                                            <span className="circle-label">No</span>
+                                            <span className="circle-label">{replaceTranslation('No', currentLang)}</span>
                                             <div className="circle-progress">
                                                 <svg className="progress-ring" width="85" height="85">
                                                     <circle className="progress-ring-circle-bg" cx="42.5" cy="42.5" r="37" />
@@ -867,22 +888,22 @@ function MatchDetail() {
                                     </div>
                                     <div className="prediction-footer">
                                         <div className="footer-info">
-                                            <span className="footer-label">BTTS: {(predictions.prob_bts || predictions.prob_BTTS || 0) >= (predictions.prob_ots || 0) ? 'Yes' : 'No'}</span>
-                                            <span className="footer-rate">Win rate {Math.max(predictions.prob_bts || predictions.prob_BTTS || 0, predictions.prob_ots || 0)}%</span>
+                                            <span className="footer-label">{replaceTranslation('BTTS', currentLang)}: {(predictions.prob_bts || predictions.prob_BTTS || 0) >= (predictions.prob_ots || 0) ? replaceTranslation('Yes', currentLang) : replaceTranslation('No', currentLang)}</span>
+                                            <span className="footer-rate">{replaceTranslation('Win rate', currentLang)} {Math.max(predictions.prob_bts || predictions.prob_BTTS || 0, predictions.prob_ots || 0)}%</span>
                                         </div>
                                         <span className="footer-odd">{(predictions.prob_bts || predictions.prob_BTTS || 0) >= (predictions.prob_ots || 0) ? getBTTSOdds().yes : getBTTSOdds().no}</span>
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="no-data">No predictions available for this match</div>
+                            <div className="no-data">{replaceTranslation('No predictions available for this match', currentLang)}</div>
                         )}
                     </div>
 
                     <div id="odds" className="odds-section">
                         <div className=" odds-header">
                             <img src={matchData.team_home_badge} alt="Home" width="24" />
-                            <h3>Betting Odds</h3>
+                            <h3>{replaceTranslation('Betting Odds', currentLang)}</h3>
                             <img src={matchData.team_away_badge} alt="Away" width="24" />
                         </div>
                         {odds && odds.length > 0 ? (
@@ -890,7 +911,7 @@ function MatchDetail() {
                                 <table className="odds-table">
                                     <thead>
                                         <tr>
-                                            <th>BM</th>
+                                            <th>{replaceTranslation('BM', currentLang)}</th>
                                             <th>1</th>
                                             <th>X</th>
                                             <th>2</th>
@@ -926,14 +947,14 @@ function MatchDetail() {
                                     </tbody>
                                     <tfoot>
                                         <tr className="average-row">
-                                            <td>Average</td>
+                                            <td>{replaceTranslation('Average', currentLang)}</td>
 
                                             <td>{(odds.reduce((sum, b) => sum + (parseFloat(b.odd_1) || 0), 0) / odds.length).toFixed(2)}</td>
                                             <td>{(odds.reduce((sum, b) => sum + (parseFloat(b.odd_x || b.odd_X) || 0), 0) / odds.length).toFixed(2)}</td>
                                             <td>{(odds.reduce((sum, b) => sum + (parseFloat(b.odd_2) || 0), 0) / odds.length).toFixed(2)}</td>
                                         </tr>
                                         <tr className="highest-row">
-                                            <td>Highest</td>
+                                            <td>{replaceTranslation('Highest', currentLang)}</td>
 
                                             <td>{Math.max(...odds.map(b => parseFloat(b.odd_1) || 0)).toFixed(2)}</td>
                                             <td>{Math.max(...odds.map(b => parseFloat(b.odd_x || b.odd_X) || 0)).toFixed(2)}</td>
@@ -943,7 +964,7 @@ function MatchDetail() {
                                 </table>
                             </div>
                         ) : (
-                            <div className="no-data">No odds available for this match</div>
+                            <div className="no-data">{replaceTranslation('No odds available for this match', currentLang)}</div>
                         )}
                     </div>
 
@@ -996,20 +1017,20 @@ function MatchDetail() {
 
                             </>
                         ) : (
-                            <div className="no-data">Lineup information not available</div>
+                            <div className="no-data">{replaceTranslation('Lineup information not available', currentLang)}</div>
                         )}
                     </div>
 
                     <div id="h2h" className="h2h-section">
                         <h3 className="text-center text-xl font-bold mb-6">
-                            {matchData.match_hometeam_name} VS {matchData.match_awayteam_name} <span className="text-blue-600">HEAD TO HEAD HISTORY</span>
+                            {matchData.match_hometeam_name} VS {matchData.match_awayteam_name} <span className="text-blue-600">{replaceTranslation('HEAD TO HEAD HISTORY', currentLang)}</span>
                         </h3>
 
                         {h2h && h2h.length > 0 ? (
                             <>
                                 {/* Summary Statistics */}
                                 <div className="mb-6">
-                                    <p className="text-sm text-gray-600 mb-4">Recent H2H Games - {h2h.length}</p>
+                                    <p className="text-sm text-gray-600 mb-4">{replaceTranslation('Recent H2H Games', currentLang)} - {h2h.length}</p>
 
                                     {/* Win/Draw/Win Stats */}
                                     <div className="flex items-center justify-between gap-2 md:gap-8 mb-4">
@@ -1038,17 +1059,17 @@ function MatchDetail() {
                                                     <>
                                                         <div>
                                                             <div className="text-lg md:text-3xl font-bold">{homeWins}</div>
-                                                            <div className="text-[9px] md:text-xs text-gray-500">win</div>
+                                                            <div className="text-[9px] md:text-xs text-gray-500">{replaceTranslation('win', currentLang)}</div>
                                                             <div className="text-[10px] md:text-sm font-semibold mt-1">{homeWinPct}%</div>
                                                         </div>
                                                         <div>
                                                             <div className="text-lg md:text-3xl font-bold">{draws}</div>
-                                                            <div className="text-[9px] md:text-xs text-gray-500">draw</div>
+                                                            <div className="text-[9px] md:text-xs text-gray-500">{replaceTranslation('draw', currentLang)}</div>
                                                             <div className="text-[10px] md:text-sm font-semibold mt-1">{drawPct}%</div>
                                                         </div>
                                                         <div>
                                                             <div className="text-lg md:text-3xl font-bold">{awayWins}</div>
-                                                            <div className="text-[9px] md:text-xs text-gray-500">wins</div>
+                                                            <div className="text-[9px] md:text-xs text-gray-500">{replaceTranslation('wins', currentLang)}</div>
                                                             <div className="text-[10px] md:text-sm font-semibold mt-1 bg-yellow-400 px-2 py-1 rounded">{awayWinPct}%</div>
                                                         </div>
                                                     </>
@@ -1109,7 +1130,7 @@ function MatchDetail() {
                                         return (
                                             <>
                                                 <div>
-                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">Over 1.5</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">{replaceTranslation('Over 1.5', currentLang)}</div>
                                                     <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((over15 / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(over15 / total) * 100}%` }}></div>
@@ -1117,7 +1138,7 @@ function MatchDetail() {
                                                     <div className="text-[10px] md:text-xs text-gray-500 mt-1">{over15}/{total}</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">Over 2.5</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">{replaceTranslation('Over 2.5', currentLang)}</div>
                                                     <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((over25 / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(over25 / total) * 100}%` }}></div>
@@ -1125,7 +1146,7 @@ function MatchDetail() {
                                                     <div className="text-[10px] md:text-xs text-gray-500 mt-1">{over25}/{total}</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">Over 3.5</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">{replaceTranslation('Over 3.5', currentLang)}</div>
                                                     <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((over35 / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(over35 / total) * 100}%` }}></div>
@@ -1154,7 +1175,7 @@ function MatchDetail() {
                                         return (
                                             <>
                                                 <div>
-                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">BTTS</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">{replaceTranslation('BTTS', currentLang)}</div>
                                                     <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((btts / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(btts / total) * 100}%` }}></div>
@@ -1162,7 +1183,7 @@ function MatchDetail() {
                                                     <div className="text-[10px] md:text-xs text-gray-500 mt-1">{btts}/{total}</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">Clean Sheets</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">{replaceTranslation('Clean Sheets', currentLang)}</div>
                                                     <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((homeClean / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(homeClean / total) * 100}%` }}></div>
@@ -1170,7 +1191,7 @@ function MatchDetail() {
                                                     <div className="text-[10px] md:text-xs text-gray-500 mt-1">{matchData.match_hometeam_name}</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">Clean Sheets</div>
+                                                    <div className="text-[10px] md:text-xs text-gray-600 mb-1">{replaceTranslation('Clean Sheets', currentLang)}</div>
                                                     <div className="text-lg md:text-2xl font-bold mb-2">{Math.round((awayClean / total) * 100)}%</div>
                                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-500" style={{ width: `${(awayClean / total) * 100}%` }}></div>
@@ -1190,15 +1211,17 @@ function MatchDetail() {
                                                 <div className="font-semibold">
                                                     {(() => {
                                                         const [hours, minutes] = match.match_time.split(':');
-                                                        const utcDate = new Date(`${match.match_date}T${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}:00Z`);
-                                                        return utcDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                                                        const gmtTime = `${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}`;
+                                                        const converted = convertToLocalTime(match.match_date, gmtTime, currentTimezone);
+                                                        return converted.date;
                                                     })()}
                                                 </div>
                                                 <div className="text-[9px] md:text-xs">
                                                     {(() => {
                                                         const [hours, minutes] = match.match_time.split(':');
-                                                        const utcDate = new Date(`${match.match_date}T${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}:00Z`);
-                                                        return utcDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+                                                        const gmtTime = `${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}`;
+                                                        const converted = convertToLocalTime(match.match_date, gmtTime, currentTimezone);
+                                                        return converted.time;
                                                     })()}
                                                 </div>
                                             </div>
@@ -1226,7 +1249,7 @@ function MatchDetail() {
                                 </div>
                             </>
                         ) : (
-                            <div className="no-data">No head-to-head data available</div>
+                            <div className="no-data">{replaceTranslation('No head-to-head data available', currentLang)}</div>
                         )}
                     </div>
                 </div>
@@ -1237,7 +1260,7 @@ function MatchDetail() {
                 <div className="timeline-modal-overlay" onClick={() => setTimelineOpen(false)}>
                     <div className="timeline-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="timeline-modal-header">
-                            <h2>Match Timeline</h2>
+                            <h2>{replaceTranslation('Match Timeline', currentLang)}</h2>
                             <button className="timeline-close-btn" onClick={() => setTimelineOpen(false)}>
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M18 6L6 18M6 6l12 12" />
@@ -1310,7 +1333,7 @@ function MatchDetail() {
                                 // Sort by time
                                 events.sort((a, b) => a.time - b.time);
 
-                                if (events.length === 0) return <div className="no-data">No timeline events recorded</div>;
+                                if (events.length === 0) return <div className="no-data">{replaceTranslation('No timeline events recorded', currentLang)}</div>;
 
                                 return (
                                     <div className="timeline-container-new">
@@ -1344,12 +1367,12 @@ function MatchDetail() {
                                                             <div className="goal-event">
                                                                 <div className="event-header">
                                                                     <img src={event.team === 'home' ? matchData.team_home_badge : matchData.team_away_badge} alt="" className="event-team-logo" />
-                                                                    <span className="event-type-label">Goal</span>
+                                                                    <span className="event-type-label">{replaceTranslation('Goal', currentLang)}</span>
                                                                     <span className="event-score">{event.score}</span>
                                                                 </div>
                                                                 <div className="event-player-info">
                                                                     <span className="player-name-new">{event.player}</span>
-                                                                    {event.assist && <span className="assist-info">Assisted by {event.assist}</span>}
+                                                                    {event.assist && <span className="assist-info">{replaceTranslation('Assisted by', currentLang)} {event.assist}</span>}
                                                                 </div>
                                                             </div>
                                                         )}
@@ -1368,7 +1391,7 @@ function MatchDetail() {
                                                             <div className="sub-event">
                                                                 <div className="event-header">
                                                                     <img src={event.team === 'home' ? matchData.team_home_badge : matchData.team_away_badge} alt="" className="event-team-logo" />
-                                                                    <span className="event-type-label">Substitution</span>
+                                                                    <span className="event-type-label">{replaceTranslation('Substitution', currentLang)}</span>
                                                                 </div>
                                                                 <div className="sub-details">
                                                                     <div className="sub-player out">
@@ -1405,7 +1428,7 @@ function MatchDetail() {
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                         </svg>
-                        <span>Live Commentary</span>
+                        <span>{replaceTranslation('Live Commentary', currentLang)}</span>
                         {commentary && commentary.length > 0 && (
                             <span className="comment-count">{commentary.length}</span>
                         )}
@@ -1432,7 +1455,7 @@ function MatchDetail() {
                                 ))}
                             </div>
                         ) : (
-                            <div className="no-commentary">No live commentary available</div>
+                            <div className="no-commentary">{replaceTranslation('No live commentary available', currentLang)}</div>
                         )}
                     </div>
                 )}

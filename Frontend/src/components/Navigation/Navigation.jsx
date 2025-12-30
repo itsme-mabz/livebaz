@@ -14,6 +14,7 @@ import { LiaTelegramPlane } from "react-icons/lia";
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
 import { replaceTranslation } from '../../utils/translationReplacer.jsx';
+import TimezoneSelector from './TimezoneSelector';
 
 function Navigation() {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -445,6 +446,12 @@ function Navigation() {
                             <LiaTelegramPlane size={20} className="text-lg" />
                             <span>Telegram</span>
                         </a>
+
+                        {/* Timezone Selector */}
+                        <div className="desktop-timezone-selector" style={{ margin: '0 8px' }}>
+                            <TimezoneSelector />
+                        </div>
+
                         {/* Google Translate Widget for Desktop */}
                         <div className="desktop-google-translate">
                             <GoogleTranslate />
@@ -558,7 +565,8 @@ function Navigation() {
                         backgroundColor: '#121212'
                     }}>
                         {/* Google Translate Widget for Mobile */}
-                        <div style={{ padding: '0 24px 16px', display: 'flex', justifyContent: 'flex-start' }}>
+                        <div style={{ padding: '0 24px 16px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <TimezoneSelector />
                             <GoogleTranslate />
                         </div>
 

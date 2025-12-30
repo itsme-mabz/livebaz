@@ -3,11 +3,15 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import './LeagueDetail.css';
 import { StandingsTableSkeleton, TableSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
+import { replaceTranslation, getTranslation } from '../utils/translationReplacer.jsx';
+import { useTimezone } from '../context/TimezoneContext';
+import { convertToLocalTime } from '../utils/timezone';
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
 function LeagueDetail() {
-    const { leagueId } = useParams();
+    const { leagueId, lang } = useParams();
+    const { currentTimezone } = useTimezone();
     const [activeTab, setActiveTab] = useState('predictions');
     const [predictionType, setPredictionType] = useState('1x2');
     const [leagueInfo, setLeagueInfo] = useState(null);
@@ -21,11 +25,31 @@ function LeagueDetail() {
     const [loading, setLoading] = useState(true);
     const [showOdds, setShowOdds] = useState(false);
     const [standingsView, setStandingsView] = useState('all'); // 'all', 'home', 'away'
+
     const [fixturesView, setFixturesView] = useState('schedule'); // 'schedule', 'results'
+    const [currentLang, setCurrentLang] = useState(lang || 'en');
+
+    // Detect language from URL or Google Translate
+    useEffect(() => {
+        if (lang) {
+            setCurrentLang(lang);
+        }
+
+        const checkLanguage = () => {
+            const select = document.querySelector('.goog-te-combo');
+            if (select && !lang) {
+                setCurrentLang(select.value || 'en');
+            }
+        };
+
+        checkLanguage();
+        const interval = setInterval(checkLanguage, 500);
+        return () => clearInterval(interval);
+    }, [lang]);
 
     useEffect(() => {
         fetchLeagueData();
-    }, [leagueId]);
+    }, [leagueId, currentTimezone]);
 
     const fetchLeagueData = async () => {
         try {
@@ -101,6 +125,15 @@ function LeagueDetail() {
             console.error('Error fetching league data:', error);
             setLoading(false);
         }
+    };
+
+    // Convert match time to selected timezone
+    const getMatchTime = (date, time) => {
+        if (!date || !time) return time;
+        const [hours, minutes] = time.split(':');
+        const gmtTime = `${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}`;
+        const converted = convertToLocalTime(date, gmtTime, currentTimezone);
+        return converted.time;
     };
 
     const getCurrentRoundFixtures = () => {
@@ -345,7 +378,7 @@ function LeagueDetail() {
     if (!leagueInfo) {
         return (
             <div className="league-detail-error">
-                <p>League not found</p>
+                <p>{replaceTranslation('League not found', currentLang)}</p>
             </div>
         );
     }
@@ -355,40 +388,40 @@ function LeagueDetail() {
             <div className="league-detail-container">
                 {/* Breadcrumbs */}
                 <div className="breadcrumbs-wrapper">
-                <div className="breadcrumbs">
-                    <a href="/">Livebaz</a>
-                    <span>/</span>
-                    <a href="/competitions">Leagues</a>
-                    <span>/</span>
-                    <span>{leagueInfo.league_name}</span>
-                </div>
+                    <div className="breadcrumbs">
+                        <a href="/">Livebaz</a>
+                        <span>/</span>
+                        <a href="/competitions">Leagues</a>
+                        <span>/</span>
+                        <span>{replaceTranslation(leagueInfo.league_name, currentLang)}</span>
+                    </div>
                 </div>
 
                 {/* League Header */}
                 <div className="league-header">
                     <div className="league-header-content">
                         <div className="league-header-info">
-                            <h1 className="league-title">{leagueInfo.league_name} Predictions and Odds</h1>
+                            <h1 className="league-title">{replaceTranslation(leagueInfo.league_name, currentLang)} {replaceTranslation('Predictions and Odds', currentLang)}</h1>
                             <div className="league-meta">
                                 <div className="league-meta-item">
-                                    <span className="meta-label">Dates</span>
+                                    <span className="meta-label">{replaceTranslation('Dates', currentLang)}</span>
                                     <span className="meta-value">{leagueInfo.league_season || 'N/A'}</span>
                                 </div>
                                 <div className="league-meta-divider"></div>
                                 <div className="league-meta-item">
-                                    <span className="meta-label">Category</span>
+                                    <span className="meta-label">{replaceTranslation('Category', currentLang)}</span>
                                     <span className="meta-value">{leagueInfo.country_name || 'World'}</span>
                                 </div>
                                 <div className="league-meta-divider"></div>
                                 <div className="league-meta-item">
-                                    <span className="meta-label">Participants</span>
+                                    <span className="meta-label">{replaceTranslation('Participants', currentLang)}</span>
                                     <span className="meta-value">{standings.length || '-'}</span>
                                 </div>
                             </div>
                         </div>
                         <div className="league-logo">
                             {leagueInfo.league_logo && (
-                                <img src={leagueInfo.league_logo} alt={leagueInfo.league_name} />
+                                <img src={leagueInfo.league_logo} alt={getTranslation(leagueInfo.league_name, currentLang)} />
                             )}
                         </div>
                     </div>
@@ -399,31 +432,31 @@ function LeagueDetail() {
                             className={`league-tab ${activeTab === 'predictions' ? 'active' : ''}`}
                             onClick={() => setActiveTab('predictions')}
                         >
-                            Predictions
+                            {replaceTranslation('Predictions', currentLang)}
                         </button>
                         <button
                             className={`league-tab ${activeTab === 'fixtures' ? 'active' : ''}`}
                             onClick={() => setActiveTab('fixtures')}
                         >
-                            Fixtures
+                            {replaceTranslation('Fixtures', currentLang)}
                         </button>
                         <button
                             className={`league-tab ${activeTab === 'standings' ? 'active' : ''}`}
                             onClick={() => setActiveTab('standings')}
                         >
-                            Standings
+                            {replaceTranslation('Standings', currentLang)}
                         </button>
                         <button
                             className={`league-tab ${activeTab === 'topscorers' ? 'active' : ''}`}
                             onClick={() => setActiveTab('topscorers')}
                         >
-                            Top Scorers
+                            {replaceTranslation('Top Scorers', currentLang)}
                         </button>
                         <button
                             className={`league-tab ${activeTab === 'teams' ? 'active' : ''}`}
                             onClick={() => setActiveTab('teams')}
                         >
-                            Teams
+                            {replaceTranslation('Teams', currentLang)}
                         </button>
                     </div>
                 </div>
@@ -433,151 +466,151 @@ function LeagueDetail() {
                     {/* Predictions Tab */}
                     {activeTab === 'predictions' && (
                         <div className="predictions-section">
-                            <h2 className="section-title mb-6">PREDICTIONS FOR {leagueInfo.league_name.toUpperCase()}</h2>
+                            <h2 className="section-title mb-6">{replaceTranslation('PREDICTIONS FOR', currentLang)} <span style={{ textTransform: 'uppercase' }}>{replaceTranslation(leagueInfo.league_name, currentLang)}</span></h2>
                             <br />
                             {/* Prediction Type Filters - Inline Style */}
                             <div className="prediction-type-tabs" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0' }}>
-                                <button
-                                    onClick={() => setPredictionType('1x2')}
-                                    style={{
-                                        padding: '12px 24px',
-                                        background: predictionType === '1x2' ? '#1f2937' : 'transparent',
-                                        color: predictionType === '1x2' ? '#fff' : '#4b5563',
-                                        border: 'none',
-                                        fontWeight: '600',
-                                        fontSize: '14px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        borderBottom: predictionType === '1x2' ? '3px solid #3b82f6' : '3px solid transparent',
-                                        borderRadius: '12px 12px 0 0'
-                                    }}
-                                >
-                                    1X2
-                                </button>
-                                <button
-                                    onClick={() => setPredictionType('goals')}
-                                    style={{
-                                        padding: '12px 24px',
-                                        background: predictionType === 'goals' ? '#1f2937' : 'transparent',
-                                        color: predictionType === 'goals' ? '#fff' : '#4b5563',
-                                        border: 'none',
-                                        fontWeight: '600',
-                                        fontSize: '14px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        borderBottom: predictionType === 'goals' ? '3px solid #3b82f6' : '3px solid transparent',
-                                        borderRadius: '12px 12px 0 0'
-                                    }}
-                                >
-                                    Total Goals
-                                </button>
-                                <button
-                                    onClick={() => setPredictionType('1x2-first-half')}
-                                    style={{
-                                        padding: '12px 24px',
-                                        background: predictionType === '1x2-first-half' ? '#1f2937' : 'transparent',
-                                        color: predictionType === '1x2-first-half' ? '#fff' : '#4b5563',
-                                        border: 'none',
-                                        fontWeight: '600',
-                                        fontSize: '14px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        borderBottom: predictionType === '1x2-first-half' ? '3px solid #3b82f6' : '3px solid transparent',
-                                        borderRadius: '12px 12px 0 0'
-                                    }}
-                                >
-                                    1X2 First Half
-                                </button>
-                                <button
-                                    onClick={() => setPredictionType('btts')}
-                                    style={{
-                                        padding: '12px 24px',
-                                        background: predictionType === 'btts' ? '#1f2937' : 'transparent',
-                                        color: predictionType === 'btts' ? '#fff' : '#4b5563',
-                                        border: 'none',
-                                        fontWeight: '600',
-                                        fontSize: '14px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        borderBottom: predictionType === 'btts' ? '3px solid #3b82f6' : '3px solid transparent',
-                                        borderRadius: '12px 12px 0 0'
-                                    }}
-                                >
-                                    Both Teams To Score
-                                </button>
-                                <button
-                                    onClick={() => setPredictionType('correct-score')}
-                                    style={{
-                                        padding: '12px 24px',
-                                        background: predictionType === 'correct-score' ? '#1f2937' : 'transparent',
-                                        color: predictionType === 'correct-score' ? '#fff' : '#4b5563',
-                                        border: 'none',
-                                        fontWeight: '600',
-                                        fontSize: '14px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        borderBottom: predictionType === 'correct-score' ? '3px solid #3b82f6' : '3px solid transparent',
-                                        borderRadius: '12px 12px 0 0'
-                                    }}
-                                >
-                                    Correct Score
-                                </button>
-                                <button
-                                    onClick={() => setPredictionType('double-chance')}
-                                    style={{
-                                        padding: '12px 24px',
-                                        background: predictionType === 'double-chance' ? '#1f2937' : 'transparent',
-                                        color: predictionType === 'double-chance' ? '#fff' : '#4b5563',
-                                        border: 'none',
-                                        fontWeight: '600',
-                                        fontSize: '14px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        borderBottom: predictionType === 'double-chance' ? '3px solid #3b82f6' : '3px solid transparent',
-                                        borderRadius: '12px 12px 0 0'
-                                    }}
-                                >
-                                    Double Chance
-                                </button>
-                                {/* Round Selector - Dropdown */}
-                                {availableRounds.length > 0 && (
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                    }}>
-                                        <select
-                                            value={currentRound || ''}
-                                            onChange={(e) => setCurrentRound(e.target.value)}
-                                            style={{
-                                                padding: '12px 24px',
-                                                background: 'transparent',
-                                                color: '#4b5563',
-                                                border: 'none',
-                                                fontWeight: '600',
-                                                fontSize: '14px',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                borderBottom: '3px solid #e5e7eb',
-                                                borderRadius: '12px 12px 0 0'
-                                            }}
-                                            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                                        >
-                                            {availableRounds.map((round) => (
-                                                <option key={round} value={round}>
-                                                    {leagueInfo.league_name} - {round}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                )}
+                                    <button
+                                        onClick={() => setPredictionType('1x2')}
+                                        style={{
+                                            padding: '12px 24px',
+                                            background: predictionType === '1x2' ? '#1f2937' : 'transparent',
+                                            color: predictionType === '1x2' ? '#fff' : '#4b5563',
+                                            border: 'none',
+                                            fontWeight: '600',
+                                            fontSize: '14px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            borderBottom: predictionType === '1x2' ? '3px solid #3b82f6' : '3px solid transparent',
+                                            borderRadius: '12px 12px 0 0'
+                                        }}
+                                    >
+                                        {replaceTranslation('1X2', currentLang)}
+                                    </button>
+                                    <button
+                                        onClick={() => setPredictionType('goals')}
+                                        style={{
+                                            padding: '12px 24px',
+                                            background: predictionType === 'goals' ? '#1f2937' : 'transparent',
+                                            color: predictionType === 'goals' ? '#fff' : '#4b5563',
+                                            border: 'none',
+                                            fontWeight: '600',
+                                            fontSize: '14px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            borderBottom: predictionType === 'goals' ? '3px solid #3b82f6' : '3px solid transparent',
+                                            borderRadius: '12px 12px 0 0'
+                                        }}
+                                    >
+                                        {replaceTranslation('Total Goals', currentLang)}
+                                    </button>
+                                    <button
+                                        onClick={() => setPredictionType('1x2-first-half')}
+                                        style={{
+                                            padding: '12px 24px',
+                                            background: predictionType === '1x2-first-half' ? '#1f2937' : 'transparent',
+                                            color: predictionType === '1x2-first-half' ? '#fff' : '#4b5563',
+                                            border: 'none',
+                                            fontWeight: '600',
+                                            fontSize: '14px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            borderBottom: predictionType === '1x2-first-half' ? '3px solid #3b82f6' : '3px solid transparent',
+                                            borderRadius: '12px 12px 0 0'
+                                        }}
+                                    >
+                                        {replaceTranslation('1X2 First Half', currentLang)}
+                                    </button>
+                                    <button
+                                        onClick={() => setPredictionType('btts')}
+                                        style={{
+                                            padding: '12px 24px',
+                                            background: predictionType === 'btts' ? '#1f2937' : 'transparent',
+                                            color: predictionType === 'btts' ? '#fff' : '#4b5563',
+                                            border: 'none',
+                                            fontWeight: '600',
+                                            fontSize: '14px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            borderBottom: predictionType === 'btts' ? '3px solid #3b82f6' : '3px solid transparent',
+                                            borderRadius: '12px 12px 0 0'
+                                        }}
+                                    >
+                                        {replaceTranslation('Both Teams To Score', currentLang)}
+                                    </button>
+                                    <button
+                                        onClick={() => setPredictionType('correct-score')}
+                                        style={{
+                                            padding: '12px 24px',
+                                            background: predictionType === 'correct-score' ? '#1f2937' : 'transparent',
+                                            color: predictionType === 'correct-score' ? '#fff' : '#4b5563',
+                                            border: 'none',
+                                            fontWeight: '600',
+                                            fontSize: '14px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            borderBottom: predictionType === 'correct-score' ? '3px solid #3b82f6' : '3px solid transparent',
+                                            borderRadius: '12px 12px 0 0'
+                                        }}
+                                    >
+                                        {replaceTranslation('Correct Score', currentLang)}
+                                    </button>
+                                    <button
+                                        onClick={() => setPredictionType('double-chance')}
+                                        style={{
+                                            padding: '12px 24px',
+                                            background: predictionType === 'double-chance' ? '#1f2937' : 'transparent',
+                                            color: predictionType === 'double-chance' ? '#fff' : '#4b5563',
+                                            border: 'none',
+                                            fontWeight: '600',
+                                            fontSize: '14px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            borderBottom: predictionType === 'double-chance' ? '3px solid #3b82f6' : '3px solid transparent',
+                                            borderRadius: '12px 12px 0 0'
+                                        }}
+                                    >
+                                        {replaceTranslation('Double Chance', currentLang)}
+                                    </button>
+                                    {/* Round Selector - Dropdown */}
+                                    {availableRounds.length > 0 && (
+                                        <div style={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                        }}>
+                                            <select
+                                                value={currentRound || ''}
+                                                onChange={(e) => setCurrentRound(e.target.value)}
+                                                style={{
+                                                    padding: '12px 24px',
+                                                    background: 'transparent',
+                                                    color: '#4b5563',
+                                                    border: 'none',
+                                                    fontWeight: '600',
+                                                    fontSize: '14px',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s',
+                                                    borderBottom: '3px solid #e5e7eb',
+                                                    borderRadius: '12px 12px 0 0'
+                                                }}
+                                                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                            >
+                                                {availableRounds.map((round) => (
+                                                    <option key={round} value={round}>
+                                                        {getTranslation(leagueInfo.league_name, currentLang)} - {round}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Odds Toggle Switch */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                                <span style={{ fontSize: '14px', fontWeight: '600', color: '#4b5563' }}>Odds</span>
+                                <span style={{ fontSize: '14px', fontWeight: '600', color: '#4b5563' }}>{replaceTranslation('Odds', currentLang)}</span>
                                 <label style={{
                                     position: 'relative',
                                     display: 'inline-block',
@@ -623,8 +656,8 @@ function LeagueDetail() {
                             {/* Matches Table */}
                             <div className="matches-table">
                                 <div className="matches-header">
-                                    <div className="header-time">Time</div>
-                                    <div className="header-match">Match</div>
+                                    <div className="header-time">{replaceTranslation('Time', currentLang)}</div>
+                                    <div className="header-match">{replaceTranslation('Match', currentLang)}</div>
                                     <div className="header-predictions" style={{
                                         display: 'grid',
                                         gridTemplateColumns: (predictionType === 'double-chance' || predictionType === '1x2-first-half') ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
@@ -632,41 +665,41 @@ function LeagueDetail() {
                                     }}>
                                         {predictionType === 'btts' ? (
                                             <>
-                                                <span>YES</span>
-                                                <span>P. SCORE</span>
-                                                <span>NO</span>
+                                                <span>{replaceTranslation('YES', currentLang)}</span>
+                                                <span>{replaceTranslation('P. SCORE', currentLang)}</span>
+                                                <span>{replaceTranslation('NO', currentLang)}</span>
                                             </>
                                         ) : predictionType === 'goals' ? (
                                             <>
-                                                <span>OVER 2.5</span>
-                                                <span>P. SCORE</span>
-                                                <span>UNDER 2.5</span>
+                                                <span>{replaceTranslation('OVER 2.5', currentLang)}</span>
+                                                <span>{replaceTranslation('P. SCORE', currentLang)}</span>
+                                                <span>{replaceTranslation('UNDER 2.5', currentLang)}</span>
                                             </>
                                         ) : predictionType === 'correct-score' ? (
                                             <>
-                                                <span>PRED.</span>
-                                                <span>CHANCE</span>
-                                                <span>ACTUAL</span>
+                                                <span>{replaceTranslation('PRED.', currentLang)}</span>
+                                                <span>{replaceTranslation('CHANCE', currentLang)}</span>
+                                                <span>{replaceTranslation('ACTUAL', currentLang)}</span>
                                             </>
                                         ) : predictionType === '1x2-first-half' ? (
                                             <>
-                                                <span>1 HT</span>
-                                                <span>X HT</span>
-                                                <span>2 HT</span>
-                                                <span>ACTUAL HT</span>
+                                                <span>{replaceTranslation('1 HT', currentLang)}</span>
+                                                <span>{replaceTranslation('X HT', currentLang)}</span>
+                                                <span>{replaceTranslation('2 HT', currentLang)}</span>
+                                                <span>{replaceTranslation('ACTUAL HT', currentLang)}</span>
                                             </>
                                         ) : predictionType === 'double-chance' ? (
                                             <>
-                                                <span>P. SCORE</span>
-                                                <span>1/X</span>
-                                                <span>1/2</span>
-                                                <span>X/2</span>
+                                                <span>{replaceTranslation('P. SCORE', currentLang)}</span>
+                                                <span>{replaceTranslation('1/X', currentLang)}</span>
+                                                <span>{replaceTranslation('1/2', currentLang)}</span>
+                                                <span>{replaceTranslation('X/2', currentLang)}</span>
                                             </>
                                         ) : (
                                             <>
-                                                <span>1</span>
-                                                <span>X</span>
-                                                <span>2</span>
+                                                <span>{replaceTranslation('1', currentLang)}</span>
+                                                <span>{replaceTranslation('X', currentLang)}</span>
+                                                <span>{replaceTranslation('2', currentLang)}</span>
                                             </>
                                         )}
                                     </div>
@@ -681,7 +714,7 @@ function LeagueDetail() {
                                             {/* make this match time left aligned */}
                                             <div className="match-time" style={{ textAlign: 'left' }}>
                                                 <div className="match-date">{new Date(match.match_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-                                                <div className="match-hour">{match.match_time}</div>
+                                                <div className="match-hour">{getMatchTime(match.match_date, match.match_time)}</div>
                                             </div>
                                             <div className="match-teams">
                                                 <div className="match-score">
@@ -714,7 +747,7 @@ function LeagueDetail() {
 
                                 {getCurrentRoundFixtures().length === 0 && (
                                     <div className="no-matches">
-                                        <p>No matches available for this round</p>
+                                        <p>{replaceTranslation('No matches available for this round', currentLang)}</p>
                                     </div>
                                 )}
                             </div>
@@ -725,10 +758,10 @@ function LeagueDetail() {
                     {activeTab === 'fixtures' && (
                         <div className="fixtures-section">
                             <div className="flex justify-between items-start mb-6">
-                                <h2 className="section-title">{leagueInfo.league_name.toUpperCase()} FIXTURES</h2>
+                                <h2 className="section-title"><span style={{ textTransform: 'uppercase' }}>{replaceTranslation(leagueInfo.league_name, currentLang)}</span> {replaceTranslation('FIXTURES', currentLang)}</h2>
                                 <div className="flex items-center gap-4">
                                     <span className="text-sm font-semibold text-gray-700">Season {leagueInfo.league_season || '2025/2026'}</span>
-                                    <span className="text-sm font-semibold text-gray-900">{leagueInfo.league_name}</span>
+                                    <span className="text-sm font-semibold text-gray-900">{replaceTranslation(leagueInfo.league_name, currentLang)}</span>
                                 </div>
                             </div>
 
@@ -738,13 +771,13 @@ function LeagueDetail() {
                                     className={`px-6 py-2 rounded-lg font-medium transition ${fixturesView === 'schedule' ? 'bg-white border-2 border-gray-300 text-gray-900' : 'bg-gray-100 text-gray-600'}`}
                                     onClick={() => setFixturesView('schedule')}
                                 >
-                                    Schedule
+                                    {replaceTranslation('Schedule', currentLang)}
                                 </button>
                                 <button
                                     className={`px-6 py-2 rounded-lg font-medium transition ${fixturesView === 'results' ? 'bg-white border-2 border-gray-300 text-gray-900' : 'bg-gray-100 text-gray-600'}`}
                                     onClick={() => setFixturesView('results')}
                                 >
-                                    Results
+                                    {replaceTranslation('Results', currentLang)}
                                 </button>
                             </div>
 
@@ -766,7 +799,7 @@ function LeagueDetail() {
                                 return (
                                     <div key={round} className="mb-6">
                                         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-2 flex justify-between items-center">
-                                            <h3 className="text-base font-bold text-gray-900">{leagueInfo.league_name} {round}</h3>
+                                            <h3 className="text-base font-bold text-gray-900">{replaceTranslation(leagueInfo.league_name, currentLang)} {round}</h3>
                                             <button className="text-gray-500 hover:text-gray-700">
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -777,8 +810,8 @@ function LeagueDetail() {
                                         <div className="border border-gray-200 rounded-lg overflow-hidden">
                                             {/* Table Header */}
                                             <div className="grid grid-cols-[180px_1fr_80px] gap-4 p-4 bg-gray-50 border-b border-gray-200">
-                                                <div className="text-xs font-semibold text-gray-600 uppercase">Time</div>
-                                                <div className="text-xs font-semibold text-gray-600 uppercase">Match</div>
+                                                <div className="text-xs font-semibold text-gray-600 uppercase">{replaceTranslation('Time', currentLang)}</div>
+                                                <div className="text-xs font-semibold text-gray-600 uppercase">{replaceTranslation('Match', currentLang)}</div>
                                                 <div></div>
                                             </div>
 
@@ -798,7 +831,7 @@ function LeagueDetail() {
                                                                 year: 'numeric'
                                                             })}
                                                         </span>
-                                                        <span className="text-gray-500 text-xs">{match.match_time}</span>
+                                                        <span className="text-gray-500 text-xs">{getMatchTime(match.match_date, match.match_time)}</span>
                                                     </div>
 
                                                     {/* Teams */}
@@ -843,7 +876,7 @@ function LeagueDetail() {
 
                             {fixtures.length === 0 && (
                                 <div className="text-center py-12 text-gray-500">
-                                    <p>No fixtures available</p>
+                                    <p>{replaceTranslation('No fixtures available', currentLang)}</p>
                                 </div>
                             )}
                         </div>
@@ -852,7 +885,7 @@ function LeagueDetail() {
                     {/* Standings Tab */}
                     {activeTab === 'standings' && (
                         <div className="standings-section">
-                            <h2 className="section-title mb-4">STANDINGS {leagueInfo.league_name.toUpperCase()}</h2>
+                            <h2 className="section-title mb-4">{replaceTranslation('STANDINGS', currentLang)} <span style={{ textTransform: 'uppercase' }}>{replaceTranslation(leagueInfo.league_name, currentLang)}</span></h2>
 
                             {/* View Tabs */}
                             <div className="flex gap-2 mb-6">
@@ -860,19 +893,19 @@ function LeagueDetail() {
                                     className={`px-4 py-2 rounded-lg font-medium transition ${standingsView === 'all' ? 'bg-white border-2 border-gray-300' : 'bg-gray-100 text-gray-700'}`}
                                     onClick={() => setStandingsView('all')}
                                 >
-                                    All games
+                                    {replaceTranslation('All games', currentLang)}
                                 </button>
                                 <button
                                     className={`px-4 py-2 rounded-lg font-medium transition ${standingsView === 'home' ? 'bg-white border-2 border-gray-300' : 'bg-gray-100 text-gray-700'}`}
                                     onClick={() => setStandingsView('home')}
                                 >
-                                    Home
+                                    {replaceTranslation('Home', currentLang)}
                                 </button>
                                 <button
                                     className={`px-4 py-2 rounded-lg font-medium transition ${standingsView === 'away' ? 'bg-white border-2 border-gray-300' : 'bg-gray-100 text-gray-700'}`}
                                     onClick={() => setStandingsView('away')}
                                 >
-                                    Away
+                                    {replaceTranslation('Away', currentLang)}
                                 </button>
                             </div>
 
@@ -882,15 +915,15 @@ function LeagueDetail() {
                                         <thead>
                                             <tr className="border-b-2 border-gray-200 bg-gray-50 text-left">
                                                 <th className="p-2 font-semibold">№</th>
-                                                <th className="p-2 font-semibold sticky left-0 bg-gray-50">Team</th>
+                                                <th className="p-2 font-semibold sticky left-0 bg-gray-50">{replaceTranslation('Team', currentLang)}</th>
                                                 <th className="p-2 font-semibold text-center">MP</th>
                                                 <th className="p-2 font-semibold text-center">W</th>
                                                 <th className="p-2 font-semibold text-center">D</th>
                                                 <th className="p-2 font-semibold text-center">L</th>
-                                                <th className="p-2 font-semibold text-center">Goals</th>
-                                                <th className="p-2 font-semibold text-center">Diff</th>
+                                                <th className="p-2 font-semibold text-center">{replaceTranslation('Goals', currentLang)}</th>
+                                                <th className="p-2 font-semibold text-center">{replaceTranslation('Diff', currentLang)}</th>
                                                 <th className="p-2 font-semibold text-center font-bold">Pt</th>
-                                                <th className="p-2 font-semibold text-center">Form</th>
+                                                <th className="p-2 font-semibold text-center">{replaceTranslation('Form', currentLang)}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -962,7 +995,7 @@ function LeagueDetail() {
                                 </div>
                             ) : (
                                 <div className="no-data">
-                                    <p>No standings available for this league</p>
+                                    <p>{replaceTranslation('No standings available for this league', currentLang)}</p>
                                 </div>
                             )}
                         </div>
@@ -971,15 +1004,15 @@ function LeagueDetail() {
                     {/* Top Scorers Tab */}
                     {activeTab === 'topscorers' && (
                         <div className="scorers-section">
-                            <h2 className="section-title">TOP SCORERS</h2>
+                            <h2 className="section-title">{replaceTranslation('TOP SCORERS', currentLang)}</h2>
                             <div className="scorers-table">
                                 <div className="scorers-header">
                                     <span className="rank">#</span>
-                                    <span className="player">Player</span>
-                                    <span className="team">Team</span>
-                                    <span className="goals">Goals</span>
-                                    <span className="assists">Assists</span>
-                                    <span className="penalties">Pen</span>
+                                    <span className="player">{replaceTranslation('Player', currentLang)}</span>
+                                    <span className="team">{replaceTranslation('Team', currentLang)}</span>
+                                    <span className="goals">{replaceTranslation('Goals', currentLang)}</span>
+                                    <span className="assists">{replaceTranslation('Assists', currentLang)}</span>
+                                    <span className="penalties">{replaceTranslation('Pen', currentLang)}</span>
                                 </div>
                                 {topScorers.map((scorer, index) => (
                                     <div key={index} className="scorer-row">
@@ -1000,7 +1033,7 @@ function LeagueDetail() {
                     {/* Teams Tab */}
                     {activeTab === 'teams' && (
                         <div className="teams-section">
-                            <h2 className="section-title">TEAMS</h2>
+                            <h2 className="section-title">{replaceTranslation('TEAMS', currentLang)}</h2>
                             <div className="teams-grid">
                                 {teams.map((team) => (
                                     <div key={team.team_key} className="team-card">

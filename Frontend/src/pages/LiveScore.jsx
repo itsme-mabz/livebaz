@@ -4,6 +4,7 @@ import axios from 'axios';
 import { fetchPopularLeagues } from '../Service/FootballService';
 import { replaceTranslation } from '../utils/translationReplacer.jsx';
 import { convertToLocalTime } from '../utils/timezone';
+import { useTimezone } from '../context/TimezoneContext';
 import './LiveScore.css';
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
@@ -11,6 +12,7 @@ const BASE_URL = 'https://apiv3.apifootball.com';
 
 function LiveScore() {
     const navigate = useNavigate();
+    const { currentTimezone } = useTimezone();
     const [allMatches, setAllMatches] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedLeagues, setSelectedLeagues] = useState(new Set());
@@ -53,23 +55,17 @@ function LiveScore() {
 
     // Transform match data
     const transformMatch = (match) => {
-        // API returns BST (UTC+1), convert to local timezone
+        // API returns BST (UTC+1), convert to selected timezone
         const [hours, minutes] = match.match_time.split(':');
-        const utcDate = new Date(`${match.match_date}T${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}:00Z`);
-        const localTime = utcDate.toLocaleTimeString('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        });
-        const localDate = utcDate.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        });
+        // Adjust from BST to GMT (subtract 1 hour)
+        const gmtTime = `${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}`;
+        
+        // Use timezone utility to convert to selected timezone
+        const converted = convertToLocalTime(match.match_date, gmtTime, currentTimezone);
 
         return {
             id: match.match_id,
-            time: localTime,
+            time: converted.time,
             league: match.league_name,
             leagueId: match.league_id,
             leagueLogo: match.league_logo,
@@ -83,7 +79,7 @@ function LiveScore() {
             isLive: match.match_live === '1',
             status: match.match_status,
             date: match.match_date,
-            localDate: localDate,
+            localDate: converted.date,
             // Prediction data
             probHome: match.prob_HW || null,
             probDraw: match.prob_D || null,
@@ -210,7 +206,7 @@ function LiveScore() {
         } finally {
             setLoading(false);
         }
-    }, [selectedStatus, selectedLeagues]);
+    }, [selectedStatus, selectedLeagues, currentTimezone]);
 
     // Initial fetch for counts of other days
     useEffect(() => {

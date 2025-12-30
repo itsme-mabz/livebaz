@@ -3,6 +3,9 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './MathPredictions.css';
 import { TableSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
+import { replaceTranslation } from '../utils/translationReplacer.jsx';
+import { useTimezone } from '../context/TimezoneContext';
+import { convertToLocalTime } from '../utils/timezone';
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 const API_BASE_URL = 'https://apiv3.apifootball.com';
@@ -10,6 +13,7 @@ const API_BASE_URL = 'https://apiv3.apifootball.com';
 
 function MathPredictions() {
     const navigate = useNavigate();
+    const { currentTimezone } = useTimezone();
     const [predictions, setPredictions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedDate, setSelectedDate] = useState('today');
@@ -26,6 +30,7 @@ function MathPredictions() {
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
+    const [currentLang, setCurrentLang] = useState('en');
 
     // Update isMobile on resize
     useEffect(() => {
@@ -40,6 +45,7 @@ function MathPredictions() {
             const select = document.querySelector('.goog-te-combo');
             if (select) {
                 setIsRTL(select.value === 'ar' || select.value === 'fa');
+                setCurrentLang(select.value || 'en');
             }
         };
 
@@ -155,6 +161,7 @@ function MathPredictions() {
                     homeScore: match.match_hometeam_score || '-',
                     awayScore: match.match_awayteam_score || '-',
                     time: match.match_time,
+                    date: match.match_date,
                     league: match.league_name,
                     league_id: match.league_id,
                     country: match.country_name,
@@ -276,7 +283,7 @@ function MathPredictions() {
     useEffect(() => {
         fetchPredictions();
         setVisibleCount(30); // Reset visible count when date or league changes
-    }, [selectedDate, filters.league]);
+    }, [selectedDate, filters.league, currentTimezone]);
 
     // Filter predictions based on current filters
     const filteredPredictions = predictions.filter(prediction => {
@@ -297,9 +304,12 @@ function MathPredictions() {
     });
 
     // Format match time
-    const formatMatchTime = (timeString) => {
-        if (!timeString) return '-';
-        return timeString;
+    const formatMatchTime = (date, timeString) => {
+        if (!date || !timeString) return '-';
+        const [hours, minutes] = timeString.split(':');
+        const gmtTime = `${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}`;
+        const converted = convertToLocalTime(date, gmtTime, currentTimezone);
+        return converted.time;
     };
 
     // Format odds to remove unnecessary decimals
@@ -367,17 +377,17 @@ function MathPredictions() {
             <div className="container-wrapper wrap">
                 {/* Breadcrumbs */}
                 <div className="breadcrumb-wrapper">
-                <div className="breadcrumbs">
-                    <a href="/" className="breadcrumb-link">Livebaz</a>
-                    <span className="breadcrumb-separator">›</span>
-                    <span className="breadcrumb-current">Math predictions</span>
-                </div>
+                    <div className="breadcrumbs">
+                        <a href="/" className="breadcrumb-link">Livebaz</a>
+                        <span className="breadcrumb-separator">›</span>
+                        <span className="breadcrumb-current">{replaceTranslation('Math predictions', currentLang)}</span>
+                    </div>
                 </div>
 
                 {/* Mobile Filter Dropdown */}
                 <div className="mobile-league-dropdown">
                     <div className="mobile-dropdown-header" onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}>
-                        <span>Filters {filters.league ? '(1)' : ''}</span>
+                        <span>{replaceTranslation('Filters', currentLang)} {filters.league ? '(1)' : ''}</span>
                         <span>{mobileDropdownOpen ? '▼' : '▶'}</span>
                     </div>
                     {mobileDropdownOpen && (
@@ -397,11 +407,11 @@ function MathPredictions() {
                                     cursor: 'pointer'
                                 }}
                             >
-                                Reset Filters
+                                {replaceTranslation('Reset Filters', currentLang)}
                             </button>
 
                             {/* Match Type Section */}
-                            <div className="mobile-dropdown-section-title">MATCHES</div>
+                            <div className="mobile-dropdown-section-title">{replaceTranslation('MATCHES', currentLang)}</div>
                             <div className="mobile-filter-options">
                                 <label className="mobile-filter-option">
                                     <input
@@ -410,7 +420,7 @@ function MathPredictions() {
                                         checked={filters.matchType === 'all'}
                                         onChange={() => setFilters({ ...filters, matchType: 'all' })}
                                     />
-                                    <span>All matches</span>
+                                    <span>{replaceTranslation('All matches', currentLang)}</span>
                                 </label>
                                 <label className="mobile-filter-option">
                                     <input
@@ -419,7 +429,7 @@ function MathPredictions() {
                                         checked={filters.matchType === 'live'}
                                         onChange={() => setFilters({ ...filters, matchType: 'live' })}
                                     />
-                                    <span>Live only</span>
+                                    <span>{replaceTranslation('Live only', currentLang)}</span>
                                 </label>
                                 <label className="mobile-filter-option">
                                     <input
@@ -428,7 +438,7 @@ function MathPredictions() {
                                         checked={filters.matchType === 'plan'}
                                         onChange={() => setFilters({ ...filters, matchType: 'plan' })}
                                     />
-                                    <span>Planned only</span>
+                                    <span>{replaceTranslation('Planned only', currentLang)}</span>
                                 </label>
                                 <label className="mobile-filter-option">
                                     <input
@@ -437,12 +447,12 @@ function MathPredictions() {
                                         checked={filters.matchType === 'finished'}
                                         onChange={() => setFilters({ ...filters, matchType: 'finished' })}
                                     />
-                                    <span>Finished only</span>
+                                    <span>{replaceTranslation('Finished only', currentLang)}</span>
                                 </label>
                             </div>
 
                             {/* Probability Section */}
-                            <div className="mobile-dropdown-section-title">PROBABILITY</div>
+                            <div className="mobile-dropdown-section-title">{replaceTranslation('PROBABILITY', currentLang)}</div>
                             <div className="mobile-filter-options">
                                 <label className="mobile-filter-option">
                                     <input
@@ -451,7 +461,7 @@ function MathPredictions() {
                                         checked={filters.probability === 0}
                                         onChange={() => setFilters({ ...filters, probability: 0 })}
                                     />
-                                    <span>All outcomes</span>
+                                    <span>{replaceTranslation('All outcomes', currentLang)}</span>
                                 </label>
                                 <label className="mobile-filter-option">
                                     <input
@@ -483,7 +493,7 @@ function MathPredictions() {
                             </div>
 
                             {/* Countries & Leagues Section */}
-                            <div className="mobile-dropdown-section-title">COUNTRIES & LEAGUES</div>
+                            <div className="mobile-dropdown-section-title">{replaceTranslation('COUNTRIES & LEAGUES', currentLang)}</div>
                             {Object.entries(leaguesByCountry).map(([country, leagues]) => (
                                 <div key={country}>
                                     <div
@@ -516,19 +526,19 @@ function MathPredictions() {
                     {/* Filters Sidebar */}
                     <aside className="filters-sidebar">
                         <div className="filters-header">
-                            <h3 className="filters-title">FILTERS</h3>
+                            <h3 className="filters-title">{replaceTranslation('FILTERS', currentLang)}</h3>
                             <button
                                 className="clear-filters"
                                 onClick={() => setFilters({ matchType: 'all', probability: 0, league: null })}
                             >
                                 <span>✕</span>
-                                <span>Clear filters</span>
+                                <span>{replaceTranslation('Clear filters', currentLang)}</span>
                             </button>
                         </div>
 
                         {/* Match Type Filter */}
                         <div className="filter-group">
-                            <h4 className="filter-group-title">MATCHES</h4>
+                            <h4 className="filter-group-title">{replaceTranslation('MATCHES', currentLang)}</h4>
                             <div className="filter-options">
                                 <label className="filter-option">
                                     <input
@@ -537,7 +547,7 @@ function MathPredictions() {
                                         checked={filters.matchType === 'all'}
                                         onChange={() => setFilters({ ...filters, matchType: 'all' })}
                                     />
-                                    <span className="filter-label">All matches</span>
+                                    <span className="filter-label">{replaceTranslation('All matches', currentLang)}</span>
                                 </label>
                                 <label className="filter-option">
                                     <input
@@ -546,7 +556,7 @@ function MathPredictions() {
                                         checked={filters.matchType === 'live'}
                                         onChange={() => setFilters({ ...filters, matchType: 'live' })}
                                     />
-                                    <span className="filter-label">Live only</span>
+                                    <span className="filter-label">{replaceTranslation('Live only', currentLang)}</span>
                                 </label>
                                 <label className="filter-option">
                                     <input
@@ -555,7 +565,7 @@ function MathPredictions() {
                                         checked={filters.matchType === 'plan'}
                                         onChange={() => setFilters({ ...filters, matchType: 'plan' })}
                                     />
-                                    <span className="filter-label">Planned only</span>
+                                    <span className="filter-label">{replaceTranslation('Planned only', currentLang)}</span>
                                 </label>
                                 <label className="filter-option">
                                     <input
@@ -564,14 +574,14 @@ function MathPredictions() {
                                         checked={filters.matchType === 'finished'}
                                         onChange={() => setFilters({ ...filters, matchType: 'finished' })}
                                     />
-                                    <span className="filter-label">Finished only</span>
+                                    <span className="filter-label">{replaceTranslation('Finished only', currentLang)}</span>
                                 </label>
                             </div>
                         </div>
 
                         {/* Probability Filter */}
                         <div className="filter-group">
-                            <h4 className="filter-group-title">PROBABILITY</h4>
+                            <h4 className="filter-group-title">{replaceTranslation('PROBABILITY', currentLang)}</h4>
                             <div className="filter-options">
                                 <label className="filter-option">
                                     <input
@@ -580,7 +590,7 @@ function MathPredictions() {
                                         checked={filters.probability === 0}
                                         onChange={() => setFilters({ ...filters, probability: 0 })}
                                     />
-                                    <span className="filter-label">All outcomes</span>
+                                    <span className="filter-label">{replaceTranslation('All outcomes', currentLang)}</span>
                                 </label>
                                 <label className="filter-option">
                                     <input
@@ -589,7 +599,7 @@ function MathPredictions() {
                                         checked={filters.probability === 60}
                                         onChange={() => setFilters({ ...filters, probability: 60 })}
                                     />
-                                    <span className="filter-label">Greater than/equal to 60%</span>
+                                    <span className="filter-label">{replaceTranslation('Greater than/equal to 60%', currentLang)}</span>
                                 </label>
                                 <label className="filter-option">
                                     <input
@@ -598,7 +608,7 @@ function MathPredictions() {
                                         checked={filters.probability === 75}
                                         onChange={() => setFilters({ ...filters, probability: 75 })}
                                     />
-                                    <span className="filter-label">Greater than/equal to 75%</span>
+                                    <span className="filter-label">{replaceTranslation('Greater than/equal to 75%', currentLang)}</span>
                                 </label>
                                 <label className="filter-option">
                                     <input
@@ -607,7 +617,7 @@ function MathPredictions() {
                                         checked={filters.probability === 90}
                                         onChange={() => setFilters({ ...filters, probability: 90 })}
                                     />
-                                    <span className="filter-label">Greater than/equal to 90%</span>
+                                    <span className="filter-label">{replaceTranslation('Greater than/equal to 90%', currentLang)}</span>
                                 </label>
                             </div>
                         </div>
@@ -615,7 +625,7 @@ function MathPredictions() {
                         {/* Countries & Leagues Filter */}
                         {Object.keys(leaguesByCountry).length > 0 && (
                             <div className="filter-group">
-                                <h4 className="filter-group-title">COUNTRIES & LEAGUES</h4>
+                                <h4 className="filter-group-title">{replaceTranslation('COUNTRIES & LEAGUES', currentLang)}</h4>
                                 {Object.entries(leaguesByCountry).map(([country, leagues]) => (
                                     <div key={country} className="country-section">
                                         <div
@@ -640,7 +650,7 @@ function MathPredictions() {
                                                         {league.logo && (
                                                             <img src={league.logo} alt="" className="league-filter-icon" />
                                                         )}
-                                                        <span className="filter-label">{league.name}</span>
+                                                        <span className="filter-label">{replaceTranslation(league.name, currentLang)}</span>
                                                     </label>
                                                 ))}
                                             </div>
@@ -655,7 +665,7 @@ function MathPredictions() {
                     <main className="main-content">
                         {/* Page Header */}
                         <div className="page-header">
-                            <h1 className="page-title">Mathematical Football Predictions</h1>
+                            <h1 className="page-title">{replaceTranslation('Mathematical Football Predictions', currentLang)}</h1>
                         </div>
 
                         {/* Date Tabs */}
@@ -666,7 +676,7 @@ function MathPredictions() {
                                     className={`date-tab ${selectedDate === tab.value ? 'active' : ''}`}
                                     onClick={() => setSelectedDate(tab.value)}
                                 >
-                                    {tab.label}
+                                    {replaceTranslation(tab.label, currentLang)}
                                 </button>
                             ))}
                         </div>
@@ -680,31 +690,31 @@ function MathPredictions() {
                             className="predictions-table-header"
                             style={{ gridTemplateColumns: columnConfig.template }}
                         >
-                            <div>Time</div>
-                            <div>Games</div>
+                            <div>{replaceTranslation('Time', currentLang)}</div>
+                            <div>{replaceTranslation('Games', currentLang)}</div>
                             {columnConfig.show1x2 && <div className="header-with-subs">
-                                <div className="main-header">1x2</div>
+                                <div className="main-header">{replaceTranslation('1x2', currentLang)}</div>
                             </div>}
                             {columnConfig.showGoals && <div className="header-with-subs">
-                                <div className="main-header">Goals</div>
+                                <div className="main-header">{replaceTranslation('Goals', currentLang)}</div>
                             </div>}
                             {columnConfig.showBTTS && <div className="header-with-subs">
-                                <div className="main-header">BTTS</div>
+                                <div className="main-header">{replaceTranslation('BTTS', currentLang)}</div>
                             </div>}
                             {columnConfig.showDoubleChance && (
                                 <>
                                     <div className="header-with-subs">
-                                        <div className="main-header">1/X</div>
+                                        <div className="main-header">{replaceTranslation('1/X', currentLang)}</div>
                                     </div>
                                     <div className="header-with-subs">
-                                        <div className="main-header">1/2</div>
+                                        <div className="main-header">{replaceTranslation('1/2', currentLang)}</div>
                                     </div>
                                     <div className="header-with-subs">
-                                        <div className="main-header">X/2</div>
+                                        <div className="main-header">{replaceTranslation('X/2', currentLang)}</div>
                                     </div>
                                 </>
                             )}
-                            {columnConfig.showBest && !isMobile && <div>Best Tip</div>}
+                            {columnConfig.showBest && !isMobile && <div>{replaceTranslation('Best Tip', currentLang)}</div>}
                         </div>
 
                         {/* Table Body */}
@@ -713,7 +723,7 @@ function MathPredictions() {
                         ) : (
                             <div className="predictions-table-body">
                                 {filteredPredictions.length === 0 ? (
-                                    <div className="loading-state">No predictions available for the selected filters</div>
+                                    <div className="loading-state">{replaceTranslation('No predictions available for the selected filters', currentLang)}</div>
                                 ) : (
                                     <>
                                         {filteredPredictions.slice(0, visibleCount).map(match => (
@@ -730,23 +740,14 @@ function MathPredictions() {
                                                 {/* Live Indicator */}
                                                 {match.isLive && (
                                                     <div className="live-indicator">
-                                                        <span className="live-badge">LIVE</span>
+                                                        <span className="live-badge">{replaceTranslation('LIVE', currentLang)}</span>
                                                     </div>
                                                 )}
 
                                                 {/* Time */}
                                                 <div className="td-time">
                                                     <div className="match-time">
-                                                        {!match.isLive && match.time && (
-                                                            /\s/.test(match.time) ? (
-                                                                <>
-                                                                    <div className="match-date-part">{match.time.split(/\s+/)[0]}</div>
-                                                                    <div className="match-time-part">{match.time.split(/\s+/)[1]}</div>
-                                                                </>
-                                                            ) : (
-                                                                match.time
-                                                            )
-                                                        )}
+                                                        {!match.isLive && match.time && formatMatchTime(match.date, match.time)}
                                                     </div>
                                                 </div>
 
@@ -843,13 +844,13 @@ function MathPredictions() {
                                                                 <>
                                                                     {yes.prob ? (
                                                                         <div className={`pred-box ${yes.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                            <div className="pred-label">Yes</div>
+                                                                            <div className="pred-label">{replaceTranslation('Yes', currentLang)}</div>
                                                                             <div className="pred-odds">{formatOdds(yes.odds)}</div>
                                                                             <div className="pred-prob">{Math.round(yes.prob)}%</div>
                                                                         </div>
                                                                     ) : (
                                                                         <div className={`pred-box ${no.prob === maxProb ? 'highlighted' : ''}`}>
-                                                                            <div className="pred-label">No</div>
+                                                                            <div className="pred-label">{replaceTranslation('No', currentLang)}</div>
                                                                             <div className="pred-odds">{formatOdds(no.odds)}</div>
                                                                             <div className="pred-prob">{Math.round(no.prob)}%</div>
                                                                         </div>
@@ -892,28 +893,28 @@ function MathPredictions() {
                                                             let valueColor = '#ef4444'; // red for goals
 
                                                             if (type.includes('Home Win')) {
-                                                                category = '1X2 :';
+                                                                category = replaceTranslation('1X2 :', currentLang);
                                                                 value = 'W1';
                                                                 valueColor = '#4db8a4'; // teal
                                                             } else if (type.includes('Away Win')) {
-                                                                category = '1X2 :';
+                                                                category = replaceTranslation('1X2 :', currentLang);
                                                                 value = 'W2';
                                                                 valueColor = '#4db8a4'; // teal
                                                             } else if (type.includes('Draw')) {
-                                                                category = '1X2 :';
+                                                                category = replaceTranslation('1X2 :', currentLang);
                                                                 value = 'X';
                                                                 valueColor = '#4db8a4'; // teal
                                                             } else if (type.includes('Over')) {
-                                                                category = 'Goals :';
+                                                                category = replaceTranslation('Goals :', currentLang);
                                                                 value = 'O2.5';
                                                                 valueColor = '#ef4444'; // red
                                                             } else if (type.includes('Under')) {
-                                                                category = 'Goals :';
+                                                                category = replaceTranslation('Goals :', currentLang);
                                                                 value = 'U 2.5';
                                                                 valueColor = '#ef4444'; // red
                                                             } else if (type.includes('BTTS')) {
-                                                                category = 'BTTS :';
-                                                                value = 'Yes';
+                                                                category = replaceTranslation('BTTS :', currentLang);
+                                                                value = replaceTranslation('Yes', currentLang);
                                                                 valueColor = '#8b5cf6'; // purple
                                                             }
 
@@ -924,7 +925,7 @@ function MathPredictions() {
                                                                             {category} <span style={{ color: valueColor }}>{value}</span>
                                                                         </div>
                                                                         <div className="best-tip-probability">
-                                                                            Probability {Math.round(probability)}%
+                                                                            {replaceTranslation('Probability', currentLang)} {Math.round(probability)}%
                                                                         </div>
                                                                     </div>
                                                                     <div className="best-tip-odds">{formatOdds(odds)}</div>
@@ -943,7 +944,7 @@ function MathPredictions() {
                                                     className="show-more-btn"
                                                     onClick={() => setVisibleCount(prev => prev + 30)}
                                                 >
-                                                    Show more predictions
+                                                    {replaceTranslation('Show more predictions', currentLang)}
                                                 </button>
                                             </div>
                                         )}
