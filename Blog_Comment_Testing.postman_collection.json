@@ -1,0 +1,202 @@
+{
+  "info": {
+    "name": "Blog Comment Testing",
+    "description": "Collection to test blog comment posting functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "blogId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    pm.collectionVariables.set('authToken', response.token);",
+              "    console.log('✅ Token saved:', response.token);",
+              "    console.log('✅ User:', response.user.Name);",
+              "} else {",
+              "    console.log('❌ Login failed');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"Email\": \"your-email@example.com\",\n  \"Password\": \"your-password\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/user/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "user", "login"]
+        },
+        "description": "Login to get authentication token. Update the email and password in the body."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get Blog by Slug",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    pm.collectionVariables.set('blogId', response.data.id);",
+              "    console.log('✅ Blog ID saved:', response.data.id);",
+              "    console.log('✅ Blog Title:', response.data.title);",
+              "} else {",
+              "    console.log('❌ Blog not found');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/blogs/the-evolution-of-modern-football-speed-tactics-and-skill",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "blogs", "the-evolution-of-modern-football-speed-tactics-and-skill"]
+        },
+        "description": "Fetch blog details to get the blog ID"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Get Comments",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/blogs/{{blogId}}/comments",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "blogs", "{{blogId}}", "comments"]
+        },
+        "description": "Fetch all comments for the blog"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Post Comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const response = pm.response.json();",
+              "    console.log('✅ Comment posted successfully!');",
+              "    console.log('Comment ID:', response.data.id);",
+              "    console.log('Content:', response.data.content);",
+              "} else {",
+              "    console.log('❌ Failed to post comment');",
+              "    console.log('Response:', pm.response.json());",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"This is a test comment from Postman! Testing the comment functionality.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/blogs/{{blogId}}/comments",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "blogs", "{{blogId}}", "comments"]
+        },
+        "description": "Post a new comment to the blog. Requires authentication."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Delete Comment",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/blogs/{{blogId}}/comments/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "blogs", "{{blogId}}", "comments", "1"]
+        },
+        "description": "Delete a comment. Replace '1' with actual comment ID. Only comment owner or admin can delete."
+      },
+      "response": []
+    },
+    {
+      "name": "6. Get All Blogs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/blogs?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "blogs"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Get all published blogs"
+      },
+      "response": []
+    }
+  ]
+}

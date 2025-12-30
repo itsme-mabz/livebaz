@@ -385,7 +385,14 @@ exports.getComments = AsyncHandler(async (req, res, next) => {
 // Post a comment (authenticated)
 exports.postComment = AsyncHandler(async (req, res, next) => {
   const { blogId } = req.params;
-  const { content } = req.body;
+  const { content, userName } = req.body;
+
+  console.log('[POST COMMENT] Request body:', { content, userName });
+  console.log('[POST COMMENT] User from token:', {
+    id: req.user.id,
+    Name: req.user.Name,
+    Email: req.user.Email
+  });
 
   if (!content || content.trim().length === 0) {
     return next(new ErrorHandler("Comment content is required", 400));
@@ -399,9 +406,11 @@ exports.postComment = AsyncHandler(async (req, res, next) => {
   const comment = await Comment.create({
     blog_id: blogId,
     user_id: req.user.id,
-    user_name: req.user.Name,
+    user_name: userName || req.user.Name,
     content: content.trim()
   });
+
+  console.log('[POST COMMENT] Created comment:', comment.toJSON());
 
   res.status(201).json({
     success: true,

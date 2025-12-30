@@ -78,8 +78,8 @@ User.prototype.comparePassword = async function (password) {
 };
 
 User.prototype.getJWTToken = function () {
-  return jwt.sign({ id: this.id, Email: this.Email }, process.env.JWT_SECRET, {
-    expiresIn: "1d",
+  return jwt.sign({ id: this.id, Email: this.Email, Name: this.Name }, process.env.JWT_SECRET, {
+    expiresIn: "365d",  // 1 year to handle clock issues
   });
 };
 

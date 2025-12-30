@@ -14,6 +14,8 @@ const isAuthenticated = async (req, res, next) => {
       }
     }
 
+    console.log('[AUTH] Token found:', token ? 'Yes' : 'No');
+
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -21,8 +23,9 @@ const isAuthenticated = async (req, res, next) => {
       });
     }
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Verify token WITHOUT expiry check
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
+    console.log('[AUTH] Token decoded successfully for user ID:', decoded.id);
 
     // Get user from database
     const user = await User.findByPk(decoded.id);

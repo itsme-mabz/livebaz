@@ -51,11 +51,42 @@ function BlogDetail() {
     loadUser();
   }, [slug]);
 
+  const isTokenExpired = (token) => {
+    if (!token) return true;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiryTime = payload.exp * 1000;
+      const currentTime = Date.now();
+      const isExpired = expiryTime < currentTime;
+      
+      console.log('[TOKEN CHECK]', {
+        expiryTime: new Date(expiryTime),
+        currentTime: new Date(currentTime),
+        isExpired
+      });
+      
+      return isExpired;
+    } catch (error) {
+      console.error('[TOKEN CHECK] Error parsing token:', error);
+      return true;
+    }
+  };
+
   const loadUser = () => {
     // Check if user is logged in
     const token = localStorage.getItem('authToken');
     const userData = localStorage.getItem('user');
+    
     if (token && userData) {
+      // Check if token is expired
+      if (isTokenExpired(token)) {
+        console.log('Token expired, clearing storage');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        setUser(null);
+        return;
+      }
+      
       try {
         setUser(JSON.parse(userData));
       } catch (e) {
@@ -122,12 +153,38 @@ function BlogDetail() {
     try {
       setSubmitting(true);
       const token = localStorage.getItem('authToken');
-      const newComment = await postComment(blog.id, { content: commentText }, token);
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
+      console.log('[COMMENT SUBMIT] Token exists:', !!token);
+      console.log('[COMMENT SUBMIT] Token:', token);
+      
+      if (!token) {
+        alert('Please login again.');
+        openLoginModal();
+        return;
+      }
+      
+      console.log('[COMMENT SUBMIT] Posting comment...');
+      const newComment = await postComment(blog.id, { 
+        content: commentText,
+        userName: userData?.Name || user.Name || 'User'
+      }, token);
+      console.log('[COMMENT SUBMIT] Success:', newComment);
       setComments([newComment, ...comments]);
       setCommentText('');
     } catch (err) {
-      console.error('Error posting comment:', err);
-      alert(err.message || 'Failed to post comment. Please try again.');
+      console.error('[COMMENT SUBMIT] Error:', err);
+      
+      // If token error, clear and prompt login
+      if (err.message && (err.message.includes('expired') || err.message.includes('Invalid token'))) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        setUser(null);
+        alert('Please login again.');
+        openLoginModal();
+      } else {
+        alert(err.message || 'Failed to post comment. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
