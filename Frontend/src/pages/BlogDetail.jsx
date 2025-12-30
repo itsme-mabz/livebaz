@@ -602,7 +602,7 @@ function BlogDetail() {
                     fontSize: '18px',
                     flexShrink: 0
                   }}>
-                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                    {(user.Name || user.name)?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div style={{ flex: 1 }}>
                     <textarea
