@@ -660,19 +660,17 @@ function LeagueDetail() {
                                     <div className="header-match">{replaceTranslation('Match', currentLang)}</div>
                                     <div className="header-predictions" style={{
                                         display: 'grid',
-                                        gridTemplateColumns: (predictionType === 'double-chance' || predictionType === '1x2-first-half') ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
+                                        gridTemplateColumns: predictionType === '1x2-first-half' ? 'repeat(4, 1fr)' : (predictionType === 'goals' || predictionType === 'btts') ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
                                         gap: '10px'
                                     }}>
                                         {predictionType === 'btts' ? (
                                             <>
                                                 <span>{replaceTranslation('YES', currentLang)}</span>
-                                                <span>{replaceTranslation('P. SCORE', currentLang)}</span>
                                                 <span>{replaceTranslation('NO', currentLang)}</span>
                                             </>
                                         ) : predictionType === 'goals' ? (
                                             <>
                                                 <span>{replaceTranslation('OVER 2.5', currentLang)}</span>
-                                                <span>{replaceTranslation('P. SCORE', currentLang)}</span>
                                                 <span>{replaceTranslation('UNDER 2.5', currentLang)}</span>
                                             </>
                                         ) : predictionType === 'correct-score' ? (
@@ -690,7 +688,6 @@ function LeagueDetail() {
                                             </>
                                         ) : predictionType === 'double-chance' ? (
                                             <>
-                                                <span>{replaceTranslation('P. SCORE', currentLang)}</span>
                                                 <span>{replaceTranslation('1/X', currentLang)}</span>
                                                 <span>{replaceTranslation('1/2', currentLang)}</span>
                                                 <span>{replaceTranslation('X/2', currentLang)}</span>
@@ -732,11 +729,11 @@ function LeagueDetail() {
                                             <div className="match-predictions" style={{
                                                 alignItems: 'center',
                                                 display: 'grid',
-                                                gridTemplateColumns: (predictionType === 'double-chance' || predictionType === '1x2-first-half') ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)',
+                                                gridTemplateColumns: predictionType === '1x2-first-half' ? 'repeat(4, 1fr)' : (predictionType === 'goals' || predictionType === 'btts') ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
                                                 gap: '10px'
                                             }}>
-                                                {renderPredValue(predData.prob1, highest.prob1, false, predData.odds1)}
-                                                {renderPredValue(predData.probX, highest.probX, false, predData.oddsX)}
+                                                {predictionType !== 'double-chance' && renderPredValue(predData.prob1, highest.prob1, false, predData.odds1)}
+                                                {(predictionType !== 'goals' && predictionType !== 'btts') && renderPredValue(predData.probX, highest.probX, false, predData.oddsX)}
                                                 {renderPredValue(predData.prob2, highest.prob2, predictionType === 'correct-score', predData.odds2)}
                                                 {predictionType === 'double-chance' && renderPredValue(predData.prob3, highest.prob3, false, predData.odds3)}
                                                 {predictionType === '1x2-first-half' && renderPredValue(predData.actualHT, false, true)}

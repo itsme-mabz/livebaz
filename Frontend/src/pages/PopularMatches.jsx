@@ -16,6 +16,7 @@ function PopularMatches() {
     const [visibleCount, setVisibleCount] = useState(40);
     const [currentLang, setCurrentLang] = useState('en');
     const [isArabic, setIsArabic] = useState(false);
+    const [showOdds, setShowOdds] = useState(false);
 
     // Detect Language
     useEffect(() => {
@@ -244,6 +245,46 @@ function PopularMatches() {
                         </div>
                     </div>
 
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px', marginLeft: '12px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#4b5563' }}>{replaceTranslation('Odds', currentLang)}</span>
+                        <label style={{
+                            position: 'relative',
+                            display: 'inline-block',
+                            width: '50px',
+                            height: '24px',
+                            cursor: 'pointer'
+                        }}>
+                            <input
+                                type="checkbox"
+                                checked={showOdds}
+                                onChange={() => setShowOdds(!showOdds)}
+                                style={{ opacity: 0, width: 0, height: 0 }}
+                            />
+                            <span style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: showOdds ? '#000' : '#ccc',
+                                borderRadius: '24px',
+                                transition: 'background-color 0.3s'
+                            }}>
+                                <span style={{
+                                    position: 'absolute',
+                                    content: '',
+                                    height: '18px',
+                                    width: '18px',
+                                    left: showOdds ? '29px' : '3px',
+                                    bottom: '3px',
+                                    backgroundColor: '#fff',
+                                    borderRadius: '50%',
+                                    transition: 'left 0.3s'
+                                }}></span>
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="livescore-content">
                         {loading ? (
                             <div className="loading-state">{replaceTranslation('Loading matches...', currentLang)}</div>
@@ -338,7 +379,7 @@ function PopularMatches() {
                                                                         <span className="prob-value">
                                                                             {match.probHome ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probHome)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probHome)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probHome)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -350,7 +391,7 @@ function PopularMatches() {
                                                                         <span className="prob-value">
                                                                             {match.probDraw ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probDraw)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probDraw)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probDraw)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -362,7 +403,7 @@ function PopularMatches() {
                                                                         <span className="prob-value">
                                                                             {match.probAway ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probAway)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probAway)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probAway)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -376,7 +417,7 @@ function PopularMatches() {
                                                                         <span className="prob-value">
                                                                             {match.probHome ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probHome)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probHome)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probHome)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -387,7 +428,7 @@ function PopularMatches() {
                                                                         <span className="prob-value">
                                                                             {match.probDraw ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probDraw)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probDraw)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probDraw)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -398,7 +439,7 @@ function PopularMatches() {
                                                                         <span className="prob-value">
                                                                             {match.probAway ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probAway)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probAway)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probAway)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -409,7 +450,7 @@ function PopularMatches() {
                                                                         <span className="prob-value">
                                                                             {match.probOver ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probOver)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probOver)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probOver)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -420,7 +461,7 @@ function PopularMatches() {
                                                                         <span className="prob-value">
                                                                             {match.probBTTS ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probBTTS)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probBTTS)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probBTTS)}</span>
                                                                                 </>
                                                                             ) : '-'}

@@ -186,7 +186,7 @@ function Navigation() {
     const popularLeagues = fetchedPopularLeagues.filter(league =>
         todayMatches.some(match => match.league_id === league.league_id)
     );
-    const moreLeagues = allLeagues.slice(10, 20);
+    const moreLeagues = []; // No longer showing more leagues
 
     return (
         <>
@@ -243,14 +243,6 @@ function Navigation() {
                                                         </div>
                                                     ))}
                                                 </div>
-                                                <div style={{ flex: 1 }}>
-                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
-                                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                                                            <Skeleton width="24px" height="24px" borderRadius="50%" />
-                                                            <Skeleton width="150px" height="16px" />
-                                                        </div>
-                                                    ))}
-                                                </div>
                                             </div>
                                         </div>
                                     ) : (
@@ -264,14 +256,7 @@ function Navigation() {
                                                 </div>
                                             </li>
 
-                                            <li className="dropdown-submenu__block">
-                                                <div className="dropdown-submenu__subtitle">{replaceTranslation('More Leagues', currentLang)}</div>
-                                                <div className="dropdown-submenu__list top-tournaments">
-                                                    {moreLeagues.map((league) => (
-                                                        <LeagueItem key={league.league_id} league={league} />
-                                                    ))}
-                                                </div>
-                                            </li>
+
                                         </ul>
                                     )}
                                 </div>

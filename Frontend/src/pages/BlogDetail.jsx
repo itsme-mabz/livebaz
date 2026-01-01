@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { fetchBlogBySlug, fetchTrendingBlogs, fetchComments, postComment, deleteComment } from '../Service/BlogService';
 import AuthModal from '../components/AuthModal/AuthModal';
 import { replaceTranslation } from '../utils/translationReplacer.jsx';
+import './BlogDetail.css';
 
 function BlogDetail() {
   const { slug } = useParams();
@@ -58,13 +59,13 @@ function BlogDetail() {
       const expiryTime = payload.exp * 1000;
       const currentTime = Date.now();
       const isExpired = expiryTime < currentTime;
-      
+
       console.log('[TOKEN CHECK]', {
         expiryTime: new Date(expiryTime),
         currentTime: new Date(currentTime),
         isExpired
       });
-      
+
       return isExpired;
     } catch (error) {
       console.error('[TOKEN CHECK] Error parsing token:', error);
@@ -76,7 +77,7 @@ function BlogDetail() {
     // Check if user is logged in
     const token = localStorage.getItem('authToken');
     const userData = localStorage.getItem('user');
-    
+
     if (token && userData) {
       // Check if token is expired
       if (isTokenExpired(token)) {
@@ -86,7 +87,7 @@ function BlogDetail() {
         setUser(null);
         return;
       }
-      
+
       try {
         setUser(JSON.parse(userData));
       } catch (e) {
@@ -154,18 +155,18 @@ function BlogDetail() {
       setSubmitting(true);
       const token = localStorage.getItem('authToken');
       const userData = JSON.parse(localStorage.getItem('user'));
-      
+
       console.log('[COMMENT SUBMIT] Token exists:', !!token);
       console.log('[COMMENT SUBMIT] Token:', token);
-      
+
       if (!token) {
         alert('Please login again.');
         openLoginModal();
         return;
       }
-      
+
       console.log('[COMMENT SUBMIT] Posting comment...');
-      const newComment = await postComment(blog.id, { 
+      const newComment = await postComment(blog.id, {
         content: commentText,
         userName: userData?.Name || user.Name || 'User'
       }, token);
@@ -174,7 +175,7 @@ function BlogDetail() {
       setCommentText('');
     } catch (err) {
       console.error('[COMMENT SUBMIT] Error:', err);
-      
+
       // If token error, clear and prompt login
       if (err.message && (err.message.includes('expired') || err.message.includes('Invalid token'))) {
         localStorage.removeItem('authToken');
@@ -231,7 +232,7 @@ function BlogDetail() {
     // If content is JSON (structured content)
     if (typeof content === 'object') {
       return (
-        <div>
+        <div className="blog-article-content">
           {content.sections?.map((section, index) => (
             <div key={index} style={{ marginBottom: '30px' }}>
               {section.title && <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1a1a1a', marginBottom: '15px' }}>{section.title}</h2>}
@@ -250,7 +251,7 @@ function BlogDetail() {
     }
 
     // If content is HTML string
-    return <div dangerouslySetInnerHTML={{ __html: content }} />;
+    return <div className="blog-article-content" dangerouslySetInnerHTML={{ __html: content }} />;
   };
 
   if (loading) {

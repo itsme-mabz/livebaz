@@ -58,12 +58,18 @@ const GoogleTranslate = () => {
                         },
                         'google_translate_element'
                     );
-                    
+
                     // Force English as default after initialization
                     setTimeout(() => {
                         const select = document.querySelector('.goog-te-combo');
                         if (select && !window.location.pathname.match(/^\/([a-z]{2})(?:\/|$)/)) {
-                            select.value = 'en';
+                            const storedLang = localStorage.getItem('app_language');
+                            if (storedLang && storedLang !== 'en') {
+                                select.value = storedLang;
+                                select.dispatchEvent(new Event('change'));
+                            } else {
+                                select.value = 'en';
+                            }
                         }
                     }, 500);
                 }
@@ -119,6 +125,22 @@ const GoogleTranslate = () => {
             const langCode = Object.keys(LANGUAGE_URL_MAP).find(key => LANGUAGE_URL_MAP[key] === urlCode);
 
             if (langCode) {
+                // Check if we should override 'en' with stored preference
+                if (langCode === 'en') {
+                    const storedLang = localStorage.getItem('app_language');
+                    if (storedLang && storedLang !== 'en') {
+                        langCode = storedLang;
+
+                        // Update URL immediately
+                        const newUrlCode = LANGUAGE_URL_MAP[storedLang];
+                        if (newUrlCode) {
+                            const currentPath = window.location.pathname;
+                            const newPath = `/${newUrlCode}${currentPath === '/' ? '' : currentPath}`;
+                            window.history.replaceState({}, '', newPath);
+                        }
+                    }
+                }
+
                 const lang = LANGUAGES.find(l => l.code === langCode);
                 if (lang) {
                     setSelectedLang(lang);
@@ -160,12 +182,35 @@ const GoogleTranslate = () => {
                     if (lang) setSelectedLang(lang);
                 }
             } else {
-                // If URL is default (no prefix, i.e., English), FORCE widget to stay on English
-                // Ignore any cookie-based language preferences from Google Translate
-                if (select.value !== 'en' && select.value !== '') {
-                    select.value = 'en';
-                    select.dispatchEvent(new Event('change'));
-                    setSelectedLang(LANGUAGES[0]); // English
+                // If URL does not have a language prefix, check local storage
+                const storedLang = localStorage.getItem('app_language');
+
+                if (storedLang && storedLang !== 'en') {
+                    // If user has a stored preference (e.g. 'fa'), Apply it.
+                    if (select.value !== storedLang) {
+                        select.value = storedLang;
+                        select.dispatchEvent(new Event('change'));
+
+                        const lang = LANGUAGES.find(l => l.code === storedLang);
+                        if (lang) setSelectedLang(lang);
+                    }
+
+                    // Update URL to match the stored language (e.g. /pr/...)
+                    // This ensures consistency and preserves the "Source of Truth" model
+                    const urlCode = LANGUAGE_URL_MAP[storedLang];
+                    if (urlCode) {
+                        const currentPath = window.location.pathname;
+                        // Avoid double wrapping if something goes wrong, though regex check above handles it
+                        const newPath = `/${urlCode}${currentPath === '/' ? '' : currentPath}`;
+                        window.history.replaceState({}, '', newPath);
+                    }
+                } else {
+                    // Only force English if there is NO stored preference for another language
+                    if (select.value !== 'en' && select.value !== '') {
+                        select.value = 'en';
+                        select.dispatchEvent(new Event('change'));
+                        setSelectedLang(LANGUAGES[0]); // English
+                    }
                 }
             }
         };

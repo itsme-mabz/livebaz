@@ -6,6 +6,7 @@ import { PredictionsPageSkeleton } from '../components/SkeletonLoader/SkeletonLo
 import { fetchTrendingBlogs } from '../Service/BlogService';
 import { useTimezone } from '../context/TimezoneContext';
 import { convertToLocalTime } from '../utils/timezone';
+import { fetchPopularLeagues } from '../Service/FootballService';
 
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
@@ -36,6 +37,7 @@ function Predictions() {
     const [selectedSport, setSelectedSport] = useState('all');
     const [trendingBlogs, setTrendingBlogs] = useState([]);
     const [blogsLoading, setBlogsLoading] = useState(false);
+    const [popularLeagues, setPopularLeagues] = useState([]);
 
     // Date tabs configuration
     const dateTabs = [
@@ -93,81 +95,98 @@ function Predictions() {
                 return odds.toFixed(2);
             };
 
-            // Transform API response to match component expectations
-            const transformedData = data.map(match => {
-                // Parse all probabilities
-                const probHW = parseProb(match.prob_HW);
-                const probD = parseProb(match.prob_D);
-                const probAW = parseProb(match.prob_AW);
-                const probO = parseProb(match.prob_O);
-                const probU = parseProb(match.prob_U);
-                const probBTS = parseProb(match.prob_bts);
+            // Transform API response to match component expectations and sort by popular leagues
+            const seenMatchIds = new Set();
+            const transformedData = data
+                .filter(match => {
+                    if (seenMatchIds.has(match.match_id)) return false;
+                    seenMatchIds.add(match.match_id);
+                    return true;
+                })
+                .map(match => {
+                    // Parse all probabilities
+                    const probHW = parseProb(match.prob_HW);
+                    const probD = parseProb(match.prob_D);
+                    const probAW = parseProb(match.prob_AW);
+                    const probO = parseProb(match.prob_O);
+                    const probU = parseProb(match.prob_U);
+                    const probBTS = parseProb(match.prob_bts);
 
-                return {
-                    id: match.match_id,
-                    homeTeam: match.match_hometeam_name,
-                    awayTeam: match.match_awayteam_name,
-                    homeTeamBadge: match.team_home_badge || '',
-                    awayTeamBadge: match.team_away_badge || '',
-                    time: match.match_time,
-                    date: match.match_date,
-                    league: match.league_name,
-                    league_id: match.league_id,
-                    country: match.country_name,
-                    status: match.match_status || 'Not Started',
-                    isLive: match.match_live === '1' || match.match_status === 'Live',
-                    predictions: {
-                        '1x2': {
-                            w1: {
-                                prob: probHW,
-                                odds: calcOdds(probHW)
+                    return {
+                        id: match.match_id,
+                        homeTeam: match.match_hometeam_name,
+                        awayTeam: match.match_awayteam_name,
+                        homeTeamBadge: match.team_home_badge || '',
+                        awayTeamBadge: match.team_away_badge || '',
+                        time: match.match_time,
+                        date: match.match_date,
+                        league: match.league_name,
+                        league_id: match.league_id,
+                        country: match.country_name,
+                        status: match.match_status || 'Not Started',
+                        isLive: match.match_live === '1' || match.match_status === 'Live',
+                        isPopular: popularLeagues.some(pl => pl.league_id == match.league_id),
+                        predictions: {
+                            '1x2': {
+                                w1: {
+                                    prob: probHW,
+                                    odds: calcOdds(probHW)
+                                },
+                                draw: {
+                                    prob: probD,
+                                    odds: calcOdds(probD)
+                                },
+                                w2: {
+                                    prob: probAW,
+                                    odds: calcOdds(probAW)
+                                }
                             },
-                            draw: {
-                                prob: probD,
-                                odds: calcOdds(probD)
+                            goals: {
+                                over: {
+                                    prob: probO,
+                                    odds: calcOdds(probO)
+                                },
+                                under: {
+                                    prob: probU,
+                                    odds: calcOdds(probU)
+                                }
                             },
-                            w2: {
-                                prob: probAW,
-                                odds: calcOdds(probAW)
-                            }
-                        },
-                        goals: {
-                            over: {
-                                prob: probO,
-                                odds: calcOdds(probO)
+                            btts: {
+                                yes: {
+                                    prob: probBTS,
+                                    odds: calcOdds(probBTS)
+                                },
+                                no: {
+                                    prob: parseFloat((100 - probBTS).toFixed(2)),
+                                    odds: calcOdds(100 - probBTS)
+                                }
                             },
-                            under: {
-                                prob: probU,
-                                odds: calcOdds(probU)
-                            }
-                        },
-                        btts: {
-                            yes: {
-                                prob: probBTS,
-                                odds: calcOdds(probBTS)
-                            },
-                            no: {
-                                prob: parseFloat((100 - probBTS).toFixed(2)),
-                                odds: calcOdds(100 - probBTS)
-                            }
-                        },
-                        bestTip: (() => {
-                            // Find the highest probability prediction
-                            const tips = [
-                                { type: 'Home Win', probability: probHW, odds: calcOdds(probHW) },
-                                { type: 'Draw', probability: probD, odds: calcOdds(probD) },
-                                { type: 'Away Win', probability: probAW, odds: calcOdds(probAW) },
-                                { type: 'Over 2.5', probability: probO, odds: calcOdds(probO) },
-                                { type: 'Under 2.5', probability: probU, odds: calcOdds(probU) },
-                                { type: 'BTTS Yes', probability: probBTS, odds: calcOdds(probBTS) }
-                            ];
-                            return tips.reduce((best, tip) => tip.probability > best.probability ? tip : best, tips[0]);
-                        })()
-                    }
-                };
+                            bestTip: (() => {
+                                // Find the highest probability prediction
+                                const tips = [
+                                    { type: 'Home Win', probability: probHW, odds: calcOdds(probHW) },
+                                    { type: 'Draw', probability: probD, odds: calcOdds(probD) },
+                                    { type: 'Away Win', probability: probAW, odds: calcOdds(probAW) },
+                                    { type: 'Over 2.5', probability: probO, odds: calcOdds(probO) },
+                                    { type: 'Under 2.5', probability: probU, odds: calcOdds(probU) },
+                                    { type: 'BTTS Yes', probability: probBTS, odds: calcOdds(probBTS) }
+                                ];
+                                return tips.reduce((best, tip) => tip.probability > best.probability ? tip : best, tips[0]);
+                            })()
+                        }
+                    };
+                });
+
+            // Sort by popular leagues
+            const sortedData = [...transformedData].sort((a, b) => {
+                const aIsPopular = popularLeagues.some(pl => pl.league_id == a.league_id);
+                const bIsPopular = popularLeagues.some(pl => pl.league_id == b.league_id);
+                if (aIsPopular && !bIsPopular) return -1;
+                if (!aIsPopular && bIsPopular) return 1;
+                return 0;
             });
 
-            setPredictions(transformedData);
+            setPredictions(sortedData);
 
             // Log successful data fetch
             console.log(`Fetched ${transformedData.length} predictions from ${fromDate} to ${toDate}`);
@@ -196,10 +215,23 @@ function Predictions() {
         }
     };
 
-    // Fetch predictions when date changes
+    // Fetch popular leagues on mount
+    useEffect(() => {
+        const loadPopularLeagues = async () => {
+            try {
+                const leagues = await fetchPopularLeagues();
+                setPopularLeagues(leagues);
+            } catch (error) {
+                console.error('Error loading popular leagues:', error);
+            }
+        };
+        loadPopularLeagues();
+    }, []);
+
+    // Fetch predictions when date changes or popularLeagues changes
     useEffect(() => {
         fetchPredictions();
-    }, [selectedDate, currentTimezone]);
+    }, [selectedDate, currentTimezone, popularLeagues]);
 
     // Fetch trending blogs on mount
     useEffect(() => {
@@ -290,8 +322,56 @@ function Predictions() {
                                                         e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
                                                     }}
                                                 >
+                                                    {prediction.isPopular && (
+                                                        <span style={{
+                                                            position: 'absolute',
+                                                            top: '-10px',
+                                                            left: '50%',
+                                                            transform: 'translateX(-50%)',
+                                                            backgroundColor: '#fbbf24',
+                                                            color: '#000',
+                                                            fontWeight: '900',
+                                                            fontSize: '10px',
+                                                            padding: '4px 14px',
+                                                            borderRadius: '20px',
+                                                            zIndex: 30,
+                                                            boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
+                                                            textTransform: 'uppercase',
+                                                            whiteSpace: 'nowrap',
+                                                            border: '2px solid #fff'
+                                                        }}>
+                                                            {replaceTranslation('POPULAR', currentLang)}
+                                                        </span>
+                                                    )}
                                                     {prediction.isLive && (
-                                                        <span className="popular-icon">{replaceTranslation('LIVE', currentLang)}</span>
+                                                        <span style={{
+                                                            position: 'absolute',
+                                                            top: '100px', // Positioned within the dark header area (which is 140px high)
+                                                            right: '0px',
+
+                                                            backgroundColor: '#ef4444',
+                                                            color: '#fff',
+                                                            fontWeight: '800',
+                                                            fontSize: '10px',
+                                                            padding: '3px 10px',
+                                                            borderRadius: '4px',
+                                                            zIndex: 25,
+                                                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+                                                            textTransform: 'uppercase',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '5px',
+                                                            whiteSpace: 'nowrap'
+                                                        }}>
+                                                            <span style={{
+                                                                width: '6px',
+                                                                height: '6px',
+                                                                backgroundColor: '#fff',
+                                                                borderRadius: '50%',
+                                                                animation: 'pulse 1.5s infinite'
+                                                            }}></span>
+                                                            {replaceTranslation('LIVE', currentLang)}
+                                                        </span>
                                                     )}
                                                     <span className="forecast-item__top fl">
                                                         <div style={{

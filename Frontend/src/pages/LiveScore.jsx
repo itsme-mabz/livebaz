@@ -25,6 +25,7 @@ function LiveScore() {
     const [standingsData, setStandingsData] = useState(null);
     const [visibleCount, setVisibleCount] = useState(40);
     const [isArabic, setIsArabic] = useState(false);
+    const [showOdds, setShowOdds] = useState(false);
     const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
     const [renderKey, setRenderKey] = useState(0);
 
@@ -59,7 +60,7 @@ function LiveScore() {
         const [hours, minutes] = match.match_time.split(':');
         // Adjust from BST to GMT (subtract 1 hour)
         const gmtTime = `${String(parseInt(hours) - 1).padStart(2, '0')}:${minutes}`;
-        
+
         // Use timezone utility to convert to selected timezone
         const converted = convertToLocalTime(match.match_date, gmtTime, currentTimezone);
 
@@ -593,9 +594,16 @@ function LiveScore() {
                 <main className="livescore-main">
                     {/* Header */}
                     <div className="livescore-header">
-                        <h1 className="livescore-title" style={{ display: 'flex', alignItems: 'center' }}>
-                            {replaceTranslation('Live Football Games', currentLang)}
-                        </h1>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                <h1 className="livescore-title" style={{ display: 'flex', alignItems: 'center', margin: 0 }}>
+                                    {replaceTranslation('Live Football Games', currentLang)}
+                                </h1>
+
+                                {/* Odds Toggle Switch */}
+
+                            </div>
+                        </div>
                         <div className="livescore-date-pills">
                             <button
                                 className={`livescore-date-pill ${selectedStatus === 'all' ? 'active' : ''}`}
@@ -660,6 +668,46 @@ function LiveScore() {
                                 </button>
                             )}
                         </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px', marginLeft: '12px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#4b5563' }}>{replaceTranslation('Odds', currentLang)}</span>
+                        <label style={{
+                            position: 'relative',
+                            display: 'inline-block',
+                            width: '50px',
+                            height: '24px',
+                            cursor: 'pointer'
+                        }}>
+                            <input
+                                type="checkbox"
+                                checked={showOdds}
+                                onChange={() => setShowOdds(!showOdds)}
+                                style={{ opacity: 0, width: 0, height: 0 }}
+                            />
+                            <span style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: showOdds ? '#000' : '#ccc',
+                                borderRadius: '24px',
+                                transition: 'background-color 0.3s'
+                            }}>
+                                <span style={{
+                                    position: 'absolute',
+                                    content: '',
+                                    height: '18px',
+                                    width: '18px',
+                                    left: showOdds ? '29px' : '3px',
+                                    bottom: '3px',
+                                    backgroundColor: '#fff',
+                                    borderRadius: '50%',
+                                    transition: 'left 0.3s'
+                                }}></span>
+                            </span>
+                        </label>
                     </div>
 
                     {/* Matches */}
@@ -769,7 +817,7 @@ function LiveScore() {
                                                                         <span className="prob-value">
                                                                             {match.probHome ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probHome)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probHome)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probHome)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -781,7 +829,7 @@ function LiveScore() {
                                                                         <span className="prob-value">
                                                                             {match.probDraw ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probDraw)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probDraw)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probDraw)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -793,7 +841,7 @@ function LiveScore() {
                                                                         <span className="prob-value">
                                                                             {match.probAway ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probAway)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probAway)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probAway)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -808,7 +856,7 @@ function LiveScore() {
                                                                         <span className="prob-value">
                                                                             {match.probHome ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probHome)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probHome)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probHome)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -819,7 +867,7 @@ function LiveScore() {
                                                                         <span className="prob-value">
                                                                             {match.probDraw ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probDraw)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probDraw)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probDraw)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -830,7 +878,7 @@ function LiveScore() {
                                                                         <span className="prob-value">
                                                                             {match.probAway ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probAway)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probAway)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probAway)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -841,7 +889,7 @@ function LiveScore() {
                                                                         <span className="prob-value">
                                                                             {match.probOver ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probOver)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probOver)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probOver)}</span>
                                                                                 </>
                                                                             ) : '-'}
@@ -852,7 +900,7 @@ function LiveScore() {
                                                                         <span className="prob-value">
                                                                             {match.probBTTS ? (
                                                                                 <>
-                                                                                    <span className="prob-odds">{calculateOdds(match.probBTTS)}</span>
+                                                                                    {showOdds && <span className="prob-odds">{calculateOdds(match.probBTTS)}</span>}
                                                                                     <span className="prob-percent">{formatPercentage(match.probBTTS)}</span>
                                                                                 </>
                                                                             ) : '-'}
