@@ -4,8 +4,9 @@ import axios from 'axios';
 import './MatchDetail.css';
 import { MatchDetailSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
 import { convertToLocalTime } from '../utils/timezone';
-import { replaceTranslation, getTranslation } from '../utils/translationReplacer.jsx';
+import { replaceTranslation } from '../utils/translationReplacer.jsx';
 import { useTimezone } from '../context/TimezoneContext';
+
 
 const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
 
@@ -27,18 +28,14 @@ function MatchDetail() {
     const [commentaryOpen, setCommentaryOpen] = useState(false);
     const [timelineOpen, setTimelineOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [currentLang, setCurrentLang] = useState(lang || 'en');
+    const [currentLang, setCurrentLang] = useState('en');
     const { currentTimezone } = useTimezone();
 
-    // Detect language from URL or Google Translate
+    // Detect language from Google Translate widget
     useEffect(() => {
-        if (lang) {
-            setCurrentLang(lang);
-        }
-
         const checkLanguage = () => {
             const select = document.querySelector('.goog-te-combo');
-            if (select && !lang) {
+            if (select) {
                 setCurrentLang(select.value || 'en');
             }
         };
@@ -46,7 +43,9 @@ function MatchDetail() {
         checkLanguage();
         const interval = setInterval(checkLanguage, 500);
         return () => clearInterval(interval);
-    }, [lang]);
+    }, []);
+
+
 
     useEffect(() => {
         const handleResize = () => {
@@ -315,7 +314,7 @@ function MatchDetail() {
     // Helper function to get team position from standings
     const getTeamPosition = (teamId) => {
         const teamStanding = standings.find(standing => standing.team_id === teamId);
-        return teamStanding ? `${teamStanding.overall_league_position} place` : 'N/A';
+        return teamStanding ? `${teamStanding.overall_league_position} ${replaceTranslation('place', currentLang)}` : 'N/A';
     };
 
     // Helper functions to get average odds from odds array
@@ -566,7 +565,7 @@ function MatchDetail() {
                 {/* Match Header */}
                 <div className="match-header" style={{ backgroundImage: `url('https://ratingbet.com/ratingbet_build/img/rb_field_max.de674330.svg')` }}>
                     <div className="match-header-league">
-                        {matchData.league_name} • {matchData.match_round || 'Round'}
+                        {matchData.league_name} • {matchData.match_round || replaceTranslation('Round', currentLang)}
                     </div>
                     <div className="match-header-content">
                         <div className="team home">
@@ -704,7 +703,7 @@ function MatchDetail() {
                                                     <div className="bar-home-wrapper">
                                                         <div className="bar home-bar" style={{ width: `${homePercent}%` }}></div>
                                                     </div>
-                                                    <div className="stat-label">{stat.type}</div>
+                                                    <div className="stat-label">{replaceTranslation(stat.type, currentLang)}</div>
                                                     <div className="bar-away-wrapper">
                                                         <div className="bar away-bar" style={{ width: `${awayPercent}%` }}></div>
                                                     </div>
@@ -1114,7 +1113,7 @@ function MatchDetail() {
                                             const draws = h2h.filter(m => parseInt(m.match_hometeam_score) === parseInt(m.match_awayteam_score)).length;
                                             const awayWins = h2h.length - homeWins - draws;
 
-                                            return `In the last ${h2h.length} encounter(s), ${matchData.match_hometeam_name} won ${homeWins} time(s), ${matchData.match_awayteam_name} have ${awayWins} win(s), and ${draws} ended in a draw.`;
+                                            return `${replaceTranslation('In the last', currentLang)} ${h2h.length} ${replaceTranslation('encounter(s)', currentLang)}, ${matchData.match_hometeam_name} ${replaceTranslation('won', currentLang)} ${homeWins} ${replaceTranslation('time(s)', currentLang)}, ${matchData.match_awayteam_name} ${replaceTranslation('have', currentLang)} ${awayWins} ${replaceTranslation('win(s)', currentLang)}, ${replaceTranslation('and', currentLang)} ${draws} ${replaceTranslation('ended in a draw', currentLang)}.`;
                                         })()}
                                     </p>
                                 </div>

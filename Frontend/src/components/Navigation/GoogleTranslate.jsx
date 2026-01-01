@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import './Navigation.css'; // Ensure CSS is available
+import './Navigation.css';
 import { MdOutlineLanguage } from "react-icons/md";
 
 const LANGUAGE_URL_MAP = {
@@ -175,13 +175,13 @@ const GoogleTranslate = () => {
     }, []);
 
     // Function to trigger the Google Translate change
-    // Function to trigger the Google Translate change
     const changeLanguage = (langCode) => {
         const lang = LANGUAGES.find(l => l.code === langCode);
         if (lang) {
             setSelectedLang(lang);
+            localStorage.setItem('app_language', langCode);
 
-            // Update URL immediately - this is our source of truth
+            // Update URL immediately
             const urlCode = LANGUAGE_URL_MAP[langCode];
             const currentPath = window.location.pathname;
             const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}(?=\/|$)/, '');
@@ -193,9 +193,6 @@ const GoogleTranslate = () => {
         if (select) {
             select.value = langCode;
             select.dispatchEvent(new Event('change'));
-        } else {
-            // If widget isn't ready yet, the useEffect sync will handle it later since we updated the URL
-            console.warn("Google Translate selector not found yet. URL updated, widget will sync shortly.");
         }
         setIsOpen(false);
     };

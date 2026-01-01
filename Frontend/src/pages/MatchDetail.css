@@ -1196,122 +1196,107 @@ td {
 
     .match-header {
         border-radius: 8px;
-        padding: 16px 12px;
+        padding: 12px 8px;
     }
 
     .match-header-league {
-        font-size: 11px;
-        margin-bottom: 12px;
+        font-size: 12px;
+        margin-bottom: 8px;
     }
 
     .match-header-content {
         flex-direction: row;
-        padding: 0 10px;
-        gap: 8px;
-        align-items: center;
+        padding: 0 2px;
+        gap: 1px;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-top: 40px;
     }
 
     .team {
-        flex: 0 0 auto;
+        flex: 1;
         width: auto;
-        gap: 8px;
+        gap: 2px;
+        max-width: 33%;
+        padding-top: 8px;
+        flex-direction: column;
     }
 
     .team.home {
         justify-content: flex-start;
+        align-items: flex-start;
     }
 
     .team.away {
         justify-content: flex-end;
-    }
-
-    .team-logo-header {
-        width: 130px;
-        height: 130px;
-    }
-
-    .team-info h2 {
-        font-size: 14px;
-        margin-bottom: 4px;
-    }
-
-    .team-form {
-        display: none;
-    }
-
-    .team-standing {
-        display: none;
-    }
-
-    .score-board {
-        margin: 0 auto;
-        min-width: 120px;
-        flex-shrink: 0;
-    }
-
-    .score-display {
-        font-size: 36px;
-    }
-
-    .match-meta-top {
-        font-size: 10px;
+        align-items: flex-end;
         flex-direction: column;
-        padding: 0;
-        gap: 16px;
-    }
-
-    .team {
-        width: 100%;
-        justify-content: center !important;
-        text-align: center !important;
-        flex-direction: column !important;
-        gap: 12px;
     }
 
     .team-logo-header {
-        width: 130px;
-        height: 130px;
+        width: 30px;
+        height: 30px;
     }
 
     .team-info h2 {
-        font-size: 16px;
+        font-size: 10px !important;
+        margin-bottom: 1px;
+        line-height: 1.1;
     }
 
     .team-form {
-        justify-content: center !important;
-        gap: 4px;
+        display: flex;
+        gap: 1px;
     }
 
     .form-badge {
-        width: 20px;
-        height: 20px;
-        font-size: 10px;
+        width: 12px;
+        height: 12px;
+        font-size: 7px;
     }
 
     .team-standing {
-        font-size: 11px;
+        font-size: 7px;
     }
 
     .score-board {
-        margin: 10px 0;
-        width: 100%;
-        padding: 16px;
-    }
-
-    .match-meta-top {
-        font-size: 11px;
+        flex: 1;
+        min-width: auto;
+        max-width: 34%;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
     }
 
     .score-display {
-        margin: 12px 0;
+        font-size: 12px;
+        margin: 0;
+    }
+
+    .score-display-detail {
+        gap: 2px;
+        margin-bottom: 0;
+    }
+
+    .score-display-detail .score {
+        font-size: 12px;
+    }
+
+    .match-meta-top {
+        font-size: 6px;
+        margin-bottom: 1px;
     }
 
     .score {
-        font-size: 32px;
+        font-size: 12px;
     }
 
     .match-status {
-        font-size: 11px;
+        font-size: 6px;
+        margin-bottom: 1px;
     }
 
     .match-tabs-nav {

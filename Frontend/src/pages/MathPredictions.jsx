@@ -327,7 +327,7 @@ function MathPredictions() {
         switch (type) {
             case '1x2':
                 return {
-                    template: isMobile ? '45px 120px 1fr 1fr 1fr' : '80px 240px 1fr 1fr 1fr',
+                    template: isMobile ? '35px 90px 1fr 1fr 1fr' : '80px 240px 1fr 1fr 1fr',
                     show1x2: true,
                     showGoals: false,
                     showBTTS: false,
@@ -335,7 +335,7 @@ function MathPredictions() {
                 };
             case 'Goals':
                 return {
-                    template: isMobile ? '45px 120px 1fr 1fr' : '80px 240px 1fr 1fr',
+                    template: isMobile ? '35px 90px 1fr 1fr' : '80px 240px 1fr 1fr',
                     show1x2: false,
                     showGoals: true,
                     showBTTS: false,
@@ -343,7 +343,7 @@ function MathPredictions() {
                 };
             case 'BTTS':
                 return {
-                    template: isMobile ? '45px 120px 1fr 1fr' : '80px 240px 1fr 1fr',
+                    template: isMobile ? '35px 90px 1fr 1fr' : '80px 240px 1fr 1fr',
                     show1x2: false,
                     showGoals: false,
                     showBTTS: true,
@@ -351,7 +351,7 @@ function MathPredictions() {
                 };
             case 'Double chance':
                 return {
-                    template: isMobile ? '45px 120px 1fr 1fr 1fr' : '80px 240px 1fr 1fr 1fr',
+                    template: isMobile ? '35px 90px 1fr 1fr 1fr' : '80px 240px 1fr 1fr 1fr',
                     show1x2: false,
                     showGoals: false,
                     showBTTS: false,
@@ -361,7 +361,7 @@ function MathPredictions() {
             case 'Math':
             default:
                 return {
-                    template: isMobile ? '45px 100px 1fr 1fr 1fr' : '70px 240px 1fr 1fr 1fr 180px',
+                    template: isMobile ? '35px 80px 1fr 1fr 1fr' : '70px 240px 1fr 1fr 1fr 180px',
                     show1x2: true,
                     showGoals: true,
                     showBTTS: true,
