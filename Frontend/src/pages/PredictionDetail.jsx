@@ -4,8 +4,7 @@ import axios from 'axios';
 import './PredictionDetail.css';
 import { MatchDetailSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
 
-const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
-const API_BASE = 'https://apiv3.apifootball.com';
+
 
 function PredictionDetail() {
     const { matchId } = useParams();
@@ -24,29 +23,29 @@ function PredictionDetail() {
         try {
             setLoading(true);
 
-            const matchResponse = await axios.get(`${API_BASE}/?action=get_events&match_id=${matchId}&APIkey=${API_KEY}`);
+            const matchResponse = await axios.get(`/api/v1/football-events/get-events?match_id=${matchId}`);
             if (matchResponse.data && matchResponse.data.length > 0) {
                 const match = matchResponse.data[0];
                 setMatchData(match);
 
-                const predResponse = await axios.get(`${API_BASE}/?action=get_predictions&match_id=${matchId}&APIkey=${API_KEY}`);
+                const predResponse = await axios.get(`/api/v1/football-events/get-predictions?match_id=${matchId}`);
                 if (predResponse.data && predResponse.data.length > 0) {
                     setPredictions(predResponse.data[0]);
                 }
 
                 if (match.match_hometeam_id && match.match_awayteam_id) {
-                    const h2hResponse = await axios.get(`${API_BASE}/?action=get_H2H&firstTeamId=${match.match_hometeam_id}&secondTeamId=${match.match_awayteam_id}&APIkey=${API_KEY}`);
+                    const h2hResponse = await axios.get(`/api/v1/football-events/get-h2h?firstTeamId=${match.match_hometeam_id}&secondTeamId=${match.match_awayteam_id}`);
                     setH2H(h2hResponse.data?.firstTeam_VS_secondTeam || []);
                 }
 
                 if (match.league_id) {
-                    const standingsResponse = await axios.get(`${API_BASE}/?action=get_standings&league_id=${match.league_id}&APIkey=${API_KEY}`);
+                    const standingsResponse = await axios.get(`/api/v1/football-events/get-standings?league_id=${match.league_id}`);
                     const allStandings = standingsResponse.data || [];
                     const homeStanding = allStandings.find(s => s.team_id === match.match_hometeam_id);
                     const awayStanding = allStandings.find(s => s.team_id === match.match_awayteam_id);
                     setStandings({ home: homeStanding, away: awayStanding });
 
-                    const scorersResponse = await axios.get(`${API_BASE}/?action=get_topscorers&league_id=${match.league_id}&APIkey=${API_KEY}`);
+                    const scorersResponse = await axios.get(`/api/v1/football-events/get-topscorers?league_id=${match.league_id}`);
                     setTopScorers(scorersResponse.data?.slice(0, 10) || []);
                 }
             }

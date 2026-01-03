@@ -9,11 +9,14 @@ class WebSocketService {
   }
 
   connect() {
-    const APIkey = '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
-    
     try {
-      this.socket = new WebSocket(`wss://wss.apifootball.com/livescore?APIkey=${APIkey}&timezone=+03:00`);
-      
+      // Connect to local backend WebSocket relay
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = window.location.hostname;
+      const wsPort = '3000'; // Default backend port
+
+      this.socket = new WebSocket(`${wsProtocol}//${wsHost}:${wsPort}`);
+
       this.socket.onopen = () => {
         console.log('WebSocket Connected for live scores');
         this.reconnectAttempts = 0;
@@ -34,8 +37,8 @@ class WebSocketService {
 
       this.socket.onclose = (event) => {
         console.log('WebSocket disconnected:', event.code, event.reason);
-        this.notifySubscribers('disconnected', { 
-          status: 'disconnected', 
+        this.notifySubscribers('disconnected', {
+          status: 'disconnected',
           code: event.code,
           reason: event.reason
         });
@@ -57,14 +60,14 @@ class WebSocketService {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-      
+
       setTimeout(() => {
         this.connect();
       }, this.reconnectDelay * this.reconnectAttempts);
     } else {
       console.error('Max reconnection attempts reached');
-      this.notifySubscribers('maxReconnects', { 
-        message: 'Failed to establish WebSocket connection' 
+      this.notifySubscribers('maxReconnects', {
+        message: 'Failed to establish WebSocket connection'
       });
     }
   }

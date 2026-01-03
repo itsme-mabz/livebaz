@@ -4,7 +4,7 @@ import axios from 'axios';
 import './Leagues.css';
 import { LeaguesGridSkeleton, LeagueAccordionListSkeleton } from '../components/SkeletonLoader/SkeletonLoader';
 
-const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
+
 
 function Leagues() {
     const [allLeagues, setAllLeagues] = useState([]);
@@ -15,7 +15,7 @@ function Leagues() {
     useEffect(() => {
         const fetchLeagues = async () => {
             try {
-                const response = await axios.get(`https://apiv3.apifootball.com/?action=get_leagues&APIkey=${API_KEY}`);
+                const response = await axios.get('/api/v1/football-events/get-leagues');
                 if (Array.isArray(response.data)) {
                     setAllLeagues(response.data);
 

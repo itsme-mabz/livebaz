@@ -8,7 +8,7 @@ import { replaceTranslation } from '../utils/translationReplacer.jsx';
 import { useTimezone } from '../context/TimezoneContext';
 
 
-const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
+
 
 function MatchDetail() {
     const { matchId, lang } = useParams();
@@ -114,7 +114,7 @@ function MatchDetail() {
             const toDate = today.toISOString().split('T')[0];
 
             const response = await axios.get(
-                `https://apiv3.apifootball.com/?action=get_events&team_id=${teamId}&from=${fromDate}&to=${toDate}&APIkey=${API_KEY}`
+                `/api/v1/football-events/get-events?team_id=${teamId}&from=${fromDate}&to=${toDate}`
             );
 
             if (response.data && Array.isArray(response.data)) {
@@ -170,7 +170,7 @@ function MatchDetail() {
         for (const player of allPlayers) {
             try {
                 const response = await axios.get(
-                    `https://apiv3.apifootball.com/?action=get_players&player_id=${player.player_key}&APIkey=${API_KEY}`
+                    `/api/v1/football-events/get-players?player_id=${player.player_key}`
                 );
 
                 if (response.data && response.data.length > 0) {
@@ -194,7 +194,7 @@ function MatchDetail() {
             setLoading(true);
 
             // Fetch match details (events, lineups, stats)
-            const matchResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_events&match_id=${matchId}&APIkey=${API_KEY}`);
+            const matchResponse = await axios.get(`/api/v1/football-events/get-events?match_id=${matchId}`);
             console.log('Match API Response:', matchResponse.data);
             if (matchResponse.data && matchResponse.data.length > 0) {
                 const match = matchResponse.data[0];
@@ -216,7 +216,7 @@ function MatchDetail() {
                 if (match.match_hometeam_id && match.match_awayteam_id) {
                     try {
                         console.log(`Fetching H2H for Home: ${match.match_hometeam_id} vs Away: ${match.match_awayteam_id}`);
-                        const h2hResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_H2H&firstTeamId=${match.match_hometeam_id}&secondTeamId=${match.match_awayteam_id}&APIkey=${API_KEY}`);
+                        const h2hResponse = await axios.get(`/api/v1/football-events/get-h2h?firstTeamId=${match.match_hometeam_id}&secondTeamId=${match.match_awayteam_id}`);
                         console.log('H2H Full Response:', h2hResponse.data);
 
                         if (h2hResponse.data?.firstTeam_VS_secondTeam) {
@@ -240,7 +240,7 @@ function MatchDetail() {
                 // Fetch standings for the league - only if league_id exists and is valid
                 if (match.league_id && match.league_id !== '0' && parseInt(match.league_id) > 0) {
                     try {
-                        const standingsResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_standings&league_id=${match.league_id}&APIkey=${API_KEY}`);
+                        const standingsResponse = await axios.get(`/api/v1/football-events/get-standings?league_id=${match.league_id}`);
                         console.log('Standings API Response for league', match.league_id, ':', standingsResponse.data);
                         console.log('Home Team ID:', match.match_hometeam_id);
                         console.log('Away Team ID:', match.match_awayteam_id);
@@ -262,7 +262,7 @@ function MatchDetail() {
 
                 // Fetch predictions for this match
                 try {
-                    const predictionsResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_predictions&match_id=${matchId}&APIkey=${API_KEY}`);
+                    const predictionsResponse = await axios.get(`/api/v1/football-events/get-predictions?match_id=${matchId}`);
                     if (predictionsResponse.data && predictionsResponse.data.length > 0) {
                         setPredictions(predictionsResponse.data[0]);
                     }
@@ -272,7 +272,7 @@ function MatchDetail() {
 
                 // Fetch odds for this match
                 try {
-                    const oddsResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_odds&match_id=${matchId}&APIkey=${API_KEY}`);
+                    const oddsResponse = await axios.get(`/api/v1/football-events/get-odds?match_id=${matchId}`);
                     if (oddsResponse.data && Array.isArray(oddsResponse.data)) {
                         setOdds(oddsResponse.data);
                     }
@@ -282,7 +282,7 @@ function MatchDetail() {
 
                 // Fetch Commentary
                 try {
-                    const commentaryResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_live_odds_commnets&match_id=${matchId}&APIkey=${API_KEY}`);
+                    const commentaryResponse = await axios.get(`/api/v1/football-events/get-commentary?match_id=${matchId}`);
                     if (commentaryResponse.data && commentaryResponse.data[matchId]) {
                         setCommentary(commentaryResponse.data[matchId].live_comments || []);
                     }
@@ -292,7 +292,7 @@ function MatchDetail() {
 
                 // Fetch Advanced Statistics
                 try {
-                    const statsResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_statistics&match_id=${matchId}&APIkey=${API_KEY}`);
+                    const statsResponse = await axios.get(`/api/v1/football-events/get-statistics?match_id=${matchId}`);
                     if (statsResponse.data && statsResponse.data[matchId]) {
                         setStatistics(statsResponse.data[matchId]);
                     }

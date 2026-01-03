@@ -77,23 +77,52 @@ function AdminDashboard({ initialTab = 'matches' }) {
   const fetchAllItems = async () => {
     setLoadingItems(true);
     try {
-      const token = localStorage.getItem('token');
       let url;
 
       if (activeTab === 'matches') {
-        url = `/api/v1/admin/search/matches?date=${searchDate}`;
+        url = `/api/v1/football-events/get-events?from=${searchDate}&to=${searchDate}`;
       } else {
-        url = `/api/v1/admin/search/leagues`;
+        url = `/api/v1/football-events/get-leagues`;
       }
 
       const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` },
         withCredentials: true
       });
 
-      if (response.data.success) {
-        setAllItems(response.data.data);
-        setFilteredItems(response.data.data); // Initially show all
+      // Data is returned as a raw array from the football-events API
+      const data = Array.isArray(response.data) ? response.data : [];
+
+      if (activeTab === 'matches') {
+        const formattedMatches = data.map(match => ({
+          match_id: match.match_id,
+          home_team: match.match_hometeam_name,
+          away_team: match.match_awayteam_name,
+          league: match.league_name,
+          date: match.match_date,
+          time: match.match_time,
+          home_logo: match.team_home_badge,
+          away_logo: match.team_away_badge,
+          league_id: match.league_id
+        }));
+        setAllItems(formattedMatches);
+        setFilteredItems(formattedMatches);
+      } else {
+        const formattedLeagues = data.map(league => ({
+          league_id: league.league_id,
+          league_name: league.league_name,
+          country: league.country_name,
+          logo: league.league_logo || league.logo || ''
+        }));
+
+        // Sort alphabetically
+        formattedLeagues.sort((a, b) => {
+          const countryCompare = (a.country || '').localeCompare(b.country || '');
+          if (countryCompare !== 0) return countryCompare;
+          return (a.league_name || '').localeCompare(b.league_name || '');
+        });
+
+        setAllItems(formattedLeagues);
+        setFilteredItems(formattedLeagues);
       }
     } catch (error) {
       console.error('Error fetching items:', error);

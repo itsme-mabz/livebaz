@@ -11,7 +11,7 @@ import { LiaTelegramPlane } from "react-icons/lia";
 
 
 
-const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
+
 
 import { replaceTranslation } from '../../utils/translationReplacer.jsx';
 import TimezoneSelector from './TimezoneSelector';
@@ -125,7 +125,7 @@ function Navigation() {
                 const today = new Date().toISOString().split('T')[0];
 
                 // Fetch external leagues (for "More Leagues" - existing logic)
-                const response = await axios.get(`https://apiv3.apifootball.com/?action=get_leagues&APIkey=${API_KEY}`);
+                const response = await axios.get('/api/v1/football-events/get-leagues');
                 if (Array.isArray(response.data)) {
                     setAllLeagues(response.data);
                 }
@@ -137,7 +137,7 @@ function Navigation() {
                 }
 
                 // Fetch today's matches to filter leagues
-                const matchesResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_events&from=${today}&to=${today}&APIkey=${API_KEY}`);
+                const matchesResponse = await axios.get(`/api/v1/football-events/get-events?from=${today}&to=${today}`);
                 if (Array.isArray(matchesResponse.data)) {
                     setTodayMatches(matchesResponse.data);
                 }

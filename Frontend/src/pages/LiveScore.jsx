@@ -7,8 +7,6 @@ import { convertToLocalTime } from '../utils/timezone';
 import { useTimezone } from '../context/TimezoneContext';
 import './LiveScore.css';
 
-const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
-const BASE_URL = 'https://apiv3.apifootball.com';
 
 function LiveScore() {
     const navigate = useNavigate();
@@ -136,7 +134,8 @@ function LiveScore() {
             if (selectedStatus === 'yesterday') fetchDate = yesterday;
             else if (selectedStatus === 'tomorrow') fetchDate = tomorrow;
 
-            let matchUrl = `${BASE_URL}/?action=get_events&from=${fetchDate}&to=${fetchDate}&APIkey=${API_KEY}`;
+            // Use backend proxy for events
+            let matchUrl = `/api/v1/football-events/get-events?from=${fetchDate}&to=${fetchDate}`;
             if (selectedLeagues.size > 0) {
                 matchUrl += `&league_id=${Array.from(selectedLeagues).join(',')}`;
             }
@@ -144,7 +143,7 @@ function LiveScore() {
             // Fetch matches and predictions
             const [matchResponse, predictionResponse] = await Promise.all([
                 axios.get(matchUrl),
-                axios.get(`${BASE_URL}/?action=get_predictions&from=${fetchDate}&to=${fetchDate}&APIkey=${API_KEY}`)
+                axios.get(`/api/v1/football-events/get-predictions?from=${fetchDate}&to=${fetchDate}`)
             ]);
 
             if (matchResponse.data && Array.isArray(matchResponse.data)) {
@@ -215,8 +214,8 @@ function LiveScore() {
             const { yesterday, tomorrow } = getDates();
             try {
                 const [yResp, tResp] = await Promise.all([
-                    axios.get(`${BASE_URL}/?action=get_events&from=${yesterday}&to=${yesterday}&APIkey=${API_KEY}`),
-                    axios.get(`${BASE_URL}/?action=get_events&from=${tomorrow}&to=${tomorrow}&APIkey=${API_KEY}`)
+                    axios.get(`/api/v1/football-events/get-events?from=${yesterday}&to=${yesterday}`),
+                    axios.get(`/api/v1/football-events/get-events?from=${tomorrow}&to=${tomorrow}`)
                 ]);
 
                 setCounts(prev => ({
@@ -365,7 +364,7 @@ function LiveScore() {
         setLoadingStandings(true);
         setShowStandingsModal(true);
         try {
-            const url = `${BASE_URL}/?action=get_standings&league_id=${leagueId}&APIkey=${API_KEY}`;
+            const url = `/api/v1/football-events/get-standings?league_id=${leagueId}`;
             const response = await axios.get(url);
 
             if (response.data && Array.isArray(response.data)) {

@@ -9,8 +9,7 @@ import { convertToLocalTime } from '../utils/timezone';
 import { fetchPopularLeagues } from '../Service/FootballService';
 
 
-const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
-const BASE_URL = 'https://apiv3.apifootball.com';
+
 
 import { replaceTranslation } from '../utils/translationReplacer.jsx';
 
@@ -70,14 +69,13 @@ function Predictions() {
                 toDate = nextWeek.toISOString().split('T')[0];
             }
 
-            const params = {
-                action: 'get_predictions',
-                APIkey: API_KEY,
-                from: fromDate,
-                to: toDate
-            };
-
-            const response = await axios.get(BASE_URL, { params });
+            // Call local backend
+            const response = await axios.get('/api/v1/football-events/get-predictions', {
+                params: {
+                    from: fromDate,
+                    to: toDate
+                }
+            });
 
             // The API returns an array directly, not wrapped in a success object
             const data = Array.isArray(response.data) ? response.data : [];

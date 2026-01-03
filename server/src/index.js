@@ -2,6 +2,7 @@ const app = require("./app.js");
 
 const dotenv = require("dotenv");
 const { connectDB, sequelize } = require("./config/db.js");
+const { initSocket } = require("./socketManager");
 
 dotenv.config();
 
@@ -32,6 +33,9 @@ const server = app.listen(PORT, HOST, () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`Access from other devices: http://192.168.1.40:${PORT}`);
 });
+
+// Initialize WebSocket relay
+initSocket(server);
 
 // handle unhandled promise rejection (commented out to allow server to run without MySQL)
 // process.on("unhandledRejection", (err) => {

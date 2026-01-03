@@ -7,7 +7,7 @@ import { replaceTranslation, getTranslation } from '../utils/translationReplacer
 import { useTimezone } from '../context/TimezoneContext';
 import { convertToLocalTime } from '../utils/timezone';
 
-const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
+
 
 function LeagueDetail() {
     const { leagueId, lang } = useParams();
@@ -60,7 +60,7 @@ function LeagueDetail() {
             console.log('Fetching data for league ID:', leagueId);
 
             // Fetch league info
-            const leaguesResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_leagues&league_id=${leagueId}&APIkey=${API_KEY}`);
+            const leaguesResponse = await axios.get(`/api/v1/football-events/get-leagues?league_id=${leagueId}`);
             console.log('League API Response:', leaguesResponse.data);
 
             if (leaguesResponse.data && Array.isArray(leaguesResponse.data)) {
@@ -82,7 +82,7 @@ function LeagueDetail() {
             }
 
             // Fetch standings
-            const standingsResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_standings&league_id=${leagueId}&APIkey=${API_KEY}`);
+            const standingsResponse = await axios.get(`/api/v1/football-events/get-standings?league_id=${leagueId}`);
             setStandings(Array.isArray(standingsResponse.data) ? standingsResponse.data : []);
 
             // Fetch fixtures (last 30 days to next 30 days)
@@ -90,7 +90,7 @@ function LeagueDetail() {
             const from = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             const to = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-            const fixturesResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_events&from=${from}&to=${to}&league_id=${leagueId}&APIkey=${API_KEY}`);
+            const fixturesResponse = await axios.get(`/api/v1/football-events/get-events?from=${from}&to=${to}&league_id=${leagueId}`);
             const fixturesData = Array.isArray(fixturesResponse.data) ? fixturesResponse.data : [];
             setFixtures(fixturesData);
 
@@ -109,15 +109,15 @@ function LeagueDetail() {
             }
 
             // Fetch predictions
-            const predictionsResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_predictions&from=${from}&to=${to}&league_id=${leagueId}&APIkey=${API_KEY}`);
+            const predictionsResponse = await axios.get(`/api/v1/football-events/get-predictions?from=${from}&to=${to}&league_id=${leagueId}`);
             setPredictions(Array.isArray(predictionsResponse.data) ? predictionsResponse.data : []);
 
             // Fetch top scorers
-            const scorersResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_topscorers&league_id=${leagueId}&APIkey=${API_KEY}`);
+            const scorersResponse = await axios.get(`/api/v1/football-events/get-topscorers?league_id=${leagueId}`);
             setTopScorers(Array.isArray(scorersResponse.data) ? scorersResponse.data : []);
 
             // Fetch teams
-            const teamsResponse = await axios.get(`https://apiv3.apifootball.com/?action=get_teams&league_id=${leagueId}&APIkey=${API_KEY}`);
+            const teamsResponse = await axios.get(`/api/v1/football-events/get-teams?league_id=${leagueId}`);
             setTeams(Array.isArray(teamsResponse.data) ? teamsResponse.data : []);
 
             setLoading(false);

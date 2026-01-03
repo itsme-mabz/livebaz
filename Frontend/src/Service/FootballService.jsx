@@ -1,5 +1,5 @@
 // Service/FootballService.js
-const API_KEY = '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
+
 
 // Helper: format date YYYY-MM-DD
 const formatDate = (date) => date.toISOString().split('T')[0];
@@ -17,7 +17,7 @@ const fetchTeamLogos = async (matches) => {
   try {
     const teamIds = Array.from(uniqueTeamIds).join('-');
     if (teamIds) {
-      const res = await fetch(`https://apiv3.apifootball.com/?action=get_teams&team_id=${teamIds}&APIkey=${API_KEY}`);
+      const res = await fetch(`/api/v1/football-events/get-teams?team_id=${teamIds}`);
       const data = await res.json();
       if (Array.isArray(data)) {
         data.forEach(team => {
@@ -52,7 +52,7 @@ export const fetchPopularLeagues = async () => {
             leagueData = {};
           }
         }
-        
+
         const league = {
           league_id: item.item_id,
           league_name: item.item_name,
@@ -76,7 +76,7 @@ export const fetchPopularLeagues = async () => {
 // Fetch live matches - CORRECTED VERSION
 export const fetchLiveMatches = async () => {
   try {
-    const response = await fetch(`https://apiv3.apifootball.com/?action=get_live_odds_commnets&APIkey=${API_KEY}`);
+    const response = await fetch(`/api/v1/football-events/get-live-odds`);
     const liveData = await response.json();
 
     if (liveData && typeof liveData === 'object') {
@@ -169,7 +169,7 @@ export const realTimeLiveMatches = new RealTimeLiveMatches();
 // Fetch predictions
 export const fetchPredictions = async (from, to, leagueId = null) => {
   try {
-    let url = `https://apiv3.apifootball.com/?action=get_predictions&from=${from}&to=${to}&APIkey=${API_KEY}`;
+    let url = `/api/v1/football-events/get-predictions?from=${from}&to=${to}`;
     if (leagueId) url += `&league_id=${leagueId}`;
 
     const response = await fetch(url);
@@ -289,7 +289,7 @@ export class RealTimePredictions {
   }
 
   async fetchPredictions(from, to, leagueId) {
-    let url = `https://apiv3.apifootball.com/?action=get_predictions&from=${from}&to=${to}&APIkey=${API_KEY}`;
+    let url = `/api/v1/football-events/get-predictions?from=${from}&to=${to}`;
     if (leagueId) url += `&league_id=${leagueId}`;
     const response = await fetch(url);
     const data = await response.json();

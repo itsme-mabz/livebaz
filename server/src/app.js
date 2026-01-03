@@ -46,6 +46,18 @@ const blogRoutes = require("./routes/blog.routes");
 const blogAdminRoutes = require("./routes/blog.admin.routes");
 
 const translationRoutes = require("./routes/translation.routes");
+const footballEventsRoutes = require("./routes/football-events-data-route");
+const footballPredictionsRoutes = require("./routes/football-prediction-data-route");
+const footballStandingsRoutes = require("./routes/football-standings-data-route");
+const footballPlayersRoutes = require("./routes/football-players-data-route");
+const footballH2HRoutes = require("./routes/football-h2h-data-route");
+const footballOddsRoutes = require("./routes/football-odds-data-route");
+const footballCommentaryRoutes = require("./routes/football-commentary-data-route");
+const footballStatisticsRoutes = require("./routes/football-statistics-data-route");
+const footballTopScorersRoutes = require("./routes/football-topscorers-data-route");
+const footballLeaguesRoutes = require("./routes/football-leagues-data-route");
+const footballTeamsRoutes = require("./routes/football-teams-data-route");
+const footballLiveOddsRoutes = require("./routes/football-live-odds-data-route");
 
 app.use("/api/v1/user", userRoutes);
 
@@ -62,6 +74,19 @@ app.use("/api/v1/public", publicRoutes);
 app.use("/api/v1", blogRoutes);
 
 app.use("/api/v1/translations", translationRoutes);
+
+app.use("/api/v1/football-events", footballEventsRoutes);
+app.use("/api/v1/football-events", footballPredictionsRoutes);
+app.use("/api/v1/football-events", footballStandingsRoutes);
+app.use("/api/v1/football-events", footballPlayersRoutes);
+app.use("/api/v1/football-events", footballH2HRoutes);
+app.use("/api/v1/football-events", footballOddsRoutes);
+app.use("/api/v1/football-events", footballCommentaryRoutes);
+app.use("/api/v1/football-events", footballStatisticsRoutes);
+app.use("/api/v1/football-events", footballTopScorersRoutes);
+app.use("/api/v1/football-events", footballLiveOddsRoutes);
+app.use("/api/v1/football-events", footballLeaguesRoutes);
+app.use("/api/v1/football-events", footballTeamsRoutes);
 
 // Error Middleware (must be last)
 const errorMiddleware = require("./middleware/error.middleware");

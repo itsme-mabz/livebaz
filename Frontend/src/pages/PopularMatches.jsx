@@ -103,33 +103,33 @@ function PopularMatches() {
 
                     const [matchesResponse, todayPreds, yesterdayPreds, tomorrowPreds] = await Promise.all([
                         axios.get(`/api/v1/public/matches-by-ids?match_ids=${matchIds.join(',')}`),
-                        axios.get(`/api/v1/predictions?from=${today}&to=${today}`).catch(() => ({ data: { success: false, data: [] } })),
-                        axios.get(`/api/v1/predictions?from=${yesterday}&to=${yesterday}`).catch(() => ({ data: { success: false, data: [] } })),
-                        axios.get(`/api/v1/predictions?from=${tomorrow}&to=${tomorrow}`).catch(() => ({ data: { success: false, data: [] } }))
+                        axios.get(`/api/v1/football-events/get-predictions?from=${today}&to=${today}`).catch(() => ({ data: [] })),
+                        axios.get(`/api/v1/football-events/get-predictions?from=${yesterday}&to=${yesterday}`).catch(() => ({ data: [] })),
+                        axios.get(`/api/v1/football-events/get-predictions?from=${tomorrow}&to=${tomorrow}`).catch(() => ({ data: [] }))
                     ]);
 
                     if (matchesResponse.data && matchesResponse.data.success) {
                         const allPredictions = [
-                            ...(todayPreds.data?.data || []),
-                            ...(yesterdayPreds.data?.data || []),
-                            ...(tomorrowPreds.data?.data || [])
+                            ...(todayPreds.data || []),
+                            ...(yesterdayPreds.data || []),
+                            ...(tomorrowPreds.data || [])
                         ];
 
                         const predictionsMap = {};
                         allPredictions.forEach(pred => {
-                            predictionsMap[pred.id] = pred.predictions;
+                            predictionsMap[pred.match_id] = pred;
                         });
 
                         const transformed = matchesResponse.data.data.map(match => {
                             const prediction = predictionsMap[match.match_id];
                             return transformMatch({
                                 ...match,
-                                prob_HW: prediction?.['1x2']?.w1?.prob,
-                                prob_D: prediction?.['1x2']?.draw?.prob,
-                                prob_AW: prediction?.['1x2']?.w2?.prob,
-                                prob_O: prediction?.goals?.over?.prob,
-                                prob_U: prediction?.goals?.under?.prob,
-                                prob_BTTS: prediction?.btts?.yes?.prob
+                                prob_HW: prediction?.prob_HW,
+                                prob_D: prediction?.prob_D,
+                                prob_AW: prediction?.prob_AW,
+                                prob_O: prediction?.prob_O,
+                                prob_U: prediction?.prob_U,
+                                prob_BTTS: prediction?.prob_bts
                             });
                         });
 

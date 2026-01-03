@@ -7,8 +7,7 @@ import { replaceTranslation } from '../utils/translationReplacer.jsx';
 import { useTimezone } from '../context/TimezoneContext';
 import { convertToLocalTime } from '../utils/timezone';
 
-const API_KEY = import.meta.env.VITE_APIFOOTBALL_KEY || '8b638d34018a20c11ed623f266d7a7a6a5db7a451fb17038f8f47962c66db43b';
-const API_BASE_URL = 'https://apiv3.apifootball.com';
+
 
 
 function MathPredictions() {
@@ -99,18 +98,13 @@ function MathPredictions() {
                 dateParam = tomorrow.toISOString().split('T')[0];
             }
 
-            const params = {
-                action: 'get_predictions',
-                APIkey: API_KEY,
-                from: dateParam,
-                to: dateParam
-            };
-
-            if (filters.league) {
-                params.league_id = filters.league;
-            }
-
-            const response = await axios.get(API_BASE_URL, { params });
+            const response = await axios.get('/api/v1/football-events/get-predictions', {
+                params: {
+                    from: dateParam,
+                    to: dateParam,
+                    ...(filters.league && { league_id: filters.league })
+                }
+            });
 
             // The API returns an array directly, not wrapped in a success object
             const data = Array.isArray(response.data) ? response.data : [];
@@ -259,7 +253,7 @@ function MathPredictions() {
         } catch (error) {
             console.error('Error fetching predictions:', error);
             console.error('Error details:', error.response?.data);
-            console.error('Request URL:', `${API_BASE_URL}?action=get_predictions&from=${dateParam}&to=${dateParam}`);
+            console.error('Request URL:', `/api/v1/football-events/get-predictions?from=${dateParam}&to=${dateParam}`);
             setPredictions([]);
         } finally {
             setLoading(false);
